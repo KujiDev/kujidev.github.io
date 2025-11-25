@@ -1,4 +1,4 @@
-import { Canvas } from "@react-three/fiber";
+import { Canvas, useFrame } from "@react-three/fiber";
 import { CameraControls, Environment, MeshPortalMaterial, PerspectiveCamera, Text, useCursor } from "@react-three/drei";
 import * as THREE from "three";
 import { useRef, useState } from "react";
@@ -8,7 +8,6 @@ function Frame({ id, name, author, bg, width = 1, height = 1.61803398875, childr
   const [enter, setEnter] = useState(0)
   const [hovered, hover] = useState(false)
   useCursor(hovered)
-  // useFrame((state, dt) => easing.damp(portal.current, 'blend', params?.id === id ? 1 : 0, 0.2, dt))
   return (
     <group {...props}>
       <Text fontSize={0.3} anchorY="top" anchorX="left" lineHeight={0.8} position={[-0.375, 0.715, 0.01]} material-toneMapped={false}>
@@ -47,7 +46,7 @@ export default function App() {
       <Canvas flat camera={{ fov: 75, position: [0, 0, 2] }} eventSource={document.getElementById('root')} eventPrefix="client">
         <CameraControls />
 
-        <Frame id="01" name={"Kuji\nDev"} author="The Cube" bg={"#333"} >
+        <Frame id="01" name={"Kuji\nDev"} author="The Cube" bg={"teal"} >
           <Environment preset="sunset"/>
           <mesh>
             <boxGeometry />
