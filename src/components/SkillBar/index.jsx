@@ -8,6 +8,9 @@ export const Slot = ({ keyBind, active, onMouseDown, onMouseUp, onMouseLeave, on
             onMouseDown={onMouseDown}
             onMouseUp={onMouseUp}
             onMouseLeave={onMouseLeave}
+            onTouchStart={onMouseDown}
+            onTouchEnd={onMouseUp}
+            onTouchCancel={onMouseUp}
             onKeyDown={onKeyDown}
             onKeyUp={onKeyUp}
         >
