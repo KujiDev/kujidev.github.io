@@ -1,7 +1,7 @@
 import { Canvas } from "@react-three/fiber";
 import { CameraControls, Environment, KeyboardControls, useKeyboardControls } from "@react-three/drei";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import Hud from "@/components/Hud";
 import SkillBar, { Slot } from "@/components/SkillBar";
@@ -43,13 +43,50 @@ const Controls = ({ children }) => {
 }
 
 const Button = ({ keyMap, id = 'skill_1' }) => {
-
+  const { handleInput } = usePlayerState();
+  const [pressed, setPressed] = useState(false);
   const keys = keyMap.find(k => k.name === id)?.keys || [];
 
   const skill = useKeyboardControls((state) => state[id]);
 
+  const handlePress = () => {
+    if (!pressed) {
+      setPressed(true);
+      handleInput(id, true);
+    }
+  };
+  
+  const handleRelease = () => {
+    if (pressed) {
+      setPressed(false);
+      handleInput(id, false);
+    }
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handlePress();
+    }
+  };
+
+  const handleKeyUp = (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handleRelease();
+    }
+  };
+
   return (
-    <Slot keyBind={keys.join(', ')} active={skill} />
+    <Slot 
+      keyBind={keys.join(', ')} 
+      active={skill || pressed} 
+      onMouseDown={handlePress}
+      onMouseUp={handleRelease}
+      onMouseLeave={handleRelease}
+      onKeyDown={handleKeyDown}
+      onKeyUp={handleKeyUp}
+    />
   )
 
 }
