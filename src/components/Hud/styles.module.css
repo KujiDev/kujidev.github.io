@@ -9,3 +9,12 @@
     font-family: 'Cinzel', serif;
     z-index: 1;
 }
+
+@media (max-width: 768px) {
+    .hud {
+        bottom: 10px;
+        gap: 12px;
+        transform: translateX(-50%) scale(0.75);
+        transform-origin: bottom center;
+    }
+}

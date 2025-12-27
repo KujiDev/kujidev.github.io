@@ -83,3 +83,47 @@
     inset 0 -4px 8px rgba(0,0,0,0.9),
     0 4px 10px rgba(0,0,0,0.9);
 }
+
+@media (max-width: 768px) {
+  .settings-panel {
+    top: 10px;
+    right: 10px;
+    padding: 10px 16px 12px;
+    gap: 6px;
+    border-radius: 12px;
+    border-width: 2px;
+  }
+
+  .settings-panel::before {
+    inset: 4px;
+    border-radius: 8px;
+  }
+
+  .settings-title {
+    font-size: 12px;
+    letter-spacing: 0.5px;
+  }
+
+  .keybind-list {
+    gap: 6px;
+  }
+
+  .keybind-row {
+    padding: 4px 6px;
+    gap: 8px;
+    border-radius: 6px;
+  }
+
+  .keybind-action {
+    font-size: 10px;
+    letter-spacing: 0.4px;
+  }
+
+  .keybind-key {
+    min-width: 36px;
+    padding: 4px 6px;
+    border-radius: 5px;
+    font-size: 10px;
+    border-width: 1px;
+  }
+}
