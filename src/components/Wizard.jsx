@@ -9,6 +9,8 @@ import { useGraph, useFrame } from '@react-three/fiber'
 import { useGLTF, useAnimations } from '@react-three/drei'
 import { SkeletonUtils } from 'three-stdlib'
 import { usePlayerState } from '@/hooks/usePlayerState'
+import CastingCircle from '@/components/CastingCircle'
+import ShieldEffect from '@/components/ShieldEffect'
 import * as THREE from 'three'
 
 export function Model(props) {
@@ -117,6 +119,8 @@ export function Model(props) {
   return (
     <group ref={group} {...props} dispose={null}>
       <primitive object={clone} />
+      <CastingCircle position={[0, 0.02, 0]} />
+      <ShieldEffect position={[0, 1.0, 0.8]} />
     </group>
   )
 }

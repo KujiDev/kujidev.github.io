@@ -57,14 +57,14 @@ export const ACTIONS = {
       manaRegenBonus: 10, // Additional mana per second
     },
   },
-  SKILL_5: {
-    id: 'skill_5',
-    label: 'Dash',
-    defaultKey: 'ShiftLeft',
-    fsmAction: 'MOVE',
-    displayKey: 'Shift',
-    manaCost: 10,
-  },
+  // SKILL_5: {
+  //   id: 'skill_5',
+  //   label: 'Dash',
+  //   defaultKey: 'ShiftLeft',
+  //   fsmAction: 'MOVE',
+  //   displayKey: 'Shift',
+  //   manaCost: 10,
+  // },
 };
 
 // Generate default keymap from actions

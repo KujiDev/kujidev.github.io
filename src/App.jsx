@@ -141,6 +141,8 @@ const Scene = () => (
       maxPolarAngle={Math.PI / 3}
       minAzimuthAngle={Math.PI / 4}
       maxAzimuthAngle={Math.PI / 4}
+      dollySpeed={0}
+      truckSpeed={0}
     />
 
     <EffectComposer>
