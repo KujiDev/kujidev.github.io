@@ -1,30 +1,75 @@
-import { createContext, useCallback, useContext, useState } from "react";
+import { createContext, useCallback, useContext, useState, useMemo } from "react";
+import { getDefaultKeyMap } from "@/config/actions";
 
-const DEFAULT_KEY_MAP = [
-  { name: 'skill_1', keys: ['KeyQ'] },
-  { name: 'skill_2', keys: ['KeyW'] },
-  { name: 'skill_3', keys: ['KeyE'] },
-  { name: 'skill_4', keys: ['KeyR'] },
-  { name: 'skill_5', keys: ['ShiftLeft'] },
-];
+const STORAGE_KEY = 'player_keymap';
+
+// Load keymap from localStorage or use defaults
+const loadKeyMap = () => {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      return JSON.parse(saved);
+    }
+  } catch (e) {
+    console.warn('Failed to load keymap from storage:', e);
+  }
+  return getDefaultKeyMap();
+};
+
+// Save keymap to localStorage
+const saveKeyMap = (keyMap) => {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(keyMap));
+  } catch (e) {
+    console.warn('Failed to save keymap to storage:', e);
+  }
+};
 
 const KeyMapContext = createContext(null);
 
 export function KeyMapProvider({ children }) {
-  const [keyMap, setKeyMap] = useState(DEFAULT_KEY_MAP);
+  const [keyMap, setKeyMap] = useState(loadKeyMap);
+  const [rebinding, setRebinding] = useState(null); // Currently rebinding action name
 
-  const rebind = useCallback((action) => {
+  // Get the key for a specific action
+  const getKey = useCallback((actionId) => {
+    const binding = keyMap.find(m => m.name === actionId);
+    return binding?.keys[0] || null;
+  }, [keyMap]);
+
+  // Get display-friendly key name
+  const getDisplayKey = useCallback((actionId) => {
+    const key = getKey(actionId);
+    if (!key) return '?';
+    
+    // Convert KeyQ -> Q, ShiftLeft -> Shift, etc.
+    return key
+      .replace('Key', '')
+      .replace('Left', '')
+      .replace('Right', '')
+      .replace('Digit', '');
+  }, [getKey]);
+
+  // Start rebinding process for an action
+  const startRebind = useCallback((actionName) => {
+    setRebinding(actionName);
+    
     return new Promise((resolve) => {
       const handler = (event) => {
         event.preventDefault();
-        setKeyMap((prev) =>
-          prev.map((m) =>
-            m.name === action
+        event.stopPropagation();
+        
+        setKeyMap((prev) => {
+          const newMap = prev.map((m) =>
+            m.name === actionName
               ? { ...m, keys: [event.code] }
               : m
-          )
-        );
+          );
+          saveKeyMap(newMap);
+          return newMap;
+        });
 
+        setRebinding(null);
         window.removeEventListener('keydown', handler);
         resolve(event.code);
       };
@@ -33,8 +78,30 @@ export function KeyMapProvider({ children }) {
     });
   }, []);
 
+  // Cancel current rebind
+  const cancelRebind = useCallback(() => {
+    setRebinding(null);
+  }, []);
+
+  // Reset to defaults
+  const resetToDefaults = useCallback(() => {
+    const defaults = getDefaultKeyMap();
+    setKeyMap(defaults);
+    saveKeyMap(defaults);
+  }, []);
+
+  const value = useMemo(() => ({
+    keyMap,
+    getKey,
+    getDisplayKey,
+    startRebind,
+    cancelRebind,
+    resetToDefaults,
+    rebinding,
+  }), [keyMap, getKey, getDisplayKey, startRebind, cancelRebind, resetToDefaults, rebinding]);
+
   return (
-    <KeyMapContext.Provider value={{ keyMap, rebind }}>
+    <KeyMapContext.Provider value={value}>
       {children}
     </KeyMapContext.Provider>
   );
@@ -47,3 +114,4 @@ export function useKeyMap() {
   }
   return context;
 }
+

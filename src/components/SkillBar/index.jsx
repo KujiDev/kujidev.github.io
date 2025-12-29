@@ -1,18 +1,11 @@
 
 import styles from "./styles.module.css";
 
-export const Slot = ({ keyBind, active, onMouseDown, onMouseUp, onMouseLeave, onKeyDown, onKeyUp }) => {
+export const Slot = ({ keyBind, active, ...handlers }) => {
     return (
         <button 
             className={`${styles["skill-slot"]} ${active ? styles["pressed"] : ""}`}
-            onMouseDown={onMouseDown}
-            onMouseUp={onMouseUp}
-            onMouseLeave={onMouseLeave}
-            onTouchStart={onMouseDown}
-            onTouchEnd={onMouseUp}
-            onTouchCancel={onMouseUp}
-            onKeyDown={onKeyDown}
-            onKeyUp={onKeyUp}
+            {...handlers}
         >
             <span className={styles["key"]}>{keyBind}</span>
         </button>
