@@ -59,13 +59,16 @@ const GameUI = () => {
   return (
     <Hud>
       <Orb type="health" label="Health" />
-      <SkillBar>
-        {SKILL_BAR_ACTIONS.map(action => (
-          <SkillButton key={action.id} actionId={action.id} />
-        ))}
-        <Slot keyBind="LMB" />
-        <Slot keyBind="RMB" />
-      </SkillBar>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+        <Settings />
+        <SkillBar>
+          {SKILL_BAR_ACTIONS.map(action => (
+            <SkillButton key={action.id} actionId={action.id} />
+          ))}
+          <Slot keyBind="LMB" />
+          <Slot keyBind="RMB" />
+        </SkillBar>
+      </div>
       <Orb type="mana" label="Mana" />
     </Hud>
   );
@@ -83,7 +86,6 @@ const GameControls = ({ children }) => {
         {children}
         <KeyboardSync />
         <InputToStateSync />
-        <Settings />
         <GameUI />
       </InputProvider>
     </KeyboardControls>
