@@ -1,20 +1,23 @@
 .hud {
     position: fixed;
-    bottom: 20px;
+    bottom: 24px;
     left: 50%;
     transform: translateX(-50%);
     display: flex;
     align-items: flex-end;
-    gap: 24px;
+    gap: 20px;
     font-family: 'Cinzel', serif;
     z-index: 1;
+    
+    /* Subtle ambient glow under entire HUD */
+    filter: drop-shadow(0 8px 20px rgba(0,0,0,0.5));
 }
 
 @media (max-width: 768px) {
     .hud {
-        bottom: 10px;
-        gap: 12px;
-        transform: translateX(-50%) scale(0.75);
+        bottom: 12px;
+        gap: 10px;
+        transform: translateX(-50%) scale(0.7);
         transform-origin: bottom center;
     }
 }
