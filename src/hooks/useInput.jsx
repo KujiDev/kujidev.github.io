@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, useMemo, useEffect } from "react";
+import { createContext, useContext, useState, useCallback, useMemo, useEffect, useRef } from "react";
 import { useKeyboardControls } from "@react-three/drei";
 import { usePlayerState } from "@/hooks/usePlayerState";
 
@@ -100,57 +100,95 @@ export function useInput() {
 /**
  * Hook for use with skill bar buttons.
  * Returns handlers and state for a specific action.
+ * Handles both touch and mouse input without conflicts.
  */
 export function useActionButton(actionId) {
   const { isActive, pressAction, releaseAction } = useInput();
   const { handleInput } = usePlayerState();
   const keyboardState = useKeyboardControls((state) => state[actionId]);
   
+  // Track if currently in a touch interaction to prevent mouse events from double-firing
+  const isTouchingRef = useRef(false);
+  const pressedRef = useRef(false);
+  
   const active = isActive(actionId) || keyboardState;
 
-  const handlers = useMemo(() => ({
-    onMouseDown: () => {
+  const doPress = useCallback(() => {
+    if (!pressedRef.current) {
+      pressedRef.current = true;
       pressAction(actionId);
       handleInput(actionId, true);
+    }
+  }, [actionId, pressAction, handleInput]);
+
+  const doRelease = useCallback(() => {
+    if (pressedRef.current) {
+      pressedRef.current = false;
+      releaseAction(actionId);
+      handleInput(actionId, false);
+    }
+  }, [actionId, releaseAction, handleInput]);
+
+  const handlers = useMemo(() => ({
+    // Mouse events - only fire if not in touch mode
+    onMouseDown: () => {
+      if (!isTouchingRef.current) {
+        doPress();
+      }
     },
     onMouseUp: () => {
-      releaseAction(actionId);
-      handleInput(actionId, false);
+      if (!isTouchingRef.current) {
+        doRelease();
+      }
     },
     onMouseLeave: () => {
-      releaseAction(actionId);
-      handleInput(actionId, false);
+      if (!isTouchingRef.current) {
+        doRelease();
+      }
     },
+    
+    // Touch events - set touch mode and handle
     onTouchStart: (e) => {
       e.preventDefault();
-      pressAction(actionId);
-      handleInput(actionId, true);
+      e.stopPropagation();
+      isTouchingRef.current = true;
+      doPress();
     },
     onTouchEnd: (e) => {
       e.preventDefault();
-      releaseAction(actionId);
-      handleInput(actionId, false);
+      e.stopPropagation();
+      doRelease();
+      // Reset touch mode after a delay to ignore synthetic mouse events
+      setTimeout(() => {
+        isTouchingRef.current = false;
+      }, 300);
     },
     onTouchCancel: (e) => {
       e.preventDefault();
-      releaseAction(actionId);
-      handleInput(actionId, false);
+      e.stopPropagation();
+      doRelease();
+      setTimeout(() => {
+        isTouchingRef.current = false;
+      }, 300);
     },
+    
+    // Keyboard events for accessibility
     onKeyDown: (e) => {
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
-        pressAction(actionId);
-        handleInput(actionId, true);
+        doPress();
       }
     },
     onKeyUp: (e) => {
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
-        releaseAction(actionId);
-        handleInput(actionId, false);
+        doRelease();
       }
     },
-  }), [actionId, pressAction, releaseAction, handleInput]);
+    
+    // Prevent context menu on long press
+    onContextMenu: (e) => e.preventDefault(),
+  }), [doPress, doRelease]);
 
   return { active, handlers };
 }

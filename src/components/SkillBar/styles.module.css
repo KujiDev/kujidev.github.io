@@ -60,6 +60,14 @@
   position: relative;
   cursor: pointer;
   
+  /* Prevent mobile touch issues */
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  outline: none;
+  
   box-shadow:
     /* Inset depth */
     inset 0 2px 4px rgba(255,255,255,0.08),
