@@ -13,6 +13,7 @@ export const ACTIONS = {
     defaultKey: 'KeyQ',
     fsmAction: 'ATTACK',
     displayKey: 'Q',
+    icon: '/src/assets/icons/ice-shard.svg',
   },
   SKILL_2: {
     id: 'skill_2', 
@@ -20,6 +21,7 @@ export const ACTIONS = {
     defaultKey: 'KeyW',
     fsmAction: 'CAST',
     displayKey: 'W',
+    icon: '/src/assets/icons/meteor.svg',
   },
   SKILL_3: {
     id: 'skill_3',
@@ -27,6 +29,7 @@ export const ACTIONS = {
     defaultKey: 'KeyE',
     fsmAction: 'MOVE',
     displayKey: 'E',
+    icon: '/src/assets/icons/arcane-rush.svg',
   },
   SKILL_4: {
     id: 'skill_4',

@@ -12,7 +12,7 @@ import Settings from "@/components/Settings";
 import { KeyMapProvider, useKeyMap } from "@/hooks/useKeyMap";
 import { PlayerStateProvider, usePlayerState } from "@/hooks/usePlayerState";
 import { InputProvider, KeyboardSync, useActionButton } from "@/hooks/useInput";
-import { SKILL_BAR_ACTIONS } from "@/config/actions";
+import { SKILL_BAR_ACTIONS, getActionById } from "@/config/actions";
 
 /**
  * Syncs keyboard input to player state FSM.
@@ -40,10 +40,12 @@ const InputToStateSync = () => {
 const SkillButton = ({ actionId }) => {
   const { getDisplayKey } = useKeyMap();
   const { active, handlers } = useActionButton(actionId);
+  const action = getActionById(actionId);
   
   return (
     <Slot 
       keyBind={getDisplayKey(actionId)} 
+      icon={action?.icon}
       active={active} 
       {...handlers}
     />

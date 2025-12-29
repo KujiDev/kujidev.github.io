@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Dark background -->
+  <rect width="64" height="64" rx="4" fill="#1a1f2e"/>
+  <rect x="2" y="2" width="60" height="60" rx="3" fill="#0d1117" stroke="#2a3444" stroke-width="1"/>
+  
+  <!-- Ground shadow -->
+  <ellipse cx="32" cy="56" rx="16" ry="3" fill="#4a8fb8" opacity="0.3"/>
+  
+  <!-- Impact crack lines -->
+  <line x1="32" y1="56" x2="18" y2="60" stroke="#5ba4d0" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="32" y1="56" x2="46" y2="60" stroke="#5ba4d0" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="32" y1="56" x2="24" y2="62" stroke="#4a8fb8" stroke-width="1" stroke-linecap="round"/>
+  <line x1="32" y1="56" x2="40" y2="62" stroke="#4a8fb8" stroke-width="1" stroke-linecap="round"/>
+  
+  <!-- Main ice shard - bold clean shape -->
+  <polygon points="32,4 40,28 38,42 32,56 26,42 24,28" fill="#5ba4d0" stroke="#8ed3f7" stroke-width="2" stroke-linejoin="round"/>
+  
+  <!-- Inner highlight -->
+  <polygon points="32,8 36,28 34,40 32,50" fill="#8ed3f7" opacity="0.6"/>
+  
+  <!-- Side shards -->
+  <polygon points="14,20 20,32 14,44" fill="#4a8fb8" stroke="#6ab8e0" stroke-width="1.5" stroke-linejoin="round"/>
+  <polygon points="50,20 44,32 50,44" fill="#4a8fb8" stroke="#6ab8e0" stroke-width="1.5" stroke-linejoin="round"/>
+  
+  <!-- Shard highlights -->
+  <line x1="32" y1="6" x2="32" y2="18" stroke="#c0e8ff" stroke-width="2" stroke-linecap="round"/>
+  <line x1="16" y1="24" x2="16" y2="32" stroke="#8ed3f7" stroke-width="1" stroke-linecap="round"/>
+  <line x1="48" y1="24" x2="48" y2="32" stroke="#8ed3f7" stroke-width="1" stroke-linecap="round"/>
+</svg>

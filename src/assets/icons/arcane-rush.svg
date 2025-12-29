@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Dark background -->
+  <rect width="64" height="64" rx="4" fill="#1a1a2e"/>
+  <rect x="2" y="2" width="60" height="60" rx="3" fill="#0d0d17" stroke="#2a2a44" stroke-width="1"/>
+  
+  <!-- Motion trail lines -->
+  <line x1="6" y1="20" x2="24" y2="20" stroke="#7a5aaa" stroke-width="2" stroke-linecap="round"/>
+  <line x1="4" y1="28" x2="28" y2="28" stroke="#9070c0" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="2" y1="36" x2="30" y2="36" stroke="#a888d8" stroke-width="3" stroke-linecap="round"/>
+  <line x1="4" y1="44" x2="28" y2="44" stroke="#9070c0" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="6" y1="52" x2="24" y2="52" stroke="#7a5aaa" stroke-width="2" stroke-linecap="round"/>
+  
+  <!-- Force field dome -->
+  <path d="M34,8 Q58,16 58,36 Q58,56 34,64" fill="none" stroke="#a888d8" stroke-width="3" stroke-linecap="round"/>
+  
+  <!-- Inner dome lines -->
+  <path d="M36,14 Q52,20 52,36 Q52,52 36,58" fill="none" stroke="#9070c0" stroke-width="2" stroke-linecap="round"/>
+  <path d="M38,20 Q46,24 46,36 Q46,48 38,52" fill="none" stroke="#7a5aaa" stroke-width="1.5" stroke-linecap="round"/>
+  
+  <!-- Shield fill -->
+  <path d="M34,10 Q56,18 56,36 Q56,54 34,62 L34,10" fill="#7a5aaa" opacity="0.15"/>
+  
+  <!-- Energy glow on edge -->
+  <circle cx="54" cy="24" r="3" fill="#c0a8e8" opacity="0.8"/>
+  <circle cx="56" cy="36" r="2.5" fill="#d0b8f0" opacity="0.9"/>
+  <circle cx="54" cy="48" r="3" fill="#c0a8e8" opacity="0.8"/>
+  
+  <!-- Bright leading edge highlight -->
+  <path d="M56,28 Q60,32 60,36 Q60,40 56,44" fill="none" stroke="#e0d0ff" stroke-width="2" stroke-linecap="round"/>
+  
+  <!-- Trail particles -->
+  <circle cx="16" cy="24" r="2" fill="#7a5aaa" opacity="0.7"/>
+  <circle cx="12" cy="36" r="2.5" fill="#9070c0" opacity="0.6"/>
+  <circle cx="16" cy="48" r="2" fill="#7a5aaa" opacity="0.7"/>
+  <circle cx="8" cy="32" r="1.5" fill="#6a4a9a" opacity="0.5"/>
+  <circle cx="8" cy="40" r="1.5" fill="#6a4a9a" opacity="0.5"/>
+</svg>
