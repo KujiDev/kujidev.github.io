@@ -6,6 +6,7 @@ import { useEffect } from "react";
 import Hud from "@/components/Hud";
 import SkillBar, { Slot } from "@/components/SkillBar";
 import Orb from "@/components/Orb";
+import CastingBar from "@/components/CastingBar";
 import { Model as Wizard } from "@/components/Wizard";
 import Settings from "@/components/Settings";
 
@@ -59,7 +60,8 @@ const GameUI = () => {
   return (
     <Hud>
       <Orb type="health" label="Health" />
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', position: 'relative' }}>
+        <CastingBar />
         <Settings />
         <SkillBar>
           {SKILL_BAR_ACTIONS.map(action => (

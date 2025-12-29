@@ -13,7 +13,7 @@ import arcaneRushIcon from '@/assets/icons/arcane-rush.svg';
 export const ACTIONS = {
   SKILL_1: {
     id: 'skill_1',
-    label: 'Attack',
+    label: 'Ice Shard',
     defaultKey: 'KeyQ',
     fsmAction: 'ATTACK',
     displayKey: 'Q',
@@ -21,7 +21,7 @@ export const ACTIONS = {
   },
   SKILL_2: {
     id: 'skill_2', 
-    label: 'Cast',
+    label: 'Meteor',
     defaultKey: 'KeyW',
     fsmAction: 'CAST',
     displayKey: 'W',
@@ -29,7 +29,7 @@ export const ACTIONS = {
   },
   SKILL_3: {
     id: 'skill_3',
-    label: 'Move',
+    label: 'Arcane Rush',
     defaultKey: 'KeyE',
     fsmAction: 'MOVE',
     displayKey: 'E',

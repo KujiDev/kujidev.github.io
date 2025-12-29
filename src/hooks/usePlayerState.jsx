@@ -1,4 +1,4 @@
-import { createContext, useContext, useReducer, useCallback, useMemo, useEffect, useRef } from "react";
+import { createContext, useContext, useReducer, useCallback, useMemo, useEffect, useRef, useState } from "react";
 import { getFsmAction } from "@/config/actions";
 
 // States
@@ -30,11 +30,17 @@ const transitions = {
   [STATES.CASTING]: {
     FINISH: STATES.IDLE,
     CANCEL: STATES.IDLE,
+    CAST: STATES.CASTING,    // Allow interrupting with another cast
+    ATTACK: STATES.ATTACKING, // Allow interrupting with attack
+    MOVE: STATES.MOVING,      // Allow canceling with movement
     DIE: STATES.DEAD,
   },
   [STATES.ATTACKING]: {
     FINISH: STATES.IDLE,
     CANCEL: STATES.IDLE,
+    CAST: STATES.CASTING,    // Allow interrupting with cast
+    ATTACK: STATES.ATTACKING, // Allow interrupting with another attack
+    MOVE: STATES.MOVING,      // Allow canceling with movement
     DIE: STATES.DEAD,
   },
   [STATES.MOVING]: {
@@ -52,21 +58,50 @@ const initialState = {
   current: STATES.IDLE,
   previous: null,
   activeAction: null, // Track which action triggered the current state
+  interruptCounter: 0, // Increments each time an interruption happens
+  interruptedAction: null, // Track which action was interrupted
+  interruptedProgress: 0, // Track progress at time of interruption
 };
 
 function reducer(state, action) {
   if (action.type === 'SET_ACTIVE_ACTION') {
-    return { ...state, activeAction: action.payload };
+    const actionId = action.payload?.actionId;
+    const currentProgress = action.payload?.currentProgress ?? 0;
+    
+    // Check if we're interrupting an existing cast/attack
+    const wasCastingOrAttacking = state.current === STATES.CASTING || state.current === STATES.ATTACKING;
+    const isInterruption = wasCastingOrAttacking && state.activeAction && actionId && actionId !== state.activeAction;
+    
+    return { 
+      ...state, 
+      activeAction: actionId, 
+      interruptCounter: isInterruption ? state.interruptCounter + 1 : state.interruptCounter,
+      interruptedAction: isInterruption ? state.activeAction : state.interruptedAction,
+      interruptedProgress: isInterruption ? currentProgress : state.interruptedProgress,
+    };
+  }
+  
+  if (action.type === 'CLEAR_INTERRUPTED') {
+    return { ...state, interruptedAction: null, interruptedProgress: 0 };
   }
 
   const currentTransitions = transitions[state.current];
   const nextState = currentTransitions?.[action.type];
 
   if (nextState) {
+    // Check if this is an interruption (leaving casting/attacking via movement, not via FINISH)
+    const wasCastingOrAttacking = state.current === STATES.CASTING || state.current === STATES.ATTACKING;
+    const isMovementInterrupt = wasCastingOrAttacking && action.type === 'MOVE';
+    
     return {
       ...state,
       current: nextState,
       previous: state.current,
+      interruptCounter: isMovementInterrupt ? state.interruptCounter + 1 : state.interruptCounter,
+      interruptedAction: isMovementInterrupt ? state.activeAction : state.interruptedAction,
+      interruptedProgress: isMovementInterrupt ? (action.progress ?? state.interruptedProgress) : state.interruptedProgress,
+      // Clear activeAction when finishing/canceling or moving
+      activeAction: (action.type === 'FINISH' || action.type === 'CANCEL' || action.type === 'MOVE') ? null : state.activeAction,
     };
   }
 
@@ -77,7 +112,21 @@ const PlayerStateContext = createContext(null);
 
 export function PlayerStateProvider({ children }) {
   const [state, dispatch] = useReducer(reducer, initialState);
+  const [castProgress, setCastProgressState] = useState(0);
+  const castProgressRef = useRef(0);
   const listenersRef = useRef(new Set());
+  const stateRef = useRef(state.current);
+
+  // Wrapper to update both state and ref
+  const setCastProgress = useCallback((progress) => {
+    castProgressRef.current = progress;
+    setCastProgressState(progress);
+  }, []);
+
+  // Keep refs in sync
+  useEffect(() => {
+    stateRef.current = state.current;
+  }, [state.current]);
 
   // Subscribe to state changes
   const subscribe = useCallback((listener) => {
@@ -101,13 +150,25 @@ export function PlayerStateProvider({ children }) {
     if (!fsmAction) return;
 
     if (isPressed) {
-      dispatch({ type: 'SET_ACTIVE_ACTION', payload: inputName });
-      dispatchAction(fsmAction);
+      // Only update activeAction if the transition is valid
+      const currentTransitions = transitions[stateRef.current] || {};
+      if (fsmAction in currentTransitions) {
+        dispatch({ 
+          type: 'SET_ACTIVE_ACTION', 
+          payload: { 
+            actionId: inputName, 
+            currentProgress: castProgressRef.current 
+          } 
+        });
+        dispatchAction(fsmAction);
+      }
     } else {
-      dispatch({ type: 'SET_ACTIVE_ACTION', payload: null });
-      // On release, try to finish or stop
-      dispatchAction('FINISH');
-      dispatchAction('STOP');
+      // For movement, stop immediately on key release
+      if (fsmAction === 'MOVE') {
+        dispatch({ type: 'SET_ACTIVE_ACTION', payload: { actionId: null, currentProgress: 0 } });
+        dispatchAction('STOP');
+      }
+      // For casting/attacking, let the animation complete (handled in Wizard.jsx)
     }
   }, [dispatchAction]);
 
@@ -126,14 +187,19 @@ export function PlayerStateProvider({ children }) {
     state: state.current,
     previousState: state.previous,
     activeAction: state.activeAction,
+    interruptCounter: state.interruptCounter,
+    interruptedAction: state.interruptedAction,
+    interruptedProgress: state.interruptedProgress,
     animation,
+    castProgress,
+    setCastProgress,
     handleInput,
     dispatchAction,
     subscribe,
     is,
     can,
     STATES,
-  }), [state, animation, handleInput, dispatchAction, subscribe, is, can]);
+  }), [state, animation, castProgress, setCastProgress, handleInput, dispatchAction, subscribe, is, can]);
 
   return (
     <PlayerStateContext.Provider value={value}>

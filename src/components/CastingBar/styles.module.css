@@ -1,0 +1,295 @@
+.casting-bar-container {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 16px;
+  z-index: 10;
+}
+
+/* Shatter overlay - positioned above the new casting bar */
+.shatter-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  pointer-events: none;
+}
+
+.casting-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px 6px 6px;
+  min-width: 200px;
+  
+  /* Dark metal frame like WoW */
+  background: 
+    linear-gradient(180deg, 
+      rgba(35,28,20,0.98) 0%, 
+      rgba(18,14,10,0.98) 50%,
+      rgba(10,8,5,0.98) 100%);
+  
+  border: 2px solid;
+  border-color: #5a4525 #3a2815 #2a180a #4a3520;
+  border-radius: 6px;
+  
+  box-shadow:
+    0 0 30px rgba(0,0,0,0.7),
+    0 6px 20px rgba(0,0,0,0.8),
+    inset 0 1px 0 rgba(255,220,160,0.08),
+    inset 0 -2px 10px rgba(0,0,0,0.6);
+}
+
+/* Inner gold trim */
+.casting-bar::before {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  border-radius: 4px;
+  border: 1px solid rgba(255,200,120,0.1);
+  pointer-events: none;
+}
+
+.skill-icon {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  border-radius: 4px;
+  overflow: hidden;
+  
+  background: 
+    linear-gradient(180deg, #3a3a3a 0%, #1a1a1a 50%, #0a0a0a 100%);
+  border: 1px solid #4a3520;
+  
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.08),
+    inset 0 -2px 6px rgba(0,0,0,0.8);
+}
+
+.skill-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.bar-track {
+  position: relative;
+  flex: 1;
+  height: 18px;
+  min-width: 160px;
+  border-radius: 3px;
+  overflow: hidden;
+  
+  /* Recessed track */
+  background: 
+    linear-gradient(180deg, #0a0806 0%, #151210 50%, #0a0806 100%);
+  border: 1px solid;
+  border-color: #1a1510 #2a2018 #2a2018 #1a1510;
+  
+  box-shadow:
+    inset 0 2px 4px rgba(0,0,0,0.9),
+    inset 0 0 8px rgba(0,0,0,0.5);
+}
+
+.bar-fill {
+  position: absolute;
+  top: 1px;
+  left: 1px;
+  bottom: 1px;
+  border-radius: 2px;
+  
+  /* Animated shimmer */
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+/* Casting state - orange/fire */
+.fill-casting {
+  background: 
+    linear-gradient(180deg, 
+      #ffaa40 0%, 
+      #e87020 30%, 
+      #c05010 70%, 
+      #a04008 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255,220,160,0.5),
+    inset 0 -1px 2px rgba(0,0,0,0.4),
+    0 0 10px rgba(255,140,60,0.5);
+}
+
+/* Attacking state - blue/ice */
+.fill-attacking {
+  background: 
+    linear-gradient(180deg, 
+      #60c8f0 0%, 
+      #3090c0 30%, 
+      #2070a0 70%, 
+      #185080 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(200,240,255,0.5),
+    inset 0 -1px 2px rgba(0,0,0,0.4),
+    0 0 10px rgba(80,180,240,0.5);
+}
+
+@keyframes shimmer {
+  0%, 100% { background-position: 0% 0%; }
+  50% { background-position: 100% 0%; }
+}
+
+.bar-spark {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  transform: translateX(-50%);
+  pointer-events: none;
+  
+  background: linear-gradient(180deg, 
+    rgba(255,255,255,0.9) 0%, 
+    rgba(255,220,160,0.6) 50%, 
+    rgba(255,255,255,0.9) 100%);
+  box-shadow: 
+    0 0 8px rgba(255,220,160,0.8),
+    0 0 16px rgba(255,180,80,0.5);
+  
+  opacity: 0.9;
+}
+
+.skill-name {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: #fff;
+  text-shadow: 
+    0 1px 2px rgba(0,0,0,1),
+    0 0 8px rgba(0,0,0,0.8);
+  
+  pointer-events: none;
+}
+
+/* Shatter animation when interrupted */
+.shatter {
+  animation: shatterShake 0.4s ease-out forwards;
+}
+
+@keyframes shatterShake {
+  0% { 
+    transform: translateX(0); 
+    opacity: 1;
+  }
+  10% { transform: translateX(-4px) rotate(-1deg); }
+  20% { transform: translateX(4px) rotate(1deg); }
+  30% { transform: translateX(-3px) rotate(-0.5deg); }
+  40% { transform: translateX(3px) rotate(0.5deg); }
+  50% { transform: translateX(0); opacity: 0.8; }
+  100% { 
+    transform: translateX(0) scale(0.95); 
+    opacity: 0;
+  }
+}
+
+/* Interrupted fill - red/broken */
+.fill-interrupted {
+  background: 
+    linear-gradient(180deg, 
+      #ff4040 0%, 
+      #cc2020 30%, 
+      #991010 70%, 
+      #660808 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255,150,150,0.5),
+    inset 0 -1px 2px rgba(0,0,0,0.4),
+    0 0 10px rgba(255,60,60,0.5);
+  animation: fillFlicker 0.4s ease-out forwards;
+}
+
+@keyframes fillFlicker {
+  0%, 20%, 40% { opacity: 1; }
+  10%, 30% { opacity: 0.5; }
+  100% { opacity: 0; }
+}
+
+/* Shatter fragments container */
+.shatter-fragments {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: visible;
+}
+
+/* Individual fragment pieces */
+.fragment {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: linear-gradient(135deg, #ff6040 0%, #cc3020 100%);
+  border: 1px solid rgba(255,100,80,0.6);
+  border-radius: 2px;
+  box-shadow: 0 0 6px rgba(255,80,60,0.8);
+  
+  /* Start from center */
+  top: 50%;
+  left: 50%;
+  
+  animation: fragmentFly 0.4s ease-out forwards;
+  animation-delay: calc(var(--i) * 0.02s);
+}
+
+@keyframes fragmentFly {
+  0% {
+    transform: translate(-50%, -50%) rotate(0deg) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: 
+      translate(
+        calc(-50% + (var(--i) - 4) * 25px),
+        calc(-50% + (var(--i) * 8px - 30px))
+      ) 
+      rotate(calc(var(--i) * 45deg))
+      scale(0.3);
+    opacity: 0;
+  }
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .casting-bar-container {
+    margin-bottom: 10px;
+  }
+  
+  .casting-bar {
+    min-width: 160px;
+    padding: 4px 8px 4px 4px;
+    gap: 6px;
+    border-radius: 5px;
+  }
+  
+  .skill-icon {
+    width: 22px;
+    height: 22px;
+  }
+  
+  .bar-track {
+    height: 14px;
+    min-width: 120px;
+  }
+  
+  .skill-name {
+    font-size: 8px;
+  }
+  
+  .fragment {
+    width: 6px;
+    height: 6px;
+  }
+}

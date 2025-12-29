@@ -5,7 +5,7 @@ Files: Wizard.gltf [3.3MB] > C:\Repos\Kuji\kujidev.github.io\public\models\Wizar
 */
 
 import React, { useEffect, useRef } from 'react'
-import { useGraph } from '@react-three/fiber'
+import { useGraph, useFrame } from '@react-three/fiber'
 import { useGLTF, useAnimations } from '@react-three/drei'
 import { SkeletonUtils } from 'three-stdlib'
 import { usePlayerState } from '@/hooks/usePlayerState'
@@ -15,11 +15,12 @@ export function Model(props) {
   const group = React.useRef()
   const staffMaterialRef = useRef(null)
   const originalMaterialRef = useRef(null)
+  const currentActionRef = useRef(null)
   const { scene, animations: gltfAnimations } = useGLTF('/models/Wizard-transformed.glb')
   const clone = React.useMemo(() => SkeletonUtils.clone(scene), [scene])
   const { nodes, materials } = useGraph(clone)
   const { actions } = useAnimations(gltfAnimations, clone)
-  const { animation, state, STATES } = usePlayerState()
+  const { animation, state, activeAction, setCastProgress, dispatchAction, STATES } = usePlayerState()
 
   // Store reference to staff mesh and create glow material
   useEffect(() => {
@@ -65,13 +66,45 @@ export function Model(props) {
     const currentAction = actions?.[animation]
     if (!currentAction) return
 
+    // Store reference for progress tracking
+    currentActionRef.current = currentAction
+
     // Fade out all other animations and play the current one
     Object.values(actions).forEach((action) => {
       if (action !== currentAction) action?.fadeOut(0.2)
     })
     
+    // For casting/attacking, play once and don't loop
+    const isCastingOrAttacking = state === STATES.CASTING || state === STATES.ATTACKING
+    if (isCastingOrAttacking) {
+      currentAction.setLoop(THREE.LoopOnce, 1)
+      currentAction.clampWhenFinished = true
+      setCastProgress(0) // Reset progress at start
+    } else {
+      currentAction.setLoop(THREE.LoopRepeat)
+    }
+    
     currentAction.reset().fadeIn(0.2).play()
-  }, [animation, actions])
+  }, [animation, actions, state, activeAction, STATES, setCastProgress])
+
+  // Track animation progress for casting bar and auto-finish
+  useFrame(() => {
+    const action = currentActionRef.current
+    if (!action) return
+
+    // Only track progress for casting/attacking states
+    if (state === STATES.CASTING || state === STATES.ATTACKING) {
+      const duration = action.getClip().duration
+      const time = Math.min(action.time, duration) // Clamp to duration
+      const progress = time / duration
+      setCastProgress(progress)
+      
+      // Auto-finish when animation is complete
+      if (progress >= 0.99) {
+        dispatchAction('FINISH')
+      }
+    }
+  })
 
   return (
     <group ref={group} {...props} dispose={null}>
