@@ -6,6 +6,10 @@
  * - UI display (labels, icons)
  */
 
+import iceShardIcon from '@/assets/icons/ice-shard.svg';
+import meteorIcon from '@/assets/icons/meteor.svg';
+import arcaneRushIcon from '@/assets/icons/arcane-rush.svg';
+
 export const ACTIONS = {
   SKILL_1: {
     id: 'skill_1',
@@ -13,7 +17,7 @@ export const ACTIONS = {
     defaultKey: 'KeyQ',
     fsmAction: 'ATTACK',
     displayKey: 'Q',
-    icon: '/src/assets/icons/ice-shard.svg',
+    icon: iceShardIcon,
   },
   SKILL_2: {
     id: 'skill_2', 
@@ -21,7 +25,7 @@ export const ACTIONS = {
     defaultKey: 'KeyW',
     fsmAction: 'CAST',
     displayKey: 'W',
-    icon: '/src/assets/icons/meteor.svg',
+    icon: meteorIcon,
   },
   SKILL_3: {
     id: 'skill_3',
@@ -29,7 +33,7 @@ export const ACTIONS = {
     defaultKey: 'KeyE',
     fsmAction: 'MOVE',
     displayKey: 'E',
-    icon: '/src/assets/icons/arcane-rush.svg',
+    icon: arcaneRushIcon,
   },
   SKILL_4: {
     id: 'skill_4',
