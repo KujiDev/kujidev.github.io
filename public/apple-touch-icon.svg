@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180">
+  <defs>
+    <!-- Main gold gradient -->
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffd700"/>
+      <stop offset="30%" stop-color="#ffb347"/>
+      <stop offset="70%" stop-color="#cc8800"/>
+      <stop offset="100%" stop-color="#8b6914"/>
+    </linearGradient>
+    
+    <!-- Inner orb glow -->
+    <radialGradient id="orbGlow" cx="50%" cy="40%" r="50%">
+      <stop offset="0%" stop-color="#ff6b35"/>
+      <stop offset="60%" stop-color="#cc3300"/>
+      <stop offset="100%" stop-color="#661100"/>
+    </radialGradient>
+    
+    <!-- Background gradient -->
+    <radialGradient id="bg" cx="50%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#2a2040"/>
+      <stop offset="100%" stop-color="#0d0a15"/>
+    </radialGradient>
+    
+    <!-- Outer glow filter -->
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="180" height="180" rx="36" fill="url(#bg)"/>
+  
+  <!-- Decorative border -->
+  <rect x="6" y="6" width="168" height="168" rx="32" fill="none" stroke="url(#gold)" stroke-width="3" stroke-opacity="0.6"/>
+  <rect x="14" y="14" width="152" height="152" rx="28" fill="none" stroke="#ffd700" stroke-width="1" stroke-opacity="0.2"/>
+  
+  <!-- Central orb/gem -->
+  <circle cx="90" cy="78" r="40" fill="url(#orbGlow)" filter="url(#glow)"/>
+  <ellipse cx="90" cy="68" rx="18" ry="12" fill="rgba(255,255,255,0.25)"/>
+  <circle cx="90" cy="78" r="40" fill="none" stroke="url(#gold)" stroke-width="4"/>
+  
+  <!-- Wizard staff/wand -->
+  <line x1="90" y1="118" x2="90" y2="158" stroke="url(#gold)" stroke-width="10" stroke-linecap="round"/>
+  <circle cx="90" cy="118" r="8" fill="url(#gold)"/>
+  
+  <!-- Corner accents -->
+  <path d="M24 48 L24 24 L48 24" fill="none" stroke="url(#gold)" stroke-width="3" stroke-opacity="0.5" stroke-linecap="round"/>
+  <path d="M156 48 L156 24 L132 24" fill="none" stroke="url(#gold)" stroke-width="3" stroke-opacity="0.5" stroke-linecap="round"/>
+  <path d="M24 132 L24 156 L48 156" fill="none" stroke="url(#gold)" stroke-width="3" stroke-opacity="0.5" stroke-linecap="round"/>
+  <path d="M156 132 L156 156 L132 156" fill="none" stroke="url(#gold)" stroke-width="3" stroke-opacity="0.5" stroke-linecap="round"/>
+  
+  <!-- Magical particles -->
+  <circle cx="45" cy="90" r="4" fill="#ffd700" opacity="0.6"/>
+  <circle cx="135" cy="90" r="4" fill="#ffd700" opacity="0.6"/>
+  <circle cx="56" cy="56" r="3" fill="#ff6b35" opacity="0.5"/>
+  <circle cx="124" cy="56" r="3" fill="#ff6b35" opacity="0.5"/>
+  <circle cx="40" cy="130" r="2" fill="#ffd700" opacity="0.4"/>
+  <circle cx="140" cy="130" r="2" fill="#ffd700" opacity="0.4"/>
+</svg>
