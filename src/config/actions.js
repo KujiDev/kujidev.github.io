@@ -9,6 +9,7 @@
 import iceShardIcon from '@/assets/icons/ice-shard.svg';
 import meteorIcon from '@/assets/icons/meteor.svg';
 import arcaneRushIcon from '@/assets/icons/arcane-rush.svg';
+import manaBodyIcon from '@/assets/icons/mana-body.svg';
 
 export const ACTIONS = {
   SKILL_1: {
@@ -41,11 +42,20 @@ export const ACTIONS = {
   },
   SKILL_4: {
     id: 'skill_4',
-    label: 'Special',
+    label: 'Mana Body',
     defaultKey: 'KeyR',
-    fsmAction: 'ATTACK',
+    fsmAction: 'CAST',
     displayKey: 'R',
-    manaCost: 50,
+    icon: manaBodyIcon,
+    healthCost: 25, // Costs health instead of mana
+    manaCost: 0,
+    buff: {
+      id: 'mana_body',
+      name: 'Mana Body',
+      icon: manaBodyIcon,
+      duration: 30, // seconds
+      manaRegenBonus: 10, // Additional mana per second
+    },
   },
   SKILL_5: {
     id: 'skill_5',

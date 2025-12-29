@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Dark background -->
+  <rect width="64" height="64" rx="4" fill="#1a1a2e"/>
+  <rect x="2" y="2" width="60" height="60" rx="3" fill="#0d1117" stroke="#2a3a5a" stroke-width="1"/>
+  
+  <!-- Outer aura glow -->
+  <ellipse cx="32" cy="32" rx="24" ry="26" fill="url(#auraGlow)" opacity="0.4"/>
+  
+  <!-- Body silhouette -->
+  <path d="M32,12 C32,12 24,18 24,28 C24,34 26,38 28,42 L26,52 L32,50 L38,52 L36,42 C38,38 40,34 40,28 C40,18 32,12 32,12 Z" 
+        fill="#1a1a3a" stroke="#4a6090" stroke-width="1.5"/>
+  
+  <!-- Inner mana energy -->
+  <ellipse cx="32" cy="28" rx="8" ry="10" fill="url(#manaCore)" opacity="0.9"/>
+  
+  <!-- Energy veins -->
+  <path d="M32,20 L32,36" stroke="#60a0ff" stroke-width="1.5" stroke-linecap="round" opacity="0.8"/>
+  <path d="M28,24 L32,28 L36,24" stroke="#60a0ff" stroke-width="1" stroke-linecap="round" fill="none" opacity="0.6"/>
+  <path d="M28,32 L32,28 L36,32" stroke="#60a0ff" stroke-width="1" stroke-linecap="round" fill="none" opacity="0.6"/>
+  
+  <!-- Mana particles -->
+  <circle cx="20" cy="22" r="2" fill="#80c0ff" opacity="0.7"/>
+  <circle cx="44" cy="24" r="1.5" fill="#60a0ff" opacity="0.6"/>
+  <circle cx="18" cy="36" r="1.5" fill="#60a0ff" opacity="0.5"/>
+  <circle cx="46" cy="38" r="2" fill="#80c0ff" opacity="0.7"/>
+  <circle cx="24" cy="46" r="1" fill="#40a0ff" opacity="0.5"/>
+  <circle cx="40" cy="44" r="1.5" fill="#60a0ff" opacity="0.6"/>
+  
+  <!-- Heart symbol (health cost indicator) -->
+  <path d="M32,50 L30,48 C28,46 26,44 26,42 C26,40 27.5,39 29,39 C30,39 31,39.5 32,40.5 C33,39.5 34,39 35,39 C36.5,39 38,40 38,42 C38,44 36,46 34,48 Z" 
+        fill="#c04040" stroke="#ff6060" stroke-width="0.5" opacity="0.9"/>
+  
+  <!-- Bright core highlight -->
+  <circle cx="32" cy="26" r="3" fill="#a0d0ff" opacity="0.6"/>
+  <circle cx="31" cy="25" r="1.5" fill="#ffffff" opacity="0.5"/>
+  
+  <!-- Defs for gradients -->
+  <defs>
+    <radialGradient id="auraGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#60a0ff"/>
+      <stop offset="100%" stop-color="#60a0ff" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="manaCore" cx="50%" cy="40%" r="50%">
+      <stop offset="0%" stop-color="#a0d0ff"/>
+      <stop offset="50%" stop-color="#4080ff"/>
+      <stop offset="100%" stop-color="#2040a0"/>
+    </radialGradient>
+  </defs>
+</svg>

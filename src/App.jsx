@@ -7,6 +7,7 @@ import Hud from "@/components/Hud";
 import SkillBar, { Slot } from "@/components/SkillBar";
 import Orb from "@/components/Orb";
 import CastingBar from "@/components/CastingBar";
+import BuffBar from "@/components/BuffBar";
 import { Model as Wizard } from "@/components/Wizard";
 import Settings from "@/components/Settings";
 
@@ -41,14 +42,21 @@ const InputToStateSync = () => {
 const SkillButton = ({ actionId }) => {
   const { getDisplayKey } = useKeyMap();
   const { active, handlers } = useActionButton(actionId);
-  const { mana } = usePlayerState();
+  const { mana, health } = usePlayerState();
   const action = getActionById(actionId);
   
-  // Check if we have enough mana (upfront cost or manaPerSecond for channeled abilities)
+  // Check if we have enough resources
   const manaCost = action?.manaCost ?? 0;
+  const healthCost = action?.healthCost ?? 0;
   const manaPerSecond = action?.manaPerSecond ?? 0;
+  
+  // For mana: need upfront cost OR at least 1 for channeled
   const requiredMana = manaCost > 0 ? manaCost : manaPerSecond > 0 ? 1 : 0;
-  const disabled = mana < requiredMana;
+  // For health: need more than the cost (can't kill yourself)
+  const hasEnoughMana = mana >= requiredMana;
+  const hasEnoughHealth = healthCost > 0 ? health > healthCost : true;
+  
+  const disabled = !hasEnoughMana || !hasEnoughHealth;
   
   return (
     <Slot 
@@ -69,6 +77,7 @@ const GameUI = () => {
     <Hud>
       <Orb type="health" label="Health" />
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', position: 'relative' }}>
+        <BuffBar />
         <CastingBar />
         <Settings />
         <SkillBar>

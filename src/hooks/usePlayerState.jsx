@@ -13,8 +13,10 @@ const shouldKeepActiveAction = (actionType, activeActionId) => {
 
 // Resource constants
 const MAX_MANA = 100;
+const MAX_HEALTH = 100;
 const MANA_REGEN_RATE = 5; // Mana per second
-const MANA_REGEN_INTERVAL = 100; // ms
+const HEALTH_REGEN_RATE = 2; // Health per second
+const REGEN_INTERVAL = 100; // ms
 
 // States
 export const STATES = {
@@ -73,6 +75,7 @@ const initialState = {
   current: STATES.IDLE,
   previous: null,
   activeAction: null, // Track which action triggered the current state
+  completedAction: null, // Track the action that just completed (for applying buffs)
   interruptCounter: 0, // Increments each time an interruption happens
   interruptedAction: null, // Track which action was interrupted
   interruptedProgress: 0, // Track progress at time of interruption
@@ -99,6 +102,10 @@ function reducer(state, action) {
   if (action.type === 'CLEAR_INTERRUPTED') {
     return { ...state, interruptedAction: null, interruptedProgress: 0 };
   }
+  
+  if (action.type === 'CLEAR_COMPLETED') {
+    return { ...state, completedAction: null };
+  }
 
   const currentTransitions = transitions[state.current];
   const nextState = currentTransitions?.[action.type];
@@ -107,11 +114,14 @@ function reducer(state, action) {
     // Check if this is an interruption (leaving casting/attacking via movement, not via FINISH)
     const wasCastingOrAttacking = state.current === STATES.CASTING || state.current === STATES.ATTACKING;
     const isMovementInterrupt = wasCastingOrAttacking && action.type === 'MOVE';
+    const isFinish = action.type === 'FINISH';
     
     return {
       ...state,
       current: nextState,
       previous: state.current,
+      // Capture completed action on FINISH for buff application
+      completedAction: isFinish ? state.activeAction : null,
       interruptCounter: isMovementInterrupt ? state.interruptCounter + 1 : state.interruptCounter,
       interruptedAction: isMovementInterrupt ? state.activeAction : state.interruptedAction,
       interruptedProgress: isMovementInterrupt ? (action.progress ?? state.interruptedProgress) : state.interruptedProgress,
@@ -133,8 +143,12 @@ export function PlayerStateProvider({ children }) {
   const [state, dispatch] = useReducer(reducer, initialState);
   const [castProgress, setCastProgressState] = useState(0);
   const [mana, setMana] = useState(MAX_MANA);
+  const [health, setHealth] = useState(MAX_HEALTH);
+  const [buffs, setBuffs] = useState([]); // Array of { id, name, icon, expiresAt, duration }
   const castProgressRef = useRef(0);
   const manaRef = useRef(MAX_MANA);
+  const healthRef = useRef(MAX_HEALTH);
+  const buffsRef = useRef([]);
   const listenersRef = useRef(new Set());
   const stateRef = useRef(state.current);
   const activeActionRef = useRef(null);
@@ -151,20 +165,45 @@ export function PlayerStateProvider({ children }) {
     manaRef.current = mana;
   }, [mana]);
 
+  // Keep health ref in sync
+  useEffect(() => {
+    healthRef.current = health;
+  }, [health]);
+
+  // Keep buffs ref in sync
+  useEffect(() => {
+    buffsRef.current = buffs;
+  }, [buffs]);
+
   // Keep activeAction ref in sync
   useEffect(() => {
     activeActionRef.current = state.activeAction;
   }, [state.activeAction]);
 
-  // Mana regeneration and drain
+  // Calculate bonus mana regen from buffs
+  const getBuffManaRegenBonus = useCallback(() => {
+    let bonus = 0;
+    const now = Date.now();
+    for (const buff of buffsRef.current) {
+      if (buff.expiresAt > now && buff.manaRegenBonus) {
+        bonus += buff.manaRegenBonus;
+      }
+    }
+    return bonus;
+  }, []);
+
+  // Mana and health regeneration
   useEffect(() => {
     const interval = setInterval(() => {
+      const tickSeconds = REGEN_INTERVAL / 1000;
+      
+      // Mana regen
       setMana(current => {
-        const tickSeconds = MANA_REGEN_INTERVAL / 1000;
         let newMana = current;
         
-        // Always regen mana
-        newMana += MANA_REGEN_RATE * tickSeconds;
+        // Base regen + buff bonus
+        const totalRegen = MANA_REGEN_RATE + getBuffManaRegenBonus();
+        newMana += totalRegen * tickSeconds;
         
         // If we have an active action with manaPerSecond, drain it
         if (activeActionRef.current) {
@@ -182,10 +221,18 @@ export function PlayerStateProvider({ children }) {
         
         return newMana;
       });
-    }, MANA_REGEN_INTERVAL);
+      
+      // Health regen
+      setHealth(current => {
+        let newHealth = current + (HEALTH_REGEN_RATE * tickSeconds);
+        newHealth = Math.max(0, Math.min(MAX_HEALTH, newHealth));
+        healthRef.current = newHealth;
+        return newHealth;
+      });
+    }, REGEN_INTERVAL);
     
     return () => clearInterval(interval);
-  }, []);
+  }, [getBuffManaRegenBonus]);
 
   // Stop movement if mana runs out during a manaPerSecond ability
   useEffect(() => {
@@ -199,6 +246,23 @@ export function PlayerStateProvider({ children }) {
     }
   }, [mana, state.current, state.activeAction]);
 
+  // Buff expiration tick
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const now = Date.now();
+      setBuffs(current => {
+        const active = current.filter(b => b.expiresAt > now);
+        if (active.length !== current.length) {
+          buffsRef.current = active;
+          return active;
+        }
+        return current;
+      });
+    }, 100);
+    
+    return () => clearInterval(interval);
+  }, []);
+
   // Spend mana for a skill (returns true if successful)
   const spendMana = useCallback((amount) => {
     if (amount === 0) return true; // No cost, always succeed
@@ -209,6 +273,52 @@ export function PlayerStateProvider({ children }) {
     manaRef.current = Math.max(0, manaRef.current - amount);
     return true;
   }, []);
+
+  // Spend health for a skill (returns true if successful)
+  const spendHealth = useCallback((amount) => {
+    if (amount === 0) return true;
+    if (healthRef.current <= amount) {
+      return false; // Can't kill yourself with health cost
+    }
+    setHealth(current => Math.max(1, current - amount));
+    healthRef.current = Math.max(1, healthRef.current - amount);
+    return true;
+  }, []);
+
+  // Apply a buff
+  const applyBuff = useCallback((buffConfig) => {
+    if (!buffConfig) return;
+    
+    const now = Date.now();
+    const newBuff = {
+      id: buffConfig.id,
+      name: buffConfig.name,
+      icon: buffConfig.icon,
+      duration: buffConfig.duration,
+      expiresAt: now + (buffConfig.duration * 1000),
+      manaRegenBonus: buffConfig.manaRegenBonus || 0,
+    };
+    
+    setBuffs(current => {
+      // Replace existing buff of same id (refresh duration)
+      const filtered = current.filter(b => b.id !== buffConfig.id);
+      const updated = [...filtered, newBuff];
+      buffsRef.current = updated;
+      return updated;
+    });
+  }, []);
+
+  // Apply buff when an action completes successfully
+  useEffect(() => {
+    if (state.completedAction) {
+      const actionConfig = getActionById(state.completedAction);
+      if (actionConfig?.buff) {
+        applyBuff(actionConfig.buff);
+      }
+      // Clear completedAction
+      dispatch({ type: 'CLEAR_COMPLETED' });
+    }
+  }, [state.completedAction, applyBuff]);
 
   // Keep refs in sync
   useEffect(() => {
@@ -247,14 +357,25 @@ export function PlayerStateProvider({ children }) {
       // Only update activeAction if the transition is valid
       const currentTransitions = transitions[stateRef.current] || {};
       if (fsmAction in currentTransitions) {
-        // Check and spend mana
         const actionConfig = getActionById(inputName);
         const manaCost = actionConfig?.manaCost ?? 0;
+        const healthCost = actionConfig?.healthCost ?? 0;
         
-        // spendMana returns false if not enough mana
-        if (!spendMana(manaCost)) {
-          return;
+        // Check and spend health cost first (if any)
+        if (healthCost > 0) {
+          if (!spendHealth(healthCost)) {
+            return;
+          }
         }
+        
+        // Check and spend mana cost
+        if (manaCost > 0) {
+          if (!spendMana(manaCost)) {
+            return;
+          }
+        }
+        
+        // Note: Buffs are applied on action completion (FINISH), not on start
         
         dispatch({ 
           type: 'SET_ACTIVE_ACTION', 
@@ -273,7 +394,7 @@ export function PlayerStateProvider({ children }) {
       }
       // For casting/attacking, let the animation complete (handled in Wizard.jsx)
     }
-  }, [dispatchAction, spendMana]);
+  }, [dispatchAction, spendMana, spendHealth]);
 
   // Try to recast the active action if key is still held and has mana
   // Returns true if recast will happen (caller should NOT dispatch FINISH)
@@ -292,9 +413,16 @@ export function PlayerStateProvider({ children }) {
     
     const actionConfig = getActionById(currentAction);
     const manaCost = actionConfig?.manaCost ?? 0;
+    const healthCost = actionConfig?.healthCost ?? 0;
     
-    // Check if we have enough mana
-    if (!spendMana(manaCost)) return false;
+    // Check and spend health cost first
+    if (healthCost > 0 && !spendHealth(healthCost)) return false;
+    
+    // Check and spend mana cost
+    if (manaCost > 0 && !spendMana(manaCost)) return false;
+    
+    // Note: Buff is applied via completedAction effect when first cast finishes
+    // Recasts don't re-apply the buff (just refresh if they go through FINISH)
     
     // Reset progress and signal a recast by updating activeAction (triggers animation reset)
     setCastProgress(0);
@@ -304,7 +432,7 @@ export function PlayerStateProvider({ children }) {
     });
     
     return true;
-  }, [state.activeAction, spendMana, setCastProgress]);
+  }, [state.activeAction, spendMana, spendHealth, setCastProgress]);
 
   // Check helpers
   const is = useCallback((stateName) => state.current === stateName, [state.current]);
@@ -329,6 +457,9 @@ export function PlayerStateProvider({ children }) {
     setCastProgress,
     mana,
     maxMana: MAX_MANA,
+    health,
+    maxHealth: MAX_HEALTH,
+    buffs,
     handleInput,
     dispatchAction,
     tryRecast,
@@ -336,7 +467,7 @@ export function PlayerStateProvider({ children }) {
     is,
     can,
     STATES,
-  }), [state, animation, castProgress, setCastProgress, mana, handleInput, dispatchAction, tryRecast, subscribe, is, can]);
+  }), [state, animation, castProgress, setCastProgress, mana, health, buffs, handleInput, dispatchAction, tryRecast, subscribe, is, can]);
 
   return (
     <PlayerStateContext.Provider value={value}>
