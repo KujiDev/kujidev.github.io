@@ -1,10 +1,11 @@
 
 import styles from "./styles.module.css";
 
-export const Slot = ({ keyBind, icon, active, ...handlers }) => {
+export const Slot = ({ keyBind, icon, active, disabled, ...handlers }) => {
     return (
         <button 
-            className={`${styles["skill-slot"]} ${active ? styles["pressed"] : ""}`}
+            className={`${styles["skill-slot"]} ${active ? styles["pressed"] : ""} ${disabled ? styles["disabled"] : ""}`}
+            disabled={disabled}
             {...handlers}
         >
             {icon && <img src={icon} alt="" className={styles["skill-icon"]} />}

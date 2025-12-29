@@ -1,5 +1,20 @@
 import { createContext, useContext, useReducer, useCallback, useMemo, useEffect, useRef, useState } from "react";
-import { getFsmAction } from "@/config/actions";
+import { getFsmAction, getActionById } from "@/config/actions";
+
+// Helper to check if we should keep activeAction during a transition
+const shouldKeepActiveAction = (actionType, activeActionId) => {
+  if (actionType === 'MOVE' && activeActionId) {
+    const actionConfig = getActionById(activeActionId);
+    // Keep activeAction if it's a channeled ability (has manaPerSecond)
+    return actionConfig?.manaPerSecond > 0;
+  }
+  return false;
+};
+
+// Resource constants
+const MAX_MANA = 100;
+const MANA_REGEN_RATE = 5; // Mana per second
+const MANA_REGEN_INTERVAL = 100; // ms
 
 // States
 export const STATES = {
@@ -100,8 +115,12 @@ function reducer(state, action) {
       interruptCounter: isMovementInterrupt ? state.interruptCounter + 1 : state.interruptCounter,
       interruptedAction: isMovementInterrupt ? state.activeAction : state.interruptedAction,
       interruptedProgress: isMovementInterrupt ? (action.progress ?? state.interruptedProgress) : state.interruptedProgress,
-      // Clear activeAction when finishing/canceling or moving
-      activeAction: (action.type === 'FINISH' || action.type === 'CANCEL' || action.type === 'MOVE') ? null : state.activeAction,
+      // Clear activeAction when finishing/canceling, but keep it for channeled movement abilities
+      activeAction: (action.type === 'FINISH' || action.type === 'CANCEL') 
+        ? null 
+        : (action.type === 'MOVE' && !shouldKeepActiveAction('MOVE', state.activeAction)) 
+          ? null 
+          : state.activeAction,
     };
   }
 
@@ -113,14 +132,82 @@ const PlayerStateContext = createContext(null);
 export function PlayerStateProvider({ children }) {
   const [state, dispatch] = useReducer(reducer, initialState);
   const [castProgress, setCastProgressState] = useState(0);
+  const [mana, setMana] = useState(MAX_MANA);
   const castProgressRef = useRef(0);
+  const manaRef = useRef(MAX_MANA);
   const listenersRef = useRef(new Set());
   const stateRef = useRef(state.current);
+  const activeActionRef = useRef(null);
+  const heldInputsRef = useRef(new Set()); // Track which inputs are currently held
 
   // Wrapper to update both state and ref
   const setCastProgress = useCallback((progress) => {
     castProgressRef.current = progress;
     setCastProgressState(progress);
+  }, []);
+
+  // Keep mana ref in sync
+  useEffect(() => {
+    manaRef.current = mana;
+  }, [mana]);
+
+  // Keep activeAction ref in sync
+  useEffect(() => {
+    activeActionRef.current = state.activeAction;
+  }, [state.activeAction]);
+
+  // Mana regeneration and drain
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setMana(current => {
+        const tickSeconds = MANA_REGEN_INTERVAL / 1000;
+        let newMana = current;
+        
+        // Always regen mana
+        newMana += MANA_REGEN_RATE * tickSeconds;
+        
+        // If we have an active action with manaPerSecond, drain it
+        if (activeActionRef.current) {
+          const actionConfig = getActionById(activeActionRef.current);
+          if (actionConfig?.manaPerSecond) {
+            newMana -= actionConfig.manaPerSecond * tickSeconds;
+          }
+        }
+        
+        // Clamp between 0 and max
+        newMana = Math.max(0, Math.min(MAX_MANA, newMana));
+        
+        // Update ref immediately for accurate checks
+        manaRef.current = newMana;
+        
+        return newMana;
+      });
+    }, MANA_REGEN_INTERVAL);
+    
+    return () => clearInterval(interval);
+  }, []);
+
+  // Stop movement if mana runs out during a manaPerSecond ability
+  useEffect(() => {
+    if (state.current === STATES.MOVING && state.activeAction && mana <= 0) {
+      const actionConfig = getActionById(state.activeAction);
+      if (actionConfig?.manaPerSecond) {
+        // Force stop - out of mana
+        dispatch({ type: 'SET_ACTIVE_ACTION', payload: { actionId: null, currentProgress: 0 } });
+        dispatch({ type: 'STOP' });
+      }
+    }
+  }, [mana, state.current, state.activeAction]);
+
+  // Spend mana for a skill (returns true if successful)
+  const spendMana = useCallback((amount) => {
+    if (amount === 0) return true; // No cost, always succeed
+    if (manaRef.current < amount) {
+      return false;
+    }
+    setMana(current => Math.max(0, current - amount));
+    manaRef.current = Math.max(0, manaRef.current - amount);
+    return true;
   }, []);
 
   // Keep refs in sync
@@ -149,10 +236,26 @@ export function PlayerStateProvider({ children }) {
     const fsmAction = getFsmAction(inputName);
     if (!fsmAction) return;
 
+    // Track held state
+    if (isPressed) {
+      heldInputsRef.current.add(inputName);
+    } else {
+      heldInputsRef.current.delete(inputName);
+    }
+
     if (isPressed) {
       // Only update activeAction if the transition is valid
       const currentTransitions = transitions[stateRef.current] || {};
       if (fsmAction in currentTransitions) {
+        // Check and spend mana
+        const actionConfig = getActionById(inputName);
+        const manaCost = actionConfig?.manaCost ?? 0;
+        
+        // spendMana returns false if not enough mana
+        if (!spendMana(manaCost)) {
+          return;
+        }
+        
         dispatch({ 
           type: 'SET_ACTIVE_ACTION', 
           payload: { 
@@ -170,7 +273,38 @@ export function PlayerStateProvider({ children }) {
       }
       // For casting/attacking, let the animation complete (handled in Wizard.jsx)
     }
-  }, [dispatchAction]);
+  }, [dispatchAction, spendMana]);
+
+  // Try to recast the active action if key is still held and has mana
+  // Returns true if recast will happen (caller should NOT dispatch FINISH)
+  const tryRecast = useCallback(() => {
+    const currentAction = state.activeAction;
+    if (!currentAction) return false;
+    
+    // Check if key is still held
+    if (!heldInputsRef.current.has(currentAction)) return false;
+    
+    const fsmAction = getFsmAction(currentAction);
+    if (!fsmAction) return false;
+    
+    // Only recast for CAST and ATTACK actions
+    if (fsmAction !== 'CAST' && fsmAction !== 'ATTACK') return false;
+    
+    const actionConfig = getActionById(currentAction);
+    const manaCost = actionConfig?.manaCost ?? 0;
+    
+    // Check if we have enough mana
+    if (!spendMana(manaCost)) return false;
+    
+    // Reset progress and signal a recast by updating activeAction (triggers animation reset)
+    setCastProgress(0);
+    dispatch({ 
+      type: 'SET_ACTIVE_ACTION', 
+      payload: { actionId: currentAction, currentProgress: 0, isRecast: true } 
+    });
+    
+    return true;
+  }, [state.activeAction, spendMana, setCastProgress]);
 
   // Check helpers
   const is = useCallback((stateName) => state.current === stateName, [state.current]);
@@ -193,13 +327,16 @@ export function PlayerStateProvider({ children }) {
     animation,
     castProgress,
     setCastProgress,
+    mana,
+    maxMana: MAX_MANA,
     handleInput,
     dispatchAction,
+    tryRecast,
     subscribe,
     is,
     can,
     STATES,
-  }), [state, animation, castProgress, setCastProgress, handleInput, dispatchAction, subscribe, is, can]);
+  }), [state, animation, castProgress, setCastProgress, mana, handleInput, dispatchAction, tryRecast, subscribe, is, can]);
 
   return (
     <PlayerStateContext.Provider value={value}>

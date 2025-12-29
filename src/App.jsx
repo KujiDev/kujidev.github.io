@@ -41,13 +41,21 @@ const InputToStateSync = () => {
 const SkillButton = ({ actionId }) => {
   const { getDisplayKey } = useKeyMap();
   const { active, handlers } = useActionButton(actionId);
+  const { mana } = usePlayerState();
   const action = getActionById(actionId);
+  
+  // Check if we have enough mana (upfront cost or manaPerSecond for channeled abilities)
+  const manaCost = action?.manaCost ?? 0;
+  const manaPerSecond = action?.manaPerSecond ?? 0;
+  const requiredMana = manaCost > 0 ? manaCost : manaPerSecond > 0 ? 1 : 0;
+  const disabled = mana < requiredMana;
   
   return (
     <Slot 
       keyBind={getDisplayKey(actionId)} 
       icon={action?.icon}
-      active={active} 
+      active={active}
+      disabled={disabled}
       {...handlers}
     />
   );

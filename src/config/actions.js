@@ -18,6 +18,7 @@ export const ACTIONS = {
     fsmAction: 'ATTACK',
     displayKey: 'Q',
     icon: iceShardIcon,
+    manaCost: 15,
   },
   SKILL_2: {
     id: 'skill_2', 
@@ -26,6 +27,7 @@ export const ACTIONS = {
     fsmAction: 'CAST',
     displayKey: 'W',
     icon: meteorIcon,
+    manaCost: 35,
   },
   SKILL_3: {
     id: 'skill_3',
@@ -34,6 +36,8 @@ export const ACTIONS = {
     fsmAction: 'MOVE',
     displayKey: 'E',
     icon: arcaneRushIcon,
+    manaCost: 0, // No upfront cost
+    manaPerSecond: 15, // Drains mana while active
   },
   SKILL_4: {
     id: 'skill_4',
@@ -41,6 +45,7 @@ export const ACTIONS = {
     defaultKey: 'KeyR',
     fsmAction: 'ATTACK',
     displayKey: 'R',
+    manaCost: 50,
   },
   SKILL_5: {
     id: 'skill_5',
@@ -48,6 +53,7 @@ export const ACTIONS = {
     defaultKey: 'ShiftLeft',
     fsmAction: 'MOVE',
     displayKey: 'Shift',
+    manaCost: 10,
   },
 };
 

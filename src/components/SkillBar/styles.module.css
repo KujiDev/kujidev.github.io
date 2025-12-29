@@ -180,3 +180,23 @@
       0 0 60px rgba(255,140,50,0.3);
   }
 }
+
+/* Disabled state - not enough mana */
+.skill-slot.disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+  filter: saturate(0.3);
+}
+
+.skill-slot.disabled:hover {
+  border-color: #5a4525 #3a2a15 #2a1a0a #4a3520;
+  box-shadow:
+    inset 0 2px 4px rgba(255,255,255,0.08),
+    inset 0 -3px 8px rgba(0,0,0,0.9),
+    0 4px 8px rgba(0,0,0,0.8),
+    0 2px 4px rgba(0,0,0,0.6);
+}
+
+.skill-slot.disabled .skill-icon {
+  filter: grayscale(0.7);
+}

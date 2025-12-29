@@ -16,11 +16,12 @@ export function Model(props) {
   const staffMaterialRef = useRef(null)
   const originalMaterialRef = useRef(null)
   const currentActionRef = useRef(null)
+  const recastCounterRef = useRef(0) // Track recasts to trigger animation reset
   const { scene, animations: gltfAnimations } = useGLTF('/models/Wizard-transformed.glb')
   const clone = React.useMemo(() => SkeletonUtils.clone(scene), [scene])
   const { nodes, materials } = useGraph(clone)
   const { actions } = useAnimations(gltfAnimations, clone)
-  const { animation, state, activeAction, setCastProgress, dispatchAction, STATES } = usePlayerState()
+  const { animation, state, activeAction, setCastProgress, dispatchAction, tryRecast, STATES } = usePlayerState()
 
   // Store reference to staff mesh and create glow material
   useEffect(() => {
@@ -99,9 +100,16 @@ export function Model(props) {
       const progress = time / duration
       setCastProgress(progress)
       
-      // Auto-finish when animation is complete
+      // When animation completes, try to recast or finish
       if (progress >= 0.99) {
-        dispatchAction('FINISH')
+        // tryRecast returns true if recasting (key held + has mana)
+        if (tryRecast()) {
+          // Reset animation for recast - no state change needed
+          action.reset().play()
+          recastCounterRef.current++
+        } else {
+          dispatchAction('FINISH')
+        }
       }
     }
   })
