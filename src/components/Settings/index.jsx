@@ -23,6 +23,10 @@ export default function Settings() {
                     </div>
                 ))}
             </div>
+
+            <button className={styles['reset-button']} onClick={resetToDefaults}>
+                Reset to Defaults
+            </button>
         </div>
     )
 }

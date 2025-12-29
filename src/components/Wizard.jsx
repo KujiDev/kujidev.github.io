@@ -39,14 +39,14 @@ export function Model(props) {
       staffMaterialRef.current.material = new THREE.MeshStandardMaterial({
         color: '#ff6b35',
         emissive: '#ff6b35',
-        emissiveIntensity: 3,
+        emissiveIntensity: 4,
         toneMapped: false,
       })
     } else if (state == STATES.ATTACKING) {
       staffMaterialRef.current.material = new THREE.MeshStandardMaterial({
         color: '#4fc3f7',
         emissive: '#4fc3f7',
-        emissiveIntensity: 3,
+        emissiveIntensity: 4,
         toneMapped: false,
       })
     } else if (state == STATES.MOVING) {

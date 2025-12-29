@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useCallback, useMemo, useEffect } from "react";
 import { useKeyboardControls } from "@react-three/drei";
-import { SKILL_BAR_ACTIONS, getFsmAction } from "@/config/actions";
+import { usePlayerState } from "@/hooks/usePlayerState";
 
 const InputContext = createContext(null);
 
@@ -103,30 +103,54 @@ export function useInput() {
  */
 export function useActionButton(actionId) {
   const { isActive, pressAction, releaseAction } = useInput();
+  const { handleInput } = usePlayerState();
   const keyboardState = useKeyboardControls((state) => state[actionId]);
   
   const active = isActive(actionId) || keyboardState;
 
   const handlers = useMemo(() => ({
-    onMouseDown: () => pressAction(actionId),
-    onMouseUp: () => releaseAction(actionId),
-    onMouseLeave: () => releaseAction(actionId),
-    onTouchStart: () => pressAction(actionId),
-    onTouchEnd: () => releaseAction(actionId),
-    onTouchCancel: () => releaseAction(actionId),
+    onMouseDown: () => {
+      pressAction(actionId);
+      handleInput(actionId, true);
+    },
+    onMouseUp: () => {
+      releaseAction(actionId);
+      handleInput(actionId, false);
+    },
+    onMouseLeave: () => {
+      releaseAction(actionId);
+      handleInput(actionId, false);
+    },
+    onTouchStart: (e) => {
+      e.preventDefault();
+      pressAction(actionId);
+      handleInput(actionId, true);
+    },
+    onTouchEnd: (e) => {
+      e.preventDefault();
+      releaseAction(actionId);
+      handleInput(actionId, false);
+    },
+    onTouchCancel: (e) => {
+      e.preventDefault();
+      releaseAction(actionId);
+      handleInput(actionId, false);
+    },
     onKeyDown: (e) => {
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
         pressAction(actionId);
+        handleInput(actionId, true);
       }
     },
     onKeyUp: (e) => {
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
         releaseAction(actionId);
+        handleInput(actionId, false);
       }
     },
-  }), [actionId, pressAction, releaseAction]);
+  }), [actionId, pressAction, releaseAction, handleInput]);
 
   return { active, handlers };
 }
