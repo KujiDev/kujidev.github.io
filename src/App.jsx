@@ -12,6 +12,8 @@ import { Model as Wizard } from "@/components/Wizard";
 import Settings from "@/components/Settings";
 import Target, { TargetProvider, useTarget } from "@/components/Target";
 import TargetHealthBar from "@/components/TargetHealthBar";
+import IceShard from "@/components/IceShard";
+import Meteor from "@/components/Meteor";
 
 import { KeyMapProvider, useKeyMap } from "@/hooks/useKeyMap";
 import { PlayerStateProvider, usePlayerState } from "@/hooks/usePlayerState";
@@ -198,7 +200,7 @@ const Scene = () => {
       {/* Floor - click to deselect target */}
       <mesh 
         rotation={[-Math.PI / 2, 0, 0]} 
-        position={[0, -1, 0]} 
+        position={[0, 0, 0]} 
         receiveShadow
         onClick={handleMissClick}
       >
@@ -207,16 +209,22 @@ const Scene = () => {
       </mesh>
 
       <PlayerTarget>
-        <Wizard position={[0, -1, 0]} />
+        <Wizard position={[0, 0, 0]} />
       </PlayerTarget>
 
       {/* Test enemy target */}
       <Target name="Training Dummy" health={75} maxHealth={100} level={72} type="enemy">
-        <mesh position={[0, 0, 3]}>
+        <mesh position={[0, 1, 3]}>
           <boxGeometry args={[1, 2, 1]} />
           <meshStandardMaterial color="#8b4513" />
         </mesh>
       </Target>
+      
+      {/* Ice Shard effect - targets the training dummy */}
+      <IceShard targetPosition={[0, 0, 3]} />
+      
+      {/* Meteor effect - targets the training dummy */}
+      <Meteor targetPosition={[0, 0, 3]} />
     
       <CameraControls
         makeDefault
@@ -251,7 +259,7 @@ export default function App() {
           <div style={{ width: "100vw", height: "100vh" }}>
             <Canvas 
               flat 
-              camera={{ fov: 50, position: [11.02, 9, 11.02] }} 
+              camera={{ fov: 50, position: [11.02, 10, 11.02] }} 
               eventSource={document.getElementById('root')} 
               eventPrefix="client"
             >
