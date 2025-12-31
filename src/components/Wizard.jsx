@@ -12,6 +12,7 @@ import { usePlayerState } from '@/hooks/usePlayerState'
 import CastingCircle from '@/components/CastingCircle'
 import ShieldEffect from '@/components/ShieldEffect'
 import ManaShield from '@/components/ManaShield'
+import ArcaneTrail from '@/components/ArcaneTrail'
 import { getElementForAction, ELEMENTS } from '@/config/actions'
 import * as THREE from 'three'
 
@@ -28,8 +29,10 @@ Object.values(ELEMENTS).forEach(element => {
 
 export function Model(props) {
   const group = React.useRef()
+  const wizardRef = React.useRef()
   const staffMaterialRef = useRef(null)
   const originalStaffMaterialRef = useRef(null)
+  const originalMaterialsRef = useRef(new Map()) // Store all original materials
   const currentActionRef = useRef(null)
   const recastCounterRef = useRef(0) // Track recasts to trigger animation reset
   const { scene, animations: gltfAnimations } = useGLTF('/models/Wizard-transformed.glb')
@@ -37,10 +40,18 @@ export function Model(props) {
   const { actions } = useAnimations(gltfAnimations, clone)
   const { animation, state, activeAction, setCastProgress, dispatchAction, tryRecast, STATES, buffs } = usePlayerState()
 
-  // Store reference to staff mesh and cache original material (runs once)
+  // Assign clone to wizardRef for ArcaneTrail
+  useEffect(() => {
+    wizardRef.current = clone
+  }, [clone])
+
+  // Store reference to staff mesh and cache ALL original materials (runs once)
   useEffect(() => {
     clone.traverse((child) => {
       if (!child.isMesh) return
+      
+      // Cache all original materials
+      originalMaterialsRef.current.set(child, child.material.clone())
       
       if (child.name.includes('Wizard_Staff')) {
         staffMaterialRef.current = child
@@ -48,6 +59,31 @@ export function Model(props) {
       }
     })
   }, [clone])
+
+  // Apply ghost effect during Arcane Rush
+  const isArcaneRush = state === STATES.MOVING && activeAction === 'skill_3'
+  
+  useEffect(() => {
+    if (isArcaneRush) {
+      // Apply ghost material to all meshes
+      clone.traverse((child) => {
+        if (child.isMesh) {
+          child.material = new THREE.MeshBasicMaterial({
+            color: new THREE.Color(0.35, 0.19, 0.55),
+            transparent: true,
+            opacity: 0.7,
+          })
+        }
+      })
+    } else {
+      // Restore original materials
+      clone.traverse((child) => {
+        if (child.isMesh && originalMaterialsRef.current.has(child)) {
+          child.material = originalMaterialsRef.current.get(child).clone()
+        }
+      })
+    }
+  }, [isArcaneRush, clone])
 
   // Toggle glow based on active action's element
   useEffect(() => {
@@ -122,6 +158,7 @@ export function Model(props) {
       <CastingCircle position={[0, 0.02, 0]} />
       <ShieldEffect position={[0, 1.5, 0]} />
       <ManaShield position={[0, 1.5, 0]} />
+      <ArcaneTrail wizardRef={wizardRef} />
     </group>
   )
 }
