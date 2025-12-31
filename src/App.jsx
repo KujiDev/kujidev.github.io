@@ -10,11 +10,13 @@ import CastingBar from "@/components/CastingBar";
 import BuffBar from "@/components/BuffBar";
 import { Model as Wizard } from "@/components/Wizard";
 import Settings from "@/components/Settings";
+import Target, { TargetProvider, useTarget } from "@/components/Target";
+import TargetHealthBar from "@/components/TargetHealthBar";
 
 import { KeyMapProvider, useKeyMap } from "@/hooks/useKeyMap";
 import { PlayerStateProvider, usePlayerState } from "@/hooks/usePlayerState";
 import { InputProvider, KeyboardSync, useActionButton } from "@/hooks/useInput";
-import { SKILL_BAR_ACTIONS, getActionById } from "@/config/actions";
+import { SKILL_BAR_ACTIONS, getActionById, getElementForAction } from "@/config/actions";
 
 /**
  * Syncs keyboard input to player state FSM.
@@ -58,13 +60,63 @@ const SkillButton = ({ actionId }) => {
   
   const disabled = !hasEnoughMana || !hasEnoughHealth;
   
+  // Build tooltip data
+  const element = action ? getElementForAction(action.id) : null;
+  const tooltip = action ? {
+    name: action.label,
+    type: action.type,
+    element: element,
+    description: action.description,
+    manaCost: action.manaCost,
+    manaPerSecond: action.manaPerSecond,
+    healthCost: action.healthCost,
+    buff: action.buff,
+  } : null;
+  
   return (
     <Slot 
       keyBind={getDisplayKey(actionId)} 
       icon={action?.icon}
       active={active}
       disabled={disabled}
+      tooltip={tooltip}
       {...handlers}
+    />
+  );
+};
+
+/**
+ * Mouse button skill - shows tooltip and target requirement.
+ */
+const MouseButton = ({ actionId, keyBind }) => {
+  const { mana } = usePlayerState();
+  const { target } = useTarget() || {};
+  const action = getActionById(actionId);
+  
+  const manaCost = action?.manaCost ?? 0;
+  const hasEnoughMana = mana >= manaCost;
+  const hasTarget = target !== null;
+  
+  // Disabled if no mana OR no target (for target-required skills)
+  const disabled = !hasEnoughMana || (action?.requiresTarget && !hasTarget);
+  
+  // Build tooltip data
+  const element = action ? getElementForAction(action.id) : null;
+  const tooltip = action ? {
+    name: action.label,
+    type: action.type,
+    element: element,
+    description: action.description,
+    manaCost: action.manaCost,
+    requiresTarget: action.requiresTarget,
+  } : null;
+  
+  return (
+    <Slot 
+      keyBind={keyBind}
+      icon={action?.icon}
+      disabled={disabled}
+      tooltip={tooltip}
     />
   );
 };
@@ -74,7 +126,9 @@ const SkillButton = ({ actionId }) => {
  */
 const GameUI = () => {
   return (
-    <Hud>
+    <>
+      <TargetHealthBar />
+      <Hud>
       <Orb type="health" label="Health" />
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', position: 'relative' }}>
         <BuffBar />
@@ -84,12 +138,13 @@ const GameUI = () => {
           {SKILL_BAR_ACTIONS.map(action => (
             <SkillButton key={action.id} actionId={action.id} />
           ))}
-          <Slot keyBind="LMB" />
-          <Slot keyBind="RMB" />
+          <MouseButton actionId="primary_attack" keyBind="LMB" />
+          <MouseButton actionId="secondary_attack" keyBind="RMB" />
         </SkillBar>
       </div>
       <Orb type="mana" label="Mana" />
     </Hud>
+    </>
   );
 };
 
@@ -112,52 +167,89 @@ const GameControls = ({ children }) => {
 };
 
 /**
+ * Player target wrapper that syncs with player state.
+ */
+const PlayerTarget = ({ children }) => {
+  const { health, maxHealth } = usePlayerState();
+  return (
+    <Target name="Wizard" health={health} maxHealth={maxHealth} level={70} type="friendly">
+      {children}
+    </Target>
+  );
+};
+
+/**
  * 3D Scene content.
  */
-const Scene = () => (
-  <>
-    <color attach="background" args={['#1a1a2e']} />
-    <fog attach="fog" args={['#1a1a2e', 15, 40]} />
-    <Environment preset="night" />
-    
-    {/* Lighting */}
-    <ambientLight intensity={0.2} />
-    <directionalLight position={[5, 10, 5]} intensity={0.5} color="#8b7355" />
-    <pointLight position={[0, 2, 0]} intensity={1} color="#ff6b35" distance={10} />
-    
-    {/* Floor */}
-    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1, 0]} receiveShadow>
-      <circleGeometry args={[30, 64]} />
-      <meshStandardMaterial color="#2d2d3a" roughness={0.9} metalness={0.1} />
-    </mesh>
+const Scene = () => {
+  const { unlockTarget } = useTarget() || {}
+  
+  const handleMissClick = (e) => {
+    // Only unlock if clicking on non-target (floor, background)
+    unlockTarget?.()
+  }
+  
+  return (
+    <>
+      <color attach="background" args={['#1a1a2e']} />
+      <fog attach="fog" args={['#1a1a2e', 15, 40]} />
+      <Environment preset="night" background={false} />
+      
+      {/* Lighting */}
+      <ambientLight intensity={0.2} />
+      <directionalLight position={[5, 10, 5]} intensity={0.5} color="#8b7355" />
+      <pointLight position={[0, 2, 0]} intensity={1} color="#ff6b35" distance={10} />
+      
+      {/* Floor - click to deselect target */}
+      <mesh 
+        rotation={[-Math.PI / 2, 0, 0]} 
+        position={[0, -1, 0]} 
+        receiveShadow
+        onClick={handleMissClick}
+      >
+        <circleGeometry args={[30, 64]} />
+        <meshStandardMaterial color="#2d2d3a" roughness={0.9} metalness={0.1} />
+      </mesh>
 
-    <Wizard position={[0, -1, 0]} />
-    
-    <CameraControls
-      makeDefault
-      minDistance={18}
-      maxDistance={18}
-      minPolarAngle={Math.PI / 3}
-      maxPolarAngle={Math.PI / 3}
-      minAzimuthAngle={Math.PI / 4}
-      maxAzimuthAngle={Math.PI / 4}
-      dollySpeed={0}
-      truckSpeed={0}
-    />
+      <PlayerTarget>
+        <Wizard position={[0, -1, 0]} />
+      </PlayerTarget>
 
-    <EffectComposer>
-      <Bloom 
-        intensity={1.5}
-        luminanceThreshold={0.6}
-        luminanceSmoothing={0.9}
-        mipmapBlur
+      {/* Test enemy target */}
+      <Target name="Training Dummy" health={75} maxHealth={100} level={72} type="enemy">
+        <mesh position={[0, 0, 3]}>
+          <boxGeometry args={[1, 2, 1]} />
+          <meshStandardMaterial color="#8b4513" />
+        </mesh>
+      </Target>
+    
+      <CameraControls
+        makeDefault
+        minDistance={18}
+        maxDistance={18}
+        minPolarAngle={Math.PI / 3}
+        maxPolarAngle={Math.PI / 3}
+        minAzimuthAngle={Math.PI / 4}
+        maxAzimuthAngle={Math.PI / 4}
+        dollySpeed={0}
+        truckSpeed={0}
       />
-    </EffectComposer>
-  </>
-);
+
+      <EffectComposer>
+        <Bloom 
+          intensity={1.5}
+          luminanceThreshold={0.6}
+          luminanceSmoothing={0.9}
+          mipmapBlur
+        />
+      </EffectComposer>
+    </>
+  )
+}
 
 export default function App() {
   return (
+    <TargetProvider>
     <KeyMapProvider>
       <PlayerStateProvider>
         <GameControls>
@@ -174,5 +266,6 @@ export default function App() {
         </GameControls>
       </PlayerStateProvider>
     </KeyMapProvider>
+    </TargetProvider>
   );
 }

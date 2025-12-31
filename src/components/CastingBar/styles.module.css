@@ -164,8 +164,8 @@
   align-items: center;
   justify-content: center;
   
-  font-size: 10px;
-  font-weight: 600;
+  font-size: var(--font-sm);
+  font-weight: var(--weight-semibold);
   letter-spacing: 0.5px;
   text-transform: uppercase;
   color: #fff;
@@ -285,7 +285,7 @@
   }
   
   .skill-name {
-    font-size: 8px;
+    font-size: var(--font-xs);
   }
   
   .fragment {

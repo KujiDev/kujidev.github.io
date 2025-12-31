@@ -6,7 +6,6 @@
     display: flex;
     align-items: flex-end;
     gap: 20px;
-    font-family: 'Cinzel', serif;
     z-index: 1;
     
     /* Subtle ambient glow under entire HUD */

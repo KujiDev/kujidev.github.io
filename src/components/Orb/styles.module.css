@@ -1,3 +1,7 @@
+.wrapper {
+  position: relative;
+}
+
 .orb {
   width: 100px;
   height: 100px;
@@ -124,8 +128,8 @@
   bottom: -28px;
   width: 100%;
   text-align: center;
-  font-size: 12px;
-  font-weight: 500;
+  font-size: var(--font-md);
+  font-weight: var(--weight-normal);
   letter-spacing: 1px;
   text-transform: uppercase;
   color: #c4b896;
@@ -156,4 +160,95 @@
   50% {
     transform: translateY(-2px) scaleY(1.02);
   }
+}
+
+/* Tooltip styles */
+.tooltip {
+  position: absolute;
+  bottom: calc(100% + 12px);
+  left: 50%;
+  transform: translateX(-50%);
+  min-width: 160px;
+  padding: 12px 14px;
+  
+  background: 
+    linear-gradient(180deg, 
+      rgba(40, 34, 24, 0.98) 0%, 
+      rgba(22, 18, 12, 0.99) 100%);
+  
+  border: 2px solid;
+  border-color: #7a6035 #4a3520 #2e1e10 #5a4428;
+  border-radius: 8px;
+  
+  box-shadow:
+    0 0 20px rgba(0, 0, 0, 0.9),
+    0 8px 24px rgba(0, 0, 0, 0.7),
+    inset 0 1px 0 rgba(255, 220, 160, 0.12);
+  
+  z-index: 1000;
+  pointer-events: none;
+  
+  animation: tooltipFadeIn 0.15s ease-out;
+  backdrop-filter: blur(6px);
+}
+
+@keyframes tooltipFadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(4px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+}
+
+.tooltip-title {
+  font-size: var(--font-sm);
+  font-weight: var(--weight-semibold);
+  color: #e8d4a8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 200, 120, 0.15);
+  text-align: center;
+}
+
+.tooltip-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: var(--font-xs);
+  color: #a89878;
+  padding: 3px 0;
+}
+
+.tooltip-row.total {
+  margin-top: 6px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 200, 120, 0.1);
+  font-weight: var(--weight-semibold);
+  color: #c4b896;
+}
+
+.tooltip-value {
+  font-weight: var(--weight-semibold);
+  color: #c4b896;
+}
+
+.tooltip-value.bonus {
+  color: #7dd87d;
+}
+
+.tooltip-value.drain {
+  color: #e07070;
+}
+
+.tooltip-value.positive {
+  color: #7dd87d;
+}
+
+.tooltip-value.negative {
+  color: #e07070;
 }

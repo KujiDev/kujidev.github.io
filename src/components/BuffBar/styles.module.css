@@ -25,6 +25,47 @@
     inset 0 0 4px rgba(0, 0, 0, 0.8);
 }
 
+/* Active buff (while key held) - purple glow */
+.buff-active {
+  border-color: #9060c0;
+  box-shadow:
+    0 0 12px rgba(160, 100, 220, 0.5),
+    0 0 24px rgba(140, 80, 200, 0.3),
+    inset 0 0 4px rgba(0, 0, 0, 0.8);
+  animation: activePulse 1.5s ease-in-out infinite;
+}
+
+@keyframes activePulse {
+  0%, 100% {
+    box-shadow:
+      0 0 12px rgba(160, 100, 220, 0.5),
+      0 0 24px rgba(140, 80, 200, 0.3),
+      inset 0 0 4px rgba(0, 0, 0, 0.8);
+  }
+  50% {
+    box-shadow:
+      0 0 16px rgba(180, 120, 240, 0.7),
+      0 0 32px rgba(160, 100, 220, 0.4),
+      inset 0 0 4px rgba(0, 0, 0, 0.8);
+  }
+}
+
+/* Pulse overlay for active buffs */
+.buff-pulse {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, 
+    rgba(180, 120, 240, 0.2) 0%, 
+    transparent 70%);
+  animation: pulseGlow 1s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes pulseGlow {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.7; }
+}
+
 .buff-image {
   width: 100%;
   height: 100%;
@@ -48,8 +89,8 @@
   position: absolute;
   bottom: 1px;
   right: 2px;
-  font-size: 10px;
-  font-weight: 700;
+  font-size: var(--font-sm);
+  font-weight: var(--weight-bold);
   color: #fff;
   text-shadow: 
     0 1px 2px rgba(0, 0, 0, 1),
@@ -70,4 +111,189 @@
   box-shadow:
     0 0 8px rgba(200, 80, 80, 0.3),
     inset 0 0 4px rgba(0, 0, 0, 0.8);
+}
+
+/* Buff wrapper for tooltip positioning */
+.buff-wrapper {
+  position: relative;
+}
+
+/* Tooltip styles - matching SkillBar theme */
+.tooltip {
+  position: absolute;
+  bottom: calc(100% + 14px);
+  left: 50%;
+  transform: translateX(-50%);
+  min-width: 200px;
+  max-width: 280px;
+  padding: 16px 18px;
+  
+  background: 
+    linear-gradient(180deg, 
+      rgba(40, 34, 24, 0.98) 0%, 
+      rgba(22, 18, 12, 0.99) 100%);
+  
+  border: 2px solid;
+  border-color: #7a6035 #4a3520 #2e1e10 #5a4428;
+  border-radius: 10px;
+  
+  box-shadow:
+    0 0 30px rgba(0, 0, 0, 0.9),
+    0 12px 32px rgba(0, 0, 0, 0.7),
+    0 0 60px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 220, 160, 0.15),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.5);
+  
+  z-index: 1000;
+  pointer-events: none;
+  
+  animation: tooltipFadeIn 0.18s ease-out;
+  backdrop-filter: blur(8px);
+}
+
+/* Inner glow border */
+.tooltip::before {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 200, 120, 0.08);
+  background: linear-gradient(180deg, rgba(255, 220, 160, 0.04) 0%, transparent 40%);
+  pointer-events: none;
+}
+
+/* Decorative connector - notched fantasy style */
+.tooltip::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 24px;
+  height: 12px;
+  background: linear-gradient(180deg, 
+    #6a5030 0%, 
+    #4a3520 40%,
+    #3a2815 100%);
+  clip-path: polygon(
+    0% 0%, 
+    40% 0%, 
+    50% 100%, 
+    60% 0%, 
+    100% 0%, 
+    100% 3px, 
+    58% 3px, 
+    50% 85%, 
+    42% 3px, 
+    0% 3px
+  );
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.6));
+}
+
+/* Center jewel accent */
+.tooltip-connector {
+  position: absolute;
+  top: calc(100% + 2px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 6px;
+  height: 6px;
+  background: radial-gradient(circle at 30% 30%, 
+    #ffdd99 0%, 
+    #cc9944 40%, 
+    #886622 100%);
+  border-radius: 50%;
+  box-shadow: 
+    0 0 4px rgba(255, 200, 100, 0.6),
+    0 1px 2px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+}
+
+@keyframes tooltipFadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(6px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+}
+
+.tooltip-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 200, 120, 0.15);
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 200, 120, 0.05) 50%, transparent 100%);
+  margin-left: -18px;
+  margin-right: -18px;
+  margin-top: -16px;
+  padding: 14px 18px 12px 18px;
+  border-radius: 8px 8px 0 0;
+}
+
+.tooltip-name {
+  font-size: var(--font-xl);
+  font-weight: var(--weight-bold);
+  color: #ffe0a0;
+  text-shadow: 
+    0 0 10px rgba(255, 180, 80, 0.5),
+    0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.tooltip-type {
+  font-size: var(--font-base);
+  font-weight: var(--weight-semibold);
+  color: #60a080;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: rgba(80, 160, 100, 0.15);
+  padding: 4px 10px;
+  border-radius: 4px;
+  border: 1px solid rgba(80, 160, 100, 0.3);
+}
+
+.tooltip-desc {
+  font-size: var(--font-lg);
+  color: #c8c0b0;
+  line-height: 1.5;
+  margin: 0 0 10px 0;
+}
+
+.tooltip-effect {
+  font-size: var(--font-md);
+  color: #80d0a0;
+  font-weight: var(--weight-semibold);
+  margin: 0 0 10px 0;
+  padding: 8px 12px;
+  background: rgba(80, 160, 100, 0.1);
+  border-radius: 4px;
+  border-left: 2px solid #60a080;
+}
+
+.tooltip-duration {
+  font-size: var(--font-base);
+  color: #a09080;
+  margin: 0;
+  text-align: right;
+  font-style: italic;
+}
+
+/* Active buff type badge (purple) */
+.tooltip-type-active {
+  color: #b080e0;
+  background: rgba(160, 100, 220, 0.15);
+  border: 1px solid rgba(160, 100, 220, 0.3);
+}
+
+/* Active hint text */
+.tooltip-active-hint {
+  font-size: var(--font-base);
+  color: #b080e0;
+  margin: 0;
+  text-align: right;
+  font-style: italic;
 }

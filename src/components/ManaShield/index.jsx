@@ -3,10 +3,10 @@ import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { usePlayerState } from '@/hooks/usePlayerState'
 
-// Arcane Rush - purple/magenta speed aura
-const AURA_COLOR = '#bb77ff'
+// Blue/cyan mana shield color
+const SHIELD_COLOR = '#77bbff'
 
-// Vertex shader
+// Vertex shader - same as ShieldEffect aura
 const vertexShader = `
   varying vec3 vNormal;
   varying vec3 vViewPosition;
@@ -33,32 +33,33 @@ const fragmentShader = `
     float fresnel = pow(1.0 - abs(dot(viewDir, normalize(vNormal))), 3.0);
     
     // Add some energy variation
-    float pulse = sin(uTime * 6.0) * 0.12 + 0.88;
-    float wave = sin(vNormal.y * 4.0 + uTime * 8.0) * 0.08 + 0.92;
+    float pulse = sin(uTime * 5.0) * 0.12 + 0.88;
+    float wave = sin(vNormal.y * 3.0 + uTime * 6.0) * 0.08 + 0.92;
     
     float alpha = fresnel * uOpacity * pulse * wave * 0.5;
     
     // Slight color shift based on fresnel
-    vec3 color = uColor + vec3(0.15, 0.05, 0.2) * fresnel;
+    vec3 color = uColor + vec3(0.1, 0.15, 0.25) * fresnel;
     
     gl_FragColor = vec4(color, alpha);
   }
 `
 
-export default function ShieldEffect({ position = [0, 0, 0] }) {
+export default function ManaShield({ position = [0, 0, 0] }) {
   const groupRef = useRef()
   const meshRef = useRef()
   const materialRef = useRef()
+  const { buffs } = usePlayerState()
   
-  const { state, activeAction, STATES } = usePlayerState()
-  const isActive = state === STATES.MOVING && activeAction === 'skill_3'
+  // Active when any buff is present
+  const isActive = buffs.length > 0
   
-  // Create sphere geometry - slightly smaller than ManaShield
+  // Create sphere geometry - sized to wrap around character
   const sphereGeometry = useMemo(() => {
-    return new THREE.SphereGeometry(1.7, 32, 32)
+    return new THREE.SphereGeometry(2.0, 32, 32)
   }, [])
   
-  // Create shader material
+  // Create shader material - exactly like ShieldEffect aura but blue
   const shaderMaterial = useMemo(() => {
     return new THREE.ShaderMaterial({
       vertexShader,
@@ -66,7 +67,7 @@ export default function ShieldEffect({ position = [0, 0, 0] }) {
       uniforms: {
         uTime: { value: 0 },
         uOpacity: { value: 0 },
-        uColor: { value: new THREE.Color(AURA_COLOR) },
+        uColor: { value: new THREE.Color(SHIELD_COLOR) },
       },
       transparent: true,
       side: THREE.BackSide,
@@ -75,7 +76,7 @@ export default function ShieldEffect({ position = [0, 0, 0] }) {
     })
   }, [])
   
-  // Animate
+  // Animate - same as ShieldEffect aura
   useFrame((_, delta) => {
     if (!materialRef.current || !meshRef.current) return
     

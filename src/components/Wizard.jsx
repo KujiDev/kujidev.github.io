@@ -4,66 +4,66 @@ Command: npx gltfjsx@6.5.3 Wizard.gltf --transform
 Files: Wizard.gltf [3.3MB] > C:\Repos\Kuji\kujidev.github.io\public\models\Wizard-transformed.glb [436.09KB] (87%)
 */
 
-import React, { useEffect, useRef } from 'react'
-import { useGraph, useFrame } from '@react-three/fiber'
+import React, { useEffect, useRef, useMemo } from 'react'
+import { useFrame } from '@react-three/fiber'
 import { useGLTF, useAnimations } from '@react-three/drei'
 import { SkeletonUtils } from 'three-stdlib'
 import { usePlayerState } from '@/hooks/usePlayerState'
 import CastingCircle from '@/components/CastingCircle'
 import ShieldEffect from '@/components/ShieldEffect'
+import ManaShield from '@/components/ManaShield'
+import { getElementForAction, ELEMENTS } from '@/config/actions'
 import * as THREE from 'three'
+
+// Create glow materials for each element
+const GLOW_MATERIALS = {}
+Object.values(ELEMENTS).forEach(element => {
+  GLOW_MATERIALS[element.id] = new THREE.MeshStandardMaterial({
+    color: element.glow,
+    emissive: element.glow,
+    emissiveIntensity: 4,
+    toneMapped: false,
+  })
+})
 
 export function Model(props) {
   const group = React.useRef()
   const staffMaterialRef = useRef(null)
-  const originalMaterialRef = useRef(null)
+  const originalStaffMaterialRef = useRef(null)
   const currentActionRef = useRef(null)
   const recastCounterRef = useRef(0) // Track recasts to trigger animation reset
   const { scene, animations: gltfAnimations } = useGLTF('/models/Wizard-transformed.glb')
   const clone = React.useMemo(() => SkeletonUtils.clone(scene), [scene])
-  const { nodes, materials } = useGraph(clone)
   const { actions } = useAnimations(gltfAnimations, clone)
-  const { animation, state, activeAction, setCastProgress, dispatchAction, tryRecast, STATES } = usePlayerState()
+  const { animation, state, activeAction, setCastProgress, dispatchAction, tryRecast, STATES, buffs } = usePlayerState()
 
-  // Store reference to staff mesh and create glow material
+  // Store reference to staff mesh and cache original material (runs once)
   useEffect(() => {
     clone.traverse((child) => {
-      if (child.isMesh && child.name.includes('Wizard_Staff')) {
+      if (!child.isMesh) return
+      
+      if (child.name.includes('Wizard_Staff')) {
         staffMaterialRef.current = child
-        originalMaterialRef.current = child.material.clone()
+        originalStaffMaterialRef.current = child.material.clone()
       }
     })
   }, [clone])
 
-  // Toggle glow based on casting state
+  // Toggle glow based on active action's element
   useEffect(() => {
     if (!staffMaterialRef.current) return
 
-    if (state === STATES.CASTING) {
-      staffMaterialRef.current.material = new THREE.MeshStandardMaterial({
-        color: '#ff6b35',
-        emissive: '#ff6b35',
-        emissiveIntensity: 4,
-        toneMapped: false,
-      })
-    } else if (state == STATES.ATTACKING) {
-      staffMaterialRef.current.material = new THREE.MeshStandardMaterial({
-        color: '#4fc3f7',
-        emissive: '#4fc3f7',
-        emissiveIntensity: 4,
-        toneMapped: false,
-      })
-    } else if (state == STATES.MOVING) {
-      staffMaterialRef.current.material = new THREE.MeshStandardMaterial({
-        color: '#da70d6',
-        emissive: '#da70d6',
-        emissiveIntensity: 4,
-        toneMapped: false,
-      })
+    // Get element for active action
+    const element = activeAction ? getElementForAction(activeAction) : null
+    
+    if (element && state !== STATES.IDLE) {
+      // Use element's glow material
+      staffMaterialRef.current.material = GLOW_MATERIALS[element.id] || originalStaffMaterialRef.current
     } else {
-      staffMaterialRef.current.material = originalMaterialRef.current
+      // Reset to original
+      staffMaterialRef.current.material = originalStaffMaterialRef.current
     }
-  }, [state, STATES])
+  }, [state, activeAction, STATES])
 
   useEffect(() => {
     const currentAction = actions?.[animation]
@@ -76,7 +76,7 @@ export function Model(props) {
     Object.values(actions).forEach((action) => {
       if (action !== currentAction) action?.fadeOut(0.2)
     })
-    
+
     // For casting/attacking, play once and don't loop
     const isCastingOrAttacking = state === STATES.CASTING || state === STATES.ATTACKING
     if (isCastingOrAttacking) {
@@ -86,7 +86,7 @@ export function Model(props) {
     } else {
       currentAction.setLoop(THREE.LoopRepeat)
     }
-    
+
     currentAction.reset().fadeIn(0.2).play()
   }, [animation, actions, state, activeAction, STATES, setCastProgress])
 
@@ -101,7 +101,7 @@ export function Model(props) {
       const time = Math.min(action.time, duration) // Clamp to duration
       const progress = time / duration
       setCastProgress(progress)
-      
+
       // When animation completes, try to recast or finish
       if (progress >= 0.99) {
         // tryRecast returns true if recasting (key held + has mana)
@@ -120,7 +120,8 @@ export function Model(props) {
     <group ref={group} {...props} dispose={null}>
       <primitive object={clone} />
       <CastingCircle position={[0, 0.02, 0]} />
-      <ShieldEffect position={[0, 1.0, 0.8]} />
+      <ShieldEffect position={[0, 1.5, 0]} />
+      <ManaShield position={[0, 1.5, 0]} />
     </group>
   )
 }

@@ -2,15 +2,7 @@ import { useRef, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { usePlayerState } from '@/hooks/usePlayerState'
-import { getActionById } from '@/config/actions'
-
-// Color mapping for different skills/states
-const SKILL_COLORS = {
-  skill_1: { primary: '#4fc3f7', secondary: '#81d4fa' }, // Ice Shard - ice blue
-  skill_2: { primary: '#ff6b35', secondary: '#ffa040' }, // Meteor - fire orange
-  skill_3: { primary: '#da70d6', secondary: '#ee82ee' }, // Arcane Rush - purple
-  skill_4: { primary: '#60a0ff', secondary: '#a0d0ff' }, // Mana Body - mana blue
-}
+import { getElementForAction } from '@/config/actions'
 
 const DEFAULT_COLOR = { primary: '#ffffff', secondary: '#cccccc' }
 
@@ -100,14 +92,23 @@ export default function CastingCircle({ position = [0, 0.02, 0] }) {
   const materialRef = useRef()
   const { state, activeAction, castProgress, STATES } = usePlayerState()
   
-  // Determine if we should show the circle
-  const isActive = state === STATES.CASTING || state === STATES.ATTACKING
-  
-  // Get colors based on active skill
-  const colors = useMemo(() => {
-    if (!activeAction) return DEFAULT_COLOR
-    return SKILL_COLORS[activeAction] || DEFAULT_COLOR
+  // Get element for active skill
+  const element = useMemo(() => {
+    if (!activeAction) return null
+    return getElementForAction(activeAction)
   }, [activeAction])
+  
+  // Determine if we should show the circle
+  const isActive = (state === STATES.CASTING || state === STATES.ATTACKING || state === STATES.MOVING) && element
+  
+  // For channel skills (MOVING state), always show full progress
+  const isChannel = state === STATES.MOVING
+  
+  // Get colors from element
+  const colors = useMemo(() => {
+    if (!element) return DEFAULT_COLOR
+    return { primary: element.primary, secondary: element.secondary }
+  }, [element])
   
   // Create shader material
   const shaderMaterial = useMemo(() => {
@@ -134,26 +135,35 @@ export default function CastingCircle({ position = [0, 0.02, 0] }) {
     
     const uniforms = materialRef.current.uniforms
     
-    // Update time
-    uniforms.uTime.value += delta
-    
-    // Update progress
-    uniforms.uProgress.value = castProgress
-    
-    // Update colors
-    uniforms.uColor.value.set(colors.primary)
-    uniforms.uSecondaryColor.value.set(colors.secondary)
-    
     // Fade in/out based on active state
     const targetOpacity = isActive ? 1.0 : 0.0
-    uniforms.uOpacity.value += (targetOpacity - uniforms.uOpacity.value) * delta * 8
+    const currentOpacity = uniforms.uOpacity.value
+    
+    // Skip expensive updates if fully faded out
+    if (!isActive && currentOpacity < 0.01) {
+      uniforms.uOpacity.value = 0
+      return
+    }
+    
+    // Update uniforms only when visible
+    uniforms.uTime.value += delta
+    // For channel skills, always show full progress
+    uniforms.uProgress.value = isChannel ? 1.0 : castProgress
+    uniforms.uOpacity.value += (targetOpacity - currentOpacity) * delta * 8
+    
+    // Update colors only when they change (compare hex)
+    if (uniforms.uColor.value.getHexString() !== colors.primary.replace('#', '')) {
+      uniforms.uColor.value.set(colors.primary)
+      uniforms.uSecondaryColor.value.set(colors.secondary)
+    }
     
     // Scale effect
     if (meshRef.current) {
       const targetScale = isActive ? 1.0 : 0.5
-      meshRef.current.scale.x += (targetScale - meshRef.current.scale.x) * delta * 6
-      meshRef.current.scale.y += (targetScale - meshRef.current.scale.y) * delta * 6
-      meshRef.current.scale.z += (targetScale - meshRef.current.scale.z) * delta * 6
+      const lerpFactor = delta * 6
+      meshRef.current.scale.x += (targetScale - meshRef.current.scale.x) * lerpFactor
+      meshRef.current.scale.y += (targetScale - meshRef.current.scale.y) * lerpFactor
+      meshRef.current.scale.z += (targetScale - meshRef.current.scale.z) * lerpFactor
     }
   })
   

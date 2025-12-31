@@ -4,17 +4,55 @@
  * - Input names (for KeyboardControls)
  * - FSM actions (for state transitions)
  * - UI display (labels, icons)
+ * - Element types (for visual effects)
  */
 
 import iceShardIcon from '@/assets/icons/ice-shard.svg';
 import meteorIcon from '@/assets/icons/meteor.svg';
 import arcaneRushIcon from '@/assets/icons/arcane-rush.svg';
 import manaBodyIcon from '@/assets/icons/mana-body.svg';
+import arcaneBoltIcon from '@/assets/icons/arcane-bolt.svg';
+import arcaneBlastIcon from '@/assets/icons/arcane-blast.svg';
+
+// Element definitions - colors for circles and staff glow
+export const ELEMENTS = {
+  ice: {
+    id: 'ice',
+    name: 'Ice',
+    primary: '#4fc3f7',
+    secondary: '#81d4fa',
+    glow: '#4fc3f7',
+  },
+  fire: {
+    id: 'fire',
+    name: 'Fire',
+    primary: '#ff6b35',
+    secondary: '#ffa040',
+    glow: '#ff6b35',
+  },
+  arcane: {
+    id: 'arcane',
+    name: 'Arcane',
+    primary: '#da70d6',
+    secondary: '#ee82ee',
+    glow: '#da70d6',
+  },
+  mana: {
+    id: 'mana',
+    name: 'Mana',
+    primary: '#60a0ff',
+    secondary: '#a0d0ff',
+    glow: '#60a0ff',
+  },
+};
 
 export const ACTIONS = {
   SKILL_1: {
     id: 'skill_1',
     label: 'Ice Shard',
+    description: 'Hurl a freezing shard of ice at your target, dealing frost damage.',
+    type: 'Attack',
+    element: 'ice',
     defaultKey: 'KeyQ',
     fsmAction: 'ATTACK',
     displayKey: 'Q',
@@ -24,6 +62,9 @@ export const ACTIONS = {
   SKILL_2: {
     id: 'skill_2', 
     label: 'Meteor',
+    description: 'Conjure a blazing meteor from the sky, crashing down with explosive fire damage.',
+    type: 'Cast',
+    element: 'fire',
     defaultKey: 'KeyW',
     fsmAction: 'CAST',
     displayKey: 'W',
@@ -33,6 +74,9 @@ export const ACTIONS = {
   SKILL_3: {
     id: 'skill_3',
     label: 'Arcane Rush',
+    description: 'Channel arcane power to dash forward at high speed. Drains mana while active.',
+    type: 'Channel',
+    element: 'arcane',
     defaultKey: 'KeyE',
     fsmAction: 'MOVE',
     displayKey: 'E',
@@ -43,6 +87,9 @@ export const ACTIONS = {
   SKILL_4: {
     id: 'skill_4',
     label: 'Mana Body',
+    description: 'Sacrifice your life force to infuse your body with pure mana, greatly increasing mana regeneration.',
+    type: 'Buff',
+    element: 'mana',
     defaultKey: 'KeyR',
     fsmAction: 'CAST',
     displayKey: 'R',
@@ -57,14 +104,41 @@ export const ACTIONS = {
       manaRegenBonus: 10, // Additional mana per second
     },
   },
-  // SKILL_5: {
-  //   id: 'skill_5',
-  //   label: 'Dash',
-  //   defaultKey: 'ShiftLeft',
-  //   fsmAction: 'MOVE',
-  //   displayKey: 'Shift',
-  //   manaCost: 10,
-  // },
+  // Left-click ability - basic attack on target
+  PRIMARY_ATTACK: {
+    id: 'primary_attack',
+    label: 'Arcane Bolt',
+    description: 'Launch a bolt of arcane energy at your target.',
+    type: 'Attack',
+    element: 'arcane',
+    defaultKey: 'MouseLeft',
+    fsmAction: 'ATTACK',
+    displayKey: 'LMB',
+    icon: arcaneBoltIcon,
+    manaCost: 5,
+    requiresTarget: true,
+  },
+  // Right-click ability - stronger attack on target
+  SECONDARY_ATTACK: {
+    id: 'secondary_attack',
+    label: 'Arcane Blast',
+    description: 'Channel a powerful blast of arcane energy at your target.',
+    type: 'Cast',
+    element: 'arcane',
+    defaultKey: 'MouseRight',
+    fsmAction: 'CAST',
+    displayKey: 'RMB',
+    icon: arcaneBlastIcon,
+    manaCost: 20,
+    requiresTarget: true,
+  },
+};
+
+// Get element config for an action
+export const getElementForAction = (actionId) => {
+  const action = Object.values(ACTIONS).find(a => a.id === actionId);
+  if (!action?.element) return null;
+  return ELEMENTS[action.element] || null;
 };
 
 // Generate default keymap from actions

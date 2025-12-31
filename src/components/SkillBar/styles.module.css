@@ -155,8 +155,8 @@
   position: absolute;
   bottom: 3px;
   right: 5px;
-  font-size: 11px;
-  font-weight: 600;
+  font-size: var(--font-base);
+  font-weight: var(--weight-semibold);
   color: #e8d4a8;
   text-shadow: 
     0 1px 2px rgba(0,0,0,1),
@@ -199,4 +199,172 @@
 
 .skill-slot.disabled .skill-icon {
   filter: grayscale(0.7);
+}
+
+/* Slot wrapper for tooltip positioning */
+.slot-wrapper {
+  position: relative;
+}
+
+/* Tooltip styles */
+.tooltip {
+  position: absolute;
+  bottom: calc(100% + 14px);
+  left: 50%;
+  transform: translateX(-50%);
+  min-width: 280px;
+  max-width: 340px;
+  padding: 16px 18px;
+  
+  background: 
+    linear-gradient(180deg, 
+      rgba(40, 34, 24, 0.98) 0%, 
+      rgba(22, 18, 12, 0.99) 100%);
+  
+  border: 2px solid;
+  border-color: #7a6035 #4a3520 #2e1e10 #5a4428;
+  border-radius: 10px;
+  
+  box-shadow:
+    0 0 30px rgba(0, 0, 0, 0.9),
+    0 12px 32px rgba(0, 0, 0, 0.7),
+    0 0 60px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 220, 160, 0.15),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.5);
+  
+  z-index: 1000;
+  pointer-events: none;
+  
+  animation: tooltipFadeIn 0.18s ease-out;
+  backdrop-filter: blur(8px);
+}
+
+/* Inner glow border */
+.tooltip::before {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 200, 120, 0.08);
+  background: linear-gradient(180deg, rgba(255, 220, 160, 0.04) 0%, transparent 40%);
+  pointer-events: none;
+}
+
+@keyframes tooltipFadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(6px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+}
+
+.tooltip-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 200, 120, 0.15);
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 200, 120, 0.05) 50%, transparent 100%);
+  margin-left: -18px;
+  margin-right: -18px;
+  margin-top: -16px;
+  padding: 14px 18px 12px 18px;
+  border-radius: 8px 8px 0 0;
+}
+
+.tooltip-name {
+  font-size: var(--font-xl);
+  font-weight: var(--weight-bold);
+  color: #ffe0a0;
+  text-shadow: 
+    0 0 10px rgba(255, 180, 80, 0.5),
+    0 1px 2px rgba(0, 0, 0, 0.8);
+  letter-spacing: 0.3px;
+}
+
+.tooltip-badges {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.tooltip-element {
+  font-size: var(--font-sm);
+  font-weight: var(--weight-bold);
+  line-height: 1;
+  color: var(--element-color, #9a8060);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 4px 10px;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 4px;
+  border: 1px solid var(--element-color, rgba(255, 200, 120, 0.2));
+  box-shadow: 
+    0 0 6px color-mix(in srgb, var(--element-color, #9a8060) 30%, transparent),
+    inset 0 0 8px color-mix(in srgb, var(--element-color, #9a8060) 15%, transparent);
+  text-shadow: 0 0 6px var(--element-color, transparent);
+}
+
+.tooltip-type {
+  font-size: var(--font-sm);
+  font-weight: var(--weight-semibold);
+  line-height: 1;
+  color: #9a8060;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 4px 10px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+  border: 1px solid rgba(255, 200, 120, 0.1);
+}
+
+.tooltip-desc {
+  margin: 0 0 14px 0;
+  font-size: var(--font-md);
+  line-height: 1.5;
+  color: #c8bca0;
+  font-style: italic;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.tooltip-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: var(--font-base);
+  font-weight: var(--weight-semibold);
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 200, 120, 0.1);
+}
+
+.tooltip-mana {
+  color: #5cd0ff;
+  text-shadow: 
+    0 0 8px rgba(92, 208, 255, 0.5),
+    0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.tooltip-health {
+  color: #ff7070;
+  text-shadow: 
+    0 0 8px rgba(255, 112, 112, 0.5),
+    0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.tooltip-buff {
+  color: #e080e0;
+  text-shadow: 
+    0 0 8px rgba(224, 128, 224, 0.5),
+    0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.tooltip-target {
+  color: #ffb040;
+  text-shadow: 
+    0 0 8px rgba(255, 176, 64, 0.5),
+    0 1px 2px rgba(0, 0, 0, 0.8);
 }
