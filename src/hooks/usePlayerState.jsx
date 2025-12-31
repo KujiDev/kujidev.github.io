@@ -1,4 +1,4 @@
-import { createContext, useContext, useReducer, useCallback, useMemo, useEffect, useRef, useState } from "react";
+import { createContext, useContext, useReducer, useCallback, useMemo, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { getFsmAction, getActionById } from "@/config/actions";
 
 // Helper to check if we should keep activeAction during a transition
@@ -111,10 +111,15 @@ function reducer(state, action) {
   const nextState = currentTransitions?.[action.type];
 
   if (nextState) {
-    // Check if this is an interruption (leaving casting/attacking via movement, not via FINISH)
+    // Check if this is an interruption (any action that cancels an in-progress cast/attack)
     const wasCastingOrAttacking = state.current === STATES.CASTING || state.current === STATES.ATTACKING;
-    const isMovementInterrupt = wasCastingOrAttacking && action.type === 'MOVE';
     const isFinish = action.type === 'FINISH';
+    const isCancel = action.type === 'CANCEL' || action.type === 'STOP';
+    
+    // Any non-finish action during casting/attacking is an interrupt (MOVE, CAST, ATTACK switching to different action)
+    const isDifferentAction = action.actionId && action.actionId !== state.activeAction;
+    const isInterrupt = wasCastingOrAttacking && !isFinish && !isCancel && 
+      (action.type === 'MOVE' || isDifferentAction);
     
     // Get the actionId from the action payload (passed with the FSM action)
     const newActionId = action.actionId ?? state.activeAction;
@@ -136,9 +141,9 @@ function reducer(state, action) {
       previous: state.current,
       // Capture completed action on FINISH for buff application
       completedAction: isFinish ? state.activeAction : null,
-      interruptCounter: isMovementInterrupt ? state.interruptCounter + 1 : state.interruptCounter,
-      interruptedAction: isMovementInterrupt ? state.activeAction : state.interruptedAction,
-      interruptedProgress: isMovementInterrupt ? (action.progress ?? state.interruptedProgress) : state.interruptedProgress,
+      interruptCounter: isInterrupt ? state.interruptCounter + 1 : state.interruptCounter,
+      interruptedAction: isInterrupt ? state.activeAction : state.interruptedAction,
+      interruptedProgress: isInterrupt ? (action.progress ?? state.interruptedProgress) : state.interruptedProgress,
       // Clear activeAction when finishing/canceling/stopping, but keep it for channeled movement abilities
       activeAction: finalActiveAction,
     };
@@ -330,20 +335,30 @@ export function PlayerStateProvider({ children }) {
     });
   }, []);
 
-  // Apply buff when an action completes successfully
+  // Restore mana (e.g., from Arcane Bolt hits)
+  const gainMana = useCallback((amount) => {
+    setMana(current => Math.min(MAX_MANA, current + amount));
+    manaRef.current = Math.min(MAX_MANA, manaRef.current + amount);
+  }, []);
+
+  // Apply buff and mana gain when an action completes successfully
   useEffect(() => {
     if (state.completedAction) {
       const actionConfig = getActionById(state.completedAction);
       if (actionConfig?.buff) {
         applyBuff(actionConfig.buff);
       }
+      if (actionConfig?.manaGain) {
+        gainMana(actionConfig.manaGain);
+      }
       // Clear completedAction
       dispatch({ type: 'CLEAR_COMPLETED' });
     }
-  }, [state.completedAction, applyBuff]);
+  }, [state.completedAction, applyBuff, gainMana]);
 
-  // Keep refs in sync
-  useEffect(() => {
+  // Keep refs in sync - use layout effect to update synchronously before browser paint
+  // This prevents race conditions where event handlers read stale refs
+  useLayoutEffect(() => {
     stateRef.current = state.current;
   }, [state.current]);
 
@@ -440,6 +455,11 @@ export function PlayerStateProvider({ children }) {
     // Check and spend mana cost
     if (manaCost > 0 && !spendMana(manaCost)) return false;
     
+    // Apply mana gain on each successful hit (recast)
+    if (actionConfig?.manaGain) {
+      gainMana(actionConfig.manaGain);
+    }
+    
     // Note: Buff is applied via completedAction effect when first cast finishes
     // Recasts don't re-apply the buff (just refresh if they go through FINISH)
     
@@ -449,7 +469,7 @@ export function PlayerStateProvider({ children }) {
     activeActionRef.current = currentAction;
     
     return true;
-  }, [state.activeAction, spendMana, spendHealth, setCastProgress]);
+  }, [state.activeAction, spendMana, spendHealth, gainMana, setCastProgress]);
 
   // Check helpers
   const is = useCallback((stateName) => state.current === stateName, [state.current]);

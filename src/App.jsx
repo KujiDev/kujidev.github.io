@@ -39,84 +39,81 @@ const InputToStateSync = () => {
 };
 
 /**
- * Skill button that uses the unified input system.
+ * Builds tooltip data from an action config.
+ */
+const buildTooltip = (action) => {
+  if (!action) return null;
+  const element = getElementForAction(action.id);
+  return {
+    name: action.label,
+    type: action.type,
+    element,
+    description: action.description,
+    manaCost: action.manaCost,
+    manaGain: action.manaGain,
+    manaPerSecond: action.manaPerSecond,
+    healthCost: action.healthCost,
+    buff: action.buff,
+    requiresTarget: action.requiresTarget,
+  };
+};
+
+/**
+ * Calculates if player can afford to use an action.
+ */
+const useCanAffordAction = (action) => {
+  const { mana, health } = usePlayerState();
+  const { target } = useTarget() || {};
+  
+  if (!action) return false;
+  
+  const manaCost = action.manaCost ?? 0;
+  const healthCost = action.healthCost ?? 0;
+  const manaPerSecond = action.manaPerSecond ?? 0;
+  
+  const requiredMana = manaCost > 0 ? manaCost : manaPerSecond > 0 ? 1 : 0;
+  const hasEnoughMana = mana >= requiredMana;
+  const hasEnoughHealth = healthCost > 0 ? health > healthCost : true;
+  const hasTarget = !action.requiresTarget || target !== null;
+  
+  return hasEnoughMana && hasEnoughHealth && hasTarget;
+};
+
+/**
+ * Skill button for keyboard-activated skills.
  */
 const SkillButton = ({ actionId }) => {
   const { getDisplayKey } = useKeyMap();
   const { active, handlers } = useActionButton(actionId);
-  const { mana, health } = usePlayerState();
   const action = getActionById(actionId);
-  
-  // Check if we have enough resources
-  const manaCost = action?.manaCost ?? 0;
-  const healthCost = action?.healthCost ?? 0;
-  const manaPerSecond = action?.manaPerSecond ?? 0;
-  
-  // For mana: need upfront cost OR at least 1 for channeled
-  const requiredMana = manaCost > 0 ? manaCost : manaPerSecond > 0 ? 1 : 0;
-  // For health: need more than the cost (can't kill yourself)
-  const hasEnoughMana = mana >= requiredMana;
-  const hasEnoughHealth = healthCost > 0 ? health > healthCost : true;
-  
-  const disabled = !hasEnoughMana || !hasEnoughHealth;
-  
-  // Build tooltip data
-  const element = action ? getElementForAction(action.id) : null;
-  const tooltip = action ? {
-    name: action.label,
-    type: action.type,
-    element: element,
-    description: action.description,
-    manaCost: action.manaCost,
-    manaPerSecond: action.manaPerSecond,
-    healthCost: action.healthCost,
-    buff: action.buff,
-  } : null;
+  const canAfford = useCanAffordAction(action);
   
   return (
     <Slot 
       keyBind={getDisplayKey(actionId)} 
       icon={action?.icon}
       active={active}
-      disabled={disabled}
-      tooltip={tooltip}
+      disabled={!canAfford}
+      tooltip={buildTooltip(action)}
       {...handlers}
     />
   );
 };
 
 /**
- * Mouse button skill - shows tooltip and target requirement.
+ * Skill button for mouse-activated skills (no keyboard handlers).
  */
-const MouseButton = ({ actionId, keyBind }) => {
-  const { mana } = usePlayerState();
-  const { target } = useTarget() || {};
+const MouseButton = ({ actionId }) => {
+  const { getDisplayKey } = useKeyMap();
   const action = getActionById(actionId);
-  
-  const manaCost = action?.manaCost ?? 0;
-  const hasEnoughMana = mana >= manaCost;
-  const hasTarget = target !== null;
-  
-  // Disabled if no mana OR no target (for target-required skills)
-  const disabled = !hasEnoughMana || (action?.requiresTarget && !hasTarget);
-  
-  // Build tooltip data
-  const element = action ? getElementForAction(action.id) : null;
-  const tooltip = action ? {
-    name: action.label,
-    type: action.type,
-    element: element,
-    description: action.description,
-    manaCost: action.manaCost,
-    requiresTarget: action.requiresTarget,
-  } : null;
+  const canAfford = useCanAffordAction(action);
   
   return (
     <Slot 
-      keyBind={keyBind}
+      keyBind={getDisplayKey(actionId)}
       icon={action?.icon}
-      disabled={disabled}
-      tooltip={tooltip}
+      disabled={!canAfford}
+      tooltip={buildTooltip(action)}
     />
   );
 };
@@ -124,11 +121,10 @@ const MouseButton = ({ actionId, keyBind }) => {
 /**
  * Game UI overlay - skill bar and orbs.
  */
-const GameUI = () => {
-  return (
-    <>
-      <TargetHealthBar />
-      <Hud>
+const GameUI = () => (
+  <>
+    <TargetHealthBar />
+    <Hud>
       <Orb type="health" label="Health" />
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', position: 'relative' }}>
         <BuffBar />
@@ -138,15 +134,14 @@ const GameUI = () => {
           {SKILL_BAR_ACTIONS.map(action => (
             <SkillButton key={action.id} actionId={action.id} />
           ))}
-          <MouseButton actionId="primary_attack" keyBind="LMB" />
-          <MouseButton actionId="secondary_attack" keyBind="RMB" />
+          <MouseButton actionId="primary_attack" />
+          <MouseButton actionId="secondary_attack" />
         </SkillBar>
       </div>
       <Orb type="mana" label="Mana" />
     </Hud>
-    </>
-  );
-};
+  </>
+);
 
 /**
  * Wraps content with keyboard controls and settings.

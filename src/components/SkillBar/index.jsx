@@ -43,6 +43,9 @@ export const Slot = ({ keyBind, icon, active, disabled, tooltip, ...handlers }) 
                         {tooltip.manaCost > 0 && (
                             <span className={styles["tooltip-mana"]}>Mana: {tooltip.manaCost}</span>
                         )}
+                        {tooltip.manaGain > 0 && (
+                            <span className={styles["tooltip-mana-gain"]}>Mana: +{tooltip.manaGain}</span>
+                        )}
                         {tooltip.manaPerSecond > 0 && (
                             <span className={styles["tooltip-mana"]}>Mana/sec: {tooltip.manaPerSecond}</span>
                         )}

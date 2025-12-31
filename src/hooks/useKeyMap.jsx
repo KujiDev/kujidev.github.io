@@ -3,7 +3,29 @@ import { getDefaultKeyMap } from "@/config/actions";
 
 const STORAGE_KEY = 'player_keymap';
 
-// Load keymap from localStorage or use defaults
+// Mouse button mappings
+const MOUSE_BUTTONS = {
+  0: 'MouseLeft',
+  1: 'MouseMiddle', 
+  2: 'MouseRight',
+};
+
+const MOUSE_DISPLAY = {
+  MouseLeft: 'LMB',
+  MouseRight: 'RMB',
+  MouseMiddle: 'MMB',
+};
+
+// Save keymap to localStorage
+const saveKeyMap = (keyMap) => {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(keyMap));
+  } catch (e) {
+    console.warn('Failed to save keymap:', e);
+  }
+};
+
+// Load keymap from localStorage, merging with defaults for new actions
 const loadKeyMap = () => {
   const defaults = getDefaultKeyMap();
   
@@ -12,14 +34,12 @@ const loadKeyMap = () => {
     if (saved) {
       const parsed = JSON.parse(saved);
       
-      // Merge saved keymap with defaults to handle new actions
-      // This ensures new skills get their default keys
-      const merged = defaults.map(defaultBinding => {
-        const savedBinding = parsed.find(s => s.name === defaultBinding.name);
-        return savedBinding || defaultBinding;
-      });
+      // Merge: use saved bindings where they exist, defaults for new actions
+      const merged = defaults.map(def => 
+        parsed.find(s => s.name === def.name) || def
+      );
       
-      // Save the merged version if we added new bindings
+      // Persist if we added new bindings
       if (merged.length !== parsed.length) {
         saveKeyMap(merged);
       }
@@ -27,131 +47,110 @@ const loadKeyMap = () => {
       return merged;
     }
   } catch (e) {
-    console.warn('Failed to load keymap from storage:', e);
+    console.warn('Failed to load keymap:', e);
   }
+  
   return defaults;
 };
 
-// Save keymap to localStorage
-const saveKeyMap = (keyMap) => {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(keyMap));
-  } catch (e) {
-    console.warn('Failed to save keymap to storage:', e);
-  }
+// Convert key code to display-friendly name
+const formatKeyDisplay = (key) => {
+  if (!key) return '?';
+  if (MOUSE_DISPLAY[key]) return MOUSE_DISPLAY[key];
+  
+  return key
+    .replace('Key', '')
+    .replace('Left', '')
+    .replace('Right', '')
+    .replace('Digit', '');
 };
 
 const KeyMapContext = createContext(null);
 
 export function KeyMapProvider({ children }) {
   const [keyMap, setKeyMap] = useState(loadKeyMap);
-  const [rebinding, setRebinding] = useState(null); // Currently rebinding action name
+  const [rebinding, setRebinding] = useState(null);
 
-  // Get the key for a specific action
+  // Get the key code for a specific action
   const getKey = useCallback((actionId) => {
-    const binding = keyMap.find(m => m.name === actionId);
-    return binding?.keys[0] || null;
+    return keyMap.find(m => m.name === actionId)?.keys[0] || null;
   }, [keyMap]);
 
   // Get display-friendly key name
   const getDisplayKey = useCallback((actionId) => {
-    const key = getKey(actionId);
-    if (!key) return '?';
-    
-    // Handle mouse buttons
-    if (key === 'MouseLeft') return 'LMB';
-    if (key === 'MouseRight') return 'RMB';
-    if (key === 'MouseMiddle') return 'MMB';
-    
-    // Convert KeyQ -> Q, ShiftLeft -> Shift, etc.
-    return key
-      .replace('Key', '')
-      .replace('Left', '')
-      .replace('Right', '')
-      .replace('Digit', '');
+    return formatKeyDisplay(getKey(actionId));
   }, [getKey]);
+
+  // Update a key binding, unbinding any action that previously had this key
+  const updateBinding = useCallback((actionName, newKey) => {
+    setKeyMap(prev => {
+      const updated = prev.map(m => {
+        // Assign the new key to the target action
+        if (m.name === actionName) {
+          return { ...m, keys: [newKey] };
+        }
+        // Unbind if another action had this key
+        if (m.keys[0] === newKey) {
+          return { ...m, keys: [] };
+        }
+        return m;
+      });
+      saveKeyMap(updated);
+      return updated;
+    });
+  }, []);
 
   // Start rebinding process for an action
   const startRebind = useCallback((actionName) => {
     setRebinding(actionName);
     
     return new Promise((resolve) => {
-      const keyHandler = (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        
-        setKeyMap((prev) => {
-          const newMap = prev.map((m) =>
-            m.name === actionName
-              ? { ...m, keys: [event.code] }
-              : m
-          );
-          saveKeyMap(newMap);
-          return newMap;
-        });
-
+      const handleKey = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        updateBinding(actionName, e.code);
         cleanup();
-        resolve(event.code);
+        resolve(e.code);
       };
       
-      const pointerHandler = (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        event.stopImmediatePropagation();
+      const handlePointer = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
         
-        // Map pointer buttons to our key format
-        // pointerType can be 'mouse', 'pen', 'touch'
-        const mouseKey = event.button === 0 ? 'MouseLeft' 
-          : event.button === 2 ? 'MouseRight' 
-          : event.button === 1 ? 'MouseMiddle' 
-          : null;
-        
+        const mouseKey = MOUSE_BUTTONS[e.button];
         if (!mouseKey) return;
         
-        setKeyMap((prev) => {
-          const newMap = prev.map((m) =>
-            m.name === actionName
-              ? { ...m, keys: [mouseKey] }
-              : m
-          );
-          saveKeyMap(newMap);
-          return newMap;
-        });
-
+        updateBinding(actionName, mouseKey);
         cleanup();
         resolve(mouseKey);
       };
       
-      const contextHandler = (event) => {
-        event.preventDefault();
-        event.stopPropagation();
+      const handleContext = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
       };
       
       const cleanup = () => {
         setRebinding(null);
-        document.removeEventListener('keydown', keyHandler, true);
-        document.removeEventListener('pointerdown', pointerHandler, true);
-        document.removeEventListener('contextmenu', contextHandler, true);
+        document.removeEventListener('keydown', handleKey, true);
+        document.removeEventListener('pointerdown', handlePointer, true);
+        document.removeEventListener('contextmenu', handleContext, true);
       };
 
-      // Use requestAnimationFrame + setTimeout to ensure we're past the current click
+      // Delay to avoid capturing the click that triggered rebind
       requestAnimationFrame(() => {
         setTimeout(() => {
-          // Use capture phase (true) to get events before other handlers
-          document.addEventListener('keydown', keyHandler, true);
-          document.addEventListener('pointerdown', pointerHandler, true);
-          document.addEventListener('contextmenu', contextHandler, true);
+          document.addEventListener('keydown', handleKey, true);
+          document.addEventListener('pointerdown', handlePointer, true);
+          document.addEventListener('contextmenu', handleContext, true);
         }, 0);
       });
     });
-  }, []);
+  }, [updateBinding]);
 
-  // Cancel current rebind
-  const cancelRebind = useCallback(() => {
-    setRebinding(null);
-  }, []);
+  const cancelRebind = useCallback(() => setRebinding(null), []);
 
-  // Reset to defaults
   const resetToDefaults = useCallback(() => {
     const defaults = getDefaultKeyMap();
     setKeyMap(defaults);

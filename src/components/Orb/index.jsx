@@ -1,28 +1,27 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { usePlayerState } from "@/hooks/usePlayerState";
 import styles from "./styles.module.css";
+
+const formatRegen = (val) => (val >= 0 ? `+${val}` : val.toString());
 
 export default function Orb({ type = "health", label = "Health" }) {
   const { mana, maxMana, health, maxHealth, regenInfo } = usePlayerState();
   const [showTooltip, setShowTooltip] = useState(false);
   
-  // Calculate fill percentage based on type
-  let fillPercent, currentValue, regen;
-  if (type === "mana") {
-    fillPercent = Math.round((mana / maxMana) * 100);
-    currentValue = Math.round(mana);
-    regen = regenInfo.mana;
-  } else {
-    fillPercent = Math.round((health / maxHealth) * 100);
-    currentValue = Math.round(health);
-    regen = regenInfo.health;
-  }
-
-  // Format regen value with sign
-  const formatRegen = (val) => {
-    if (val >= 0) return `+${val}`;
-    return val.toString();
-  };
+  const { fillPercent, currentValue, regen } = useMemo(() => {
+    if (type === "mana") {
+      return {
+        fillPercent: Math.round((mana / maxMana) * 100),
+        currentValue: Math.round(mana),
+        regen: regenInfo.mana,
+      };
+    }
+    return {
+      fillPercent: Math.round((health / maxHealth) * 100),
+      currentValue: Math.round(health),
+      regen: regenInfo.health,
+    };
+  }, [type, mana, maxMana, health, maxHealth, regenInfo]);
   
   return (
     <div 

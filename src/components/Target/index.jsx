@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, createContext, useContext, useCallback } from 'react'
+import { useState, useEffect, useRef, createContext, useContext, useCallback, useMemo } from 'react'
 import { usePlayerState } from '@/hooks/usePlayerState'
 
 // Context to share target state between 3D scene and HUD
@@ -10,22 +10,24 @@ export function TargetProvider({ children }) {
   const [target, setTarget] = useState(null)
   const [lockedTargetId, setLockedTargetId] = useState(null)
   
-  // Lock a target (for mobile tap or click-to-lock)
-  const lockTarget = (id) => setLockedTargetId(id)
-  
-  // Unlock the target
-  const unlockTarget = () => {
+  const lockTarget = useCallback((id) => setLockedTargetId(id), [])
+  const unlockTarget = useCallback(() => {
     setLockedTargetId(null)
     setTarget(null)
-  }
+  }, [])
+  const hasTarget = useCallback(() => target !== null, [target])
   
-  // Check if we have a valid target
-  const hasTarget = useCallback(() => {
-    return target !== null
-  }, [target])
+  const value = useMemo(() => ({
+    target,
+    setTarget,
+    lockedTargetId,
+    lockTarget,
+    unlockTarget,
+    hasTarget,
+  }), [target, lockedTargetId, lockTarget, unlockTarget, hasTarget])
   
   return (
-    <TargetContext.Provider value={{ target, setTarget, lockedTargetId, lockTarget, unlockTarget, hasTarget }}>
+    <TargetContext.Provider value={value}>
       {children}
     </TargetContext.Provider>
   )
@@ -33,106 +35,85 @@ export function TargetProvider({ children }) {
 
 /**
  * Wraps a 3D model to make it targetable.
- * - Desktop: hover to target, move away to untarget
- * - Mobile: tap to lock target, tap elsewhere to unlock
- * - Left click: primary attack
- * - Right click: secondary attack
- * - Updates reactively when health/props change
+ * Handles hover targeting, click-to-lock, and mouse attacks.
  */
 export default function Target({ 
   name = 'Unknown', 
   health = 100, 
   maxHealth = 100,
   level,
-  type = 'enemy', // 'enemy', 'elite', 'boss', 'friendly'
+  type = 'enemy',
   children 
 }) {
   const { setTarget, lockedTargetId, lockTarget } = useTarget() || {}
   const { handleInput } = usePlayerState()
   const targetId = useRef(`${name}-${type}`).current
-  const isTargeted = useRef(false)
+  const isHovered = useRef(false)
   const isLocked = lockedTargetId === targetId
   
-  // Update target data reactively when props change and this target is active
-  useEffect(() => {
-    if ((isTargeted.current || isLocked) && setTarget) {
-      setTarget({ name, health, maxHealth, level, type })
-    }
-  }, [name, health, maxHealth, level, type, isLocked, setTarget])
+  // Build target data object
+  const targetData = useMemo(() => ({ 
+    name, health, maxHealth, level, type 
+  }), [name, health, maxHealth, level, type])
   
-  const handlePointerEnter = (e) => {
+  // Update target data reactively when props change
+  useEffect(() => {
+    if ((isHovered.current || isLocked) && setTarget) {
+      setTarget(targetData)
+    }
+  }, [targetData, isLocked, setTarget])
+  
+  // Lock target and set data
+  const lockAndSetTarget = useCallback(() => {
+    lockTarget?.(targetId)
+    setTarget?.(targetData)
+  }, [lockTarget, setTarget, targetId, targetData])
+  
+  const handlePointerEnter = useCallback((e) => {
     e.stopPropagation()
-    // Don't override a locked target with hover
     if (lockedTargetId && lockedTargetId !== targetId) return
     
-    isTargeted.current = true
-    if (setTarget) {
-      setTarget({ name, health, maxHealth, level, type })
-    }
-  }
+    isHovered.current = true
+    setTarget?.(targetData)
+  }, [lockedTargetId, targetId, setTarget, targetData])
   
-  const handlePointerLeave = (e) => {
+  const handlePointerLeave = useCallback((e) => {
     e.stopPropagation()
-    isTargeted.current = false
-    
-    // Don't clear if this target is locked
-    if (isLocked) return
-    
-    if (setTarget) {
-      setTarget(null)
-    }
-  }
+    isHovered.current = false
+    if (!isLocked) setTarget?.(null)
+  }, [isLocked, setTarget])
   
-  // Left click - primary attack (hold to keep casting)
-  const handlePointerDown = (e) => {
-    // Only handle left mouse button
+  // Left click - lock and primary attack
+  const handlePointerDown = useCallback((e) => {
     if (e.button !== 0) return
     e.stopPropagation()
     
-    // Lock target on first click, then attack
-    if (!isLocked) {
-      lockTarget?.(targetId)
-      setTarget?.({ name, health, maxHealth, level, type })
-    }
-    
-    // Start primary attack
+    if (!isLocked) lockAndSetTarget()
     handleInput?.('primary_attack', true)
-  }
+  }, [isLocked, lockAndSetTarget, handleInput])
   
-  const handlePointerUp = (e) => {
-    // Only handle left mouse button
+  const handlePointerUp = useCallback((e) => {
     if (e.button !== 0) return
     e.stopPropagation()
-    
-    // Release primary attack
     handleInput?.('primary_attack', false)
-  }
+  }, [handleInput])
   
-  // Right click - secondary attack (hold to keep casting)
-  const handleContextMenu = (e) => {
+  // Right click - lock and secondary attack
+  const handleContextMenu = useCallback((e) => {
     e.stopPropagation()
     e.nativeEvent?.preventDefault?.()
     
-    // Lock target on first click, then attack
-    if (!isLocked) {
-      lockTarget?.(targetId)
-      setTarget?.({ name, health, maxHealth, level, type })
-    }
-    
-    // Start secondary attack
+    if (!isLocked) lockAndSetTarget()
     handleInput?.('secondary_attack', true)
-  }
+  }, [isLocked, lockAndSetTarget, handleInput])
   
-  // Track right mouse button release globally (since onContextMenu only fires once)
+  // Track right mouse release globally
   useEffect(() => {
-    const handleMouseUp = (e) => {
-      if (e.button === 2) {
-        handleInput?.('secondary_attack', false)
-      }
+    const onMouseUp = (e) => {
+      if (e.button === 2) handleInput?.('secondary_attack', false)
     }
-    
-    window.addEventListener('mouseup', handleMouseUp)
-    return () => window.removeEventListener('mouseup', handleMouseUp)
+    window.addEventListener('mouseup', onMouseUp)
+    return () => window.removeEventListener('mouseup', onMouseUp)
   }, [handleInput])
   
   return (
