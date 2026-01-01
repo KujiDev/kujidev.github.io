@@ -1,4 +1,5 @@
 import { useRef, useMemo } from 'react';
+import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 
 /**
@@ -88,8 +89,41 @@ function Barrel({ position = [0, 0, 0], scale = 1 }) {
   );
 }
 
-// Simple campfire
+// Simple campfire with animated bloom
 function Campfire({ position = [0, 0, 0] }) {
+  const fireRef = useRef();
+  const bloomRef = useRef();
+  const glowRef = useRef();
+  const timeOffset = useMemo(() => Math.random() * 100, []);
+  
+  // HDR colors for bloom (values > 1 trigger bloom pass)
+  const fireColor = useMemo(() => new THREE.Color('#ff6030'), []);
+  const glowColor = useMemo(() => new THREE.Color('#ffaa40'), []);
+  const bloomColor = useMemo(() => new THREE.Color('#ff4010'), []);
+  
+  useFrame((state) => {
+    const t = state.clock.elapsedTime + timeOffset;
+    // Flickering fire effect
+    const flicker = 1 + Math.sin(t * 8) * 0.1 + Math.sin(t * 13) * 0.05 + Math.sin(t * 21) * 0.03;
+    const flickerY = 1 + Math.sin(t * 6) * 0.15 + Math.sin(t * 11) * 0.08;
+    
+    // Pulsing bloom intensity multiplier
+    const bloomIntensity = 2 + Math.sin(t * 4) * 0.8 + Math.sin(t * 7) * 0.4;
+    
+    if (fireRef.current) {
+      fireRef.current.scale.set(flicker, flickerY, flicker);
+      fireRef.current.material.color.copy(fireColor).multiplyScalar(bloomIntensity * 1.2);
+    }
+    if (bloomRef.current) {
+      bloomRef.current.scale.set(flicker * 1.1, flickerY * 0.9, flicker * 1.1);
+      bloomRef.current.material.color.copy(glowColor).multiplyScalar(bloomIntensity);
+    }
+    if (glowRef.current) {
+      glowRef.current.scale.setScalar(1 + Math.sin(t * 3) * 0.15);
+      glowRef.current.material.color.copy(bloomColor).multiplyScalar(bloomIntensity * 0.8);
+    }
+  });
+  
   return (
     <group position={position}>
       {/* Stone ring */}
@@ -108,28 +142,46 @@ function Campfire({ position = [0, 0, 0] }) {
         );
       })}
       
-      {/* Logs */}
-      <mesh position={[0, 0.15, 0]} rotation={[0, 0, 0.2]} castShadow>
-        <cylinderGeometry args={[0.08, 0.1, 0.6, 6]} />
-        <primitive object={materials.darkWood} attach="material" />
-      </mesh>
-      <mesh position={[0, 0.15, 0]} rotation={[0, Math.PI / 3, -0.2]} castShadow>
-        <cylinderGeometry args={[0.08, 0.1, 0.6, 6]} />
+      {/* Logs - arranged in a tepee/cross pattern */}
+      <group position={[0, 0.08, 0]} rotation={[0, 0, 0.4]}>
+        <mesh position={[0, 0.15, 0]} castShadow>
+          <cylinderGeometry args={[0.06, 0.08, 0.5, 6]} />
+          <primitive object={materials.darkWood} attach="material" />
+        </mesh>
+      </group>
+      <group position={[0, 0.08, 0]} rotation={[0, Math.PI / 3, 0.4]}>
+        <mesh position={[0, 0.15, 0]} castShadow>
+          <cylinderGeometry args={[0.06, 0.08, 0.5, 6]} />
+          <primitive object={materials.darkWood} attach="material" />
+        </mesh>
+      </group>
+      <group position={[0, 0.08, 0]} rotation={[0, -Math.PI / 3, 0.4]}>
+        <mesh position={[0, 0.15, 0]} castShadow>
+          <cylinderGeometry args={[0.06, 0.08, 0.5, 6]} />
+          <primitive object={materials.darkWood} attach="material" />
+        </mesh>
+      </group>
+      {/* Base log lying flat */}
+      <mesh position={[0, 0.06, 0]} rotation={[Math.PI / 2, 0, 0.3]} castShadow>
+        <cylinderGeometry args={[0.07, 0.09, 0.55, 6]} />
         <primitive object={materials.darkWood} attach="material" />
       </mesh>
       
-      {/* Fire glow */}
-      <mesh position={[0, 0.3, 0]}>
+      {/* Animated fire with HDR colors for bloom */}
+      <mesh ref={fireRef} position={[0, 0.3, 0]}>
         <coneGeometry args={[0.2, 0.5, 8]} />
-        <primitive object={materials.fire} attach="material" />
+        <meshBasicMaterial color="#ff6030" toneMapped={false} />
       </mesh>
-      <mesh position={[0, 0.25, 0]}>
+      <mesh ref={bloomRef} position={[0, 0.25, 0]}>
         <coneGeometry args={[0.15, 0.3, 6]} />
-        <primitive object={materials.fireGlow} attach="material" />
+        <meshBasicMaterial color="#ffaa40" toneMapped={false} />
       </mesh>
       
-      {/* Point light */}
-      <pointLight color="#ff6030" intensity={3} distance={8} decay={2} position={[0, 0.5, 0]} />
+      {/* Bloom glow sphere */}
+      {/* <mesh ref={glowRef} position={[0, 0.35, 0]}>
+        <sphereGeometry args={[0.5, 8, 8]} />
+        <meshBasicMaterial color="#ff4010" transparent opacity={0.12} toneMapped={false} />
+      </mesh> */}
     </group>
   );
 }
@@ -167,22 +219,40 @@ function DeadTree({ position = [0, 0, 0], scale = 1 }) {
     <group position={position} scale={scale}>
       {/* Trunk */}
       <mesh position={[0, 1.5, 0]} castShadow>
-        <cylinderGeometry args={[0.15, 0.3, 3, 8]} />
+        <cylinderGeometry args={[0.12, 0.25, 3, 8]} />
         <primitive object={materials.darkWood} attach="material" />
       </mesh>
-      {/* Branches */}
-      <mesh position={[0.3, 2.5, 0]} rotation={[0, 0, 0.5]} castShadow>
-        <cylinderGeometry args={[0.03, 0.08, 1.2, 6]} />
-        <primitive object={materials.darkWood} attach="material" />
-      </mesh>
-      <mesh position={[-0.2, 2.2, 0.2]} rotation={[0.3, 0, -0.6]} castShadow>
-        <cylinderGeometry args={[0.02, 0.06, 0.9, 6]} />
-        <primitive object={materials.darkWood} attach="material" />
-      </mesh>
-      <mesh position={[0, 2.8, -0.2]} rotation={[-0.4, 0, 0.2]} castShadow>
-        <cylinderGeometry args={[0.02, 0.05, 0.7, 6]} />
-        <primitive object={materials.darkWood} attach="material" />
-      </mesh>
+      {/* Branches - using groups to pivot from base at trunk surface */}
+      <group position={[0.13, 2.3, 0]} rotation={[0, 0, 1.1]}>
+        <mesh position={[0, 0.4, 0]} castShadow>
+          <cylinderGeometry args={[0.02, 0.06, 0.8, 6]} />
+          <primitive object={materials.darkWood} attach="material" />
+        </mesh>
+      </group>
+      <group position={[-0.13, 2.0, 0]} rotation={[0, 0, -1.0]}>
+        <mesh position={[0, 0.35, 0]} castShadow>
+          <cylinderGeometry args={[0.02, 0.05, 0.7, 6]} />
+          <primitive object={materials.darkWood} attach="material" />
+        </mesh>
+      </group>
+      <group position={[0, 2.5, -0.12]} rotation={[-1.1, 0, 0]}>
+        <mesh position={[0, 0.25, 0]} castShadow>
+          <cylinderGeometry args={[0.015, 0.04, 0.5, 6]} />
+          <primitive object={materials.darkWood} attach="material" />
+        </mesh>
+      </group>
+      <group position={[0, 2.1, 0.14]} rotation={[1.0, 0, 0]}>
+        <mesh position={[0, 0.25, 0]} castShadow>
+          <cylinderGeometry args={[0.015, 0.04, 0.5, 6]} />
+          <primitive object={materials.darkWood} attach="material" />
+        </mesh>
+      </group>
+      <group position={[0.1, 2.7, 0.08]} rotation={[0.5, 0, 0.9]}>
+        <mesh position={[0, 0.22, 0]} castShadow>
+          <cylinderGeometry args={[0.015, 0.035, 0.45, 6]} />
+          <primitive object={materials.darkWood} attach="material" />
+        </mesh>
+      </group>
     </group>
   );
 }
@@ -313,24 +383,6 @@ export default function Town() {
       <DeadTree position={[-11, 0, 10]} scale={0.9} />
       <DeadTree position={[13, 0, -6]} scale={1.1} />
       <DeadTree position={[-14, 0, 0]} scale={1.3} />
-      
-      {/* Ambient fill light for the town */}
-      <ambientLight intensity={0.15} />
-      
-      {/* Main directional light (moon/dusk) */}
-      <directionalLight
-        position={[10, 15, 5]}
-        intensity={0.4}
-        color="#8090b0"
-        castShadow
-        shadow-mapSize={[1024, 1024]}
-        shadow-camera-near={1}
-        shadow-camera-far={50}
-        shadow-camera-left={-20}
-        shadow-camera-right={20}
-        shadow-camera-top={20}
-        shadow-camera-bottom={-20}
-      />
     </group>
   );
 }

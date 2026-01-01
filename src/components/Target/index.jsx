@@ -86,13 +86,13 @@ export default function Target({
     if (!isLocked) setTarget?.(null)
   }, [isLocked, setTarget])
   
-  // Left click - lock and use LMB slot action (single click, no recast)
+  // Left click - lock and use LMB slot action (held down = recast)
   const handlePointerDown = useCallback((e) => {
     if (e.button !== 0) return
     e.stopPropagation()
     
     if (!isLocked) lockAndSetTarget()
-    if (lmbAction) handleInput?.(lmbAction, true, true) // isClick = true
+    if (lmbAction) handleInput?.(lmbAction, true) // Allow recast on hold
   }, [isLocked, lockAndSetTarget, handleInput, lmbAction])
   
   const handlePointerUp = useCallback((e) => {
@@ -101,13 +101,13 @@ export default function Target({
     if (lmbAction) handleInput?.(lmbAction, false)
   }, [handleInput, lmbAction])
   
-  // Right click - lock and use RMB slot action (single click, no recast)
+  // Right click - lock and use RMB slot action (held down = recast)
   const handleContextMenu = useCallback((e) => {
     e.stopPropagation()
     e.nativeEvent?.preventDefault?.()
     
     if (!isLocked) lockAndSetTarget()
-    if (rmbAction) handleInput?.(rmbAction, true, true) // isClick = true
+    if (rmbAction) handleInput?.(rmbAction, true) // Allow recast on hold
   }, [isLocked, lockAndSetTarget, handleInput, rmbAction])
   
   // Track right mouse release globally
