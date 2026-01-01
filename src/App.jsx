@@ -16,6 +16,8 @@ import TargetHealthBar from "@/components/TargetHealthBar";
 import IceShard from "@/components/IceShard";
 import Meteor from "@/components/Meteor";
 import LoadingScreen from "@/components/LoadingScreen";
+import Town from "@/components/Town";
+import TrainingDummyModel from "@/components/TrainingDummyModel";
 
 import { KeyMapProvider, useKeyMap } from "@/hooks/useKeyMap";
 import { PlayerStateProvider, usePlayerState } from "@/hooks/usePlayerState";
@@ -277,15 +279,8 @@ const Scene = () => {
       <pointLight position={[0, 2, 0]} intensity={1} color="#ff6b35" distance={10} />
       
       {/* Floor - click to deselect target */}
-      <mesh 
-        rotation={[-Math.PI / 2, 0, 0]} 
-        position={[0, 0, 0]} 
-        receiveShadow
-        onClick={handleMissClick}
-      >
-        <circleGeometry args={[30, 64]} />
-        <meshStandardMaterial color="#2d2d3a" roughness={0.9} metalness={0.1} />
-      </mesh>
+      {/* Town environment */}
+      <Town />
 
       <PlayerTarget>
         <Wizard position={[0, 0, 0]} />
@@ -293,10 +288,7 @@ const Scene = () => {
 
       {/* Test enemy target */}
       <TrainingDummy>
-        <mesh position={[0, 1, 3]}>
-          <boxGeometry args={[1, 2, 1]} />
-          <meshStandardMaterial color="#8b4513" />
-        </mesh>
+        <TrainingDummyModel position={[0, 0, 3]} />
       </TrainingDummy>
       
       {/* Ice Shard effect - targets the training dummy */}
