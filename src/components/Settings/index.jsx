@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import styles from './styles.module.css';
 import { useKeyMap } from '@/hooks/useKeyMap';
 import { ACTIONS } from '@/config/actions';
@@ -12,12 +13,25 @@ const GearIcon = () => (
 
 export default function Settings() {
     const [isOpen, setIsOpen] = useState(false);
+    const buttonRef = useRef(null);
     const { getDisplayKey, startRebind, rebinding, resetToDefaults } = useKeyMap();
     const actions = Object.values(ACTIONS);
+    
+    const [portalContainer] = useState(() => {
+        const div = document.createElement('div');
+        div.id = 'settings-portal';
+        return div;
+    });
+    
+    useEffect(() => {
+        document.body.appendChild(portalContainer);
+        return () => document.body.removeChild(portalContainer);
+    }, [portalContainer]);
 
     return (
         <>
             <button 
+                ref={buttonRef}
                 className={`${styles['menu-button']} ${isOpen ? styles['active'] : ''}`}
                 onClick={() => setIsOpen(!isOpen)}
                 aria-label="Toggle settings"
@@ -25,8 +39,18 @@ export default function Settings() {
                 <GearIcon />
             </button>
 
-            {isOpen && (
-                <div className={styles['settings-drawer']}>
+            {isOpen && createPortal(
+                <div 
+                    className={styles['settings-drawer']}
+                    style={{
+                        position: 'fixed',
+                        bottom: buttonRef.current 
+                            ? window.innerHeight - buttonRef.current.getBoundingClientRect().top + 8 
+                            : 100,
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                    }}
+                >
                     <div className={styles['drawer-title']}>Key Bindings</div>
 
                     <div className={styles['keybind-list']}>
@@ -46,7 +70,8 @@ export default function Settings() {
                     <button className={styles['reset-button']} onClick={resetToDefaults}>
                         Reset to Defaults
                     </button>
-                </div>
+                </div>,
+                portalContainer
             )}
         </>
     )

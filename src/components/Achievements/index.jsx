@@ -31,7 +31,10 @@ export default function Achievements() {
       </button>
 
       {isOpen && (
-        <div className={styles['achievements-drawer']}>
+        <div 
+          className={styles['achievements-drawer']}
+          onWheel={(e) => e.stopPropagation()}
+        >
           <div className={styles['drawer-header']}>
             <div className={styles['drawer-title']}>Achievements</div>
             <div className={styles['drawer-progress']}>
