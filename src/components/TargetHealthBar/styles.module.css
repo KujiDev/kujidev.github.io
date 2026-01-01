@@ -313,3 +313,83 @@
 .type-friendly .levelBox {
   color: #80e890;
 }
+
+/* =========================
+   Status Bar (Buffs/Debuffs)
+   ========================= */
+
+.statusBar {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  margin-top: 8px;
+  pointer-events: auto;
+}
+
+.statusIcon {
+  position: relative;
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  overflow: hidden;
+  
+  background: 
+    linear-gradient(180deg, rgba(40,32,24,0.95) 0%, rgba(20,16,12,0.95) 100%);
+  border: 1px solid rgba(90,70,45,0.8);
+  
+  box-shadow:
+    inset 0 1px 0 rgba(255,220,160,0.1),
+    inset 0 -1px 3px rgba(0,0,0,0.5),
+    0 2px 4px rgba(0,0,0,0.4);
+}
+
+.statusIcon.buff {
+  border-color: rgba(100,160,90,0.8);
+  box-shadow:
+    inset 0 1px 0 rgba(180,255,160,0.1),
+    inset 0 -1px 3px rgba(0,0,0,0.5),
+    0 0 6px rgba(100,180,80,0.3);
+}
+
+.statusIcon.debuff {
+  border-color: rgba(180,80,80,0.8);
+  box-shadow:
+    inset 0 1px 0 rgba(255,160,160,0.1),
+    inset 0 -1px 3px rgba(0,0,0,0.5),
+    0 0 6px rgba(200,80,80,0.3);
+}
+
+.statusImage {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 2px;
+  filter: drop-shadow(0 1px 1px rgba(0,0,0,0.5));
+}
+
+.statusSweep {
+  position: absolute;
+  inset: 0;
+  background: conic-gradient(
+    from 0deg,
+    transparent calc((1 - var(--progress)) * 360deg),
+    rgba(0,0,0,0.6) calc((1 - var(--progress)) * 360deg)
+  );
+  pointer-events: none;
+}
+
+.statusTimer {
+  position: absolute;
+  bottom: -1px;
+  left: 50%;
+  transform: translateX(-50%);
+  
+  font-size: 8px;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 
+    0 0 2px #000,
+    0 0 2px #000,
+    0 1px 1px #000;
+  pointer-events: none;
+}

@@ -39,6 +39,8 @@ export default function Target({
   maxHealth = 100,
   level,
   type = 'enemy',
+  buffs = [],
+  debuffs = [],
   children 
 }) {
   const { setTarget, lockedTargetId, lockTarget } = useTarget() || {}
@@ -49,8 +51,8 @@ export default function Target({
   
   // Build target data object
   const targetData = useMemo(() => ({ 
-    name, health, maxHealth, level, type 
-  }), [name, health, maxHealth, level, type])
+    name, health, maxHealth, level, type, buffs, debuffs 
+  }), [name, health, maxHealth, level, type, buffs, debuffs])
   
   // Update target data reactively when props change
   useEffect(() => {

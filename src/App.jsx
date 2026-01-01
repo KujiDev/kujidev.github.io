@@ -1,7 +1,7 @@
 import { Canvas } from "@react-three/fiber";
 import { CameraControls, Environment, KeyboardControls, useKeyboardControls } from "@react-three/drei";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
-import { useEffect, useRef, Suspense } from "react";
+import { useEffect, useRef, Suspense, useState, useMemo } from "react";
 
 import Hud from "@/components/Hud";
 import SkillBar, { Slot } from "@/components/SkillBar";
@@ -226,12 +226,29 @@ const GameControls = ({ children }) => {
 };
 
 /**
- * Player target wrapper that syncs with player state.
+ * Player target wrapper that syncs with player state including buffs.
  */
 const PlayerTarget = ({ children }) => {
-  const { health, maxHealth } = usePlayerState();
+  const { health, maxHealth, buffs } = usePlayerState();
   return (
-    <Target name="Wizard" health={health} maxHealth={maxHealth} level={70} type="friendly">
+    <Target name="Wizard" health={health} maxHealth={maxHealth} level={70} type="friendly" buffs={buffs}>
+      {children}
+    </Target>
+  );
+};
+
+/**
+ * Simple training dummy target (no fake debuffs).
+ */
+const TrainingDummy = ({ children }) => {
+  return (
+    <Target 
+      name="Training Dummy" 
+      health={75} 
+      maxHealth={100} 
+      level={72} 
+      type="enemy"
+    >
       {children}
     </Target>
   );
@@ -275,12 +292,12 @@ const Scene = () => {
       </PlayerTarget>
 
       {/* Test enemy target */}
-      <Target name="Training Dummy" health={75} maxHealth={100} level={72} type="enemy">
+      <TrainingDummy>
         <mesh position={[0, 1, 3]}>
           <boxGeometry args={[1, 2, 1]} />
           <meshStandardMaterial color="#8b4513" />
         </mesh>
-      </Target>
+      </TrainingDummy>
       
       {/* Ice Shard effect - targets the training dummy */}
       <IceShard targetPosition={[0, 0, 3]} />
