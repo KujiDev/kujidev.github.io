@@ -140,7 +140,7 @@ const SlotButton = ({ slotId }) => {
   const { getActionObjectForSlot } = useSlotMap();
   
   const action = getActionObjectForSlot(slotId);
-  const { active, handlers } = useActionButton(action?.id);
+  const { active, handlers } = useActionButton(action?.id, slotId);
   const canAfford = useCanAffordAction(action);
   
   return (

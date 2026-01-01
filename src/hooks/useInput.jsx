@@ -80,10 +80,12 @@ export function useInput() {
   return context;
 }
 
-export function useActionButton(actionId) {
+export function useActionButton(actionId, slotId = null) {
   const { isActive, pressAction, releaseAction } = useInput();
   const { handleInput } = usePlayerState();
-  const keyboardState = useKeyboardControls((state) => state[actionId]);
+  // Use slotId for keyboard state if provided, otherwise fall back to actionId
+  const keyboardStateKey = slotId || actionId;
+  const keyboardState = useKeyboardControls((state) => state[keyboardStateKey]);
   
   // Track if currently in a touch interaction to prevent mouse events from double-firing
   const isTouchingRef = useRef(false);

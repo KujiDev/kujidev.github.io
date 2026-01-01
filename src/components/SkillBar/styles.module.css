@@ -51,17 +51,6 @@
   pointer-events: none;
 }
 
-.skill-bar::after {
-  content: "";
-  position: absolute;
-  bottom: -1.25rem;
-  left: 10%;
-  right: 10%;
-  height: 2.5rem;
-  background: radial-gradient(ellipse at 50% 0%, rgba(255,140,60,0.15), transparent 70%);
-  pointer-events: none;
-}
-
 .skill-slot {
   width: 3.25rem;
   height: 3.25rem;

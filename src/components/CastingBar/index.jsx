@@ -1,16 +1,30 @@
 import { useEffect, useState, useRef } from 'react';
 import { usePlayerState } from '@/hooks/usePlayerState';
-import { getActionById } from '@/config/actions';
+import { getActionById, ELEMENTS } from '@/config/actions';
 import styles from './styles.module.css';
+
+// Get element colors for an action
+function getElementColors(action) {
+    if (!action?.element) return null;
+    return ELEMENTS[action.element] || null;
+}
 
 // Shatter overlay component
 function ShatterOverlay({ actionId, progress }) {
     const action = getActionById(actionId);
     const percentage = Math.round(progress * 100);
+    const element = getElementColors(action);
     
     return (
         <div className={styles['shatter-overlay']}>
-            <div className={`${styles['casting-bar']} ${styles['shatter']}`}>
+            <div 
+                className={`${styles['casting-bar']} ${styles['shatter']}`}
+                style={element ? {
+                    '--element-primary': element.primary,
+                    '--element-secondary': element.secondary,
+                    '--element-glow': element.glow,
+                } : undefined}
+            >
                 {/* Skill icon */}
                 {action?.icon && (
                     <div className={styles['skill-icon']}>
@@ -70,6 +84,7 @@ export default function CastingBar() {
     }, [interruptCounter, interruptedAction, interruptedProgress]);
     
     const action = isActive && activeAction ? getActionById(activeAction) : null;
+    const element = getElementColors(action);
     const progress = castProgress ?? 0;
     const percentage = Math.round(progress * 100);
     
@@ -82,7 +97,14 @@ export default function CastingBar() {
             
             {/* Normal casting bar */}
             {isActive && activeAction && action && (
-                <div className={styles['casting-bar']}>
+                <div 
+                    className={styles['casting-bar']}
+                    style={element ? {
+                        '--element-primary': element.primary,
+                        '--element-secondary': element.secondary,
+                        '--element-glow': element.glow,
+                    } : undefined}
+                >
                     {/* Skill icon */}
                     {action?.icon && (
                         <div className={styles['skill-icon']}>
@@ -94,7 +116,7 @@ export default function CastingBar() {
                     <div className={styles['bar-track']}>
                         {/* Fill */}
                         <div 
-                            className={`${styles['bar-fill']} ${styles[`fill-${state}`]}`}
+                            className={styles['bar-fill']}
                             style={{ width: `${percentage}%` }}
                         />
                         

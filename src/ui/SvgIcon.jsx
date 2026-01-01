@@ -39,6 +39,7 @@ const SvgIcon = memo(function SvgIcon({ svg, className = '' }) {
     <svg 
       {...svgData.attrs}
       className={className}
+      style={{ pointerEvents: 'none' }}
       dangerouslySetInnerHTML={{ __html: svgData.innerHTML }}
     />
   );
