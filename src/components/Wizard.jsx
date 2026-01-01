@@ -26,6 +26,13 @@ Object.values(ELEMENTS).forEach(element => {
   })
 })
 
+// Pre-create Arcane Rush material once to avoid repeated allocations
+const ARCANE_RUSH_MATERIAL = new THREE.MeshBasicMaterial({
+  color: new THREE.Color(0.35, 0.19, 0.55),
+  transparent: true,
+  opacity: 0.7,
+})
+
 export function Model(props) {
   const group = React.useRef()
   const wizardRef = React.useRef()
@@ -37,7 +44,7 @@ export function Model(props) {
   const { scene, animations: gltfAnimations } = useGLTF('/models/Wizard-transformed.glb')
   const clone = React.useMemo(() => SkeletonUtils.clone(scene), [scene])
   const { actions } = useAnimations(gltfAnimations, clone)
-  const { animation, state, activeAction, setCastProgress, dispatchAction, tryRecast, STATES, buffs } = usePlayerState()
+  const { animation, state, activeAction, setCastProgress, syncCastProgressUI, dispatchAction, tryRecast, STATES, buffs } = usePlayerState()
 
   useEffect(() => {
     wizardRef.current = clone
@@ -62,17 +69,13 @@ export function Model(props) {
     if (isArcaneRush) {
       clone.traverse((child) => {
         if (child.isMesh) {
-          child.material = new THREE.MeshBasicMaterial({
-            color: new THREE.Color(0.35, 0.19, 0.55),
-            transparent: true,
-            opacity: 0.7,
-          })
+          child.material = ARCANE_RUSH_MATERIAL
         }
       })
     } else {
       clone.traverse((child) => {
         if (child.isMesh && originalMaterialsRef.current.has(child)) {
-          child.material = originalMaterialsRef.current.get(child).clone()
+          child.material = originalMaterialsRef.current.get(child)
         }
       })
     }
@@ -123,6 +126,8 @@ export function Model(props) {
       setCastProgress(progress)
 
       if (progress >= 0.99) {
+        // Sync UI immediately when cast completes
+        syncCastProgressUI()
         // tryRecast returns true if recasting (key held + has mana)
         if (tryRecast()) {
           action.reset().play()

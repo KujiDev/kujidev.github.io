@@ -90,7 +90,7 @@ const fragmentShader = `
 export default function CastingCircle({ position = [0, 0.02, 0] }) {
   const meshRef = useRef()
   const materialRef = useRef()
-  const { state, activeAction, castProgress, STATES } = usePlayerState()
+  const { state, activeAction, castProgressRef, STATES } = usePlayerState()
   
   // Get element for active skill
   const element = useMemo(() => {
@@ -148,7 +148,7 @@ export default function CastingCircle({ position = [0, 0.02, 0] }) {
     // Update uniforms only when visible
     uniforms.uTime.value += delta
     // For channel skills, always show full progress
-    uniforms.uProgress.value = isChannel ? 1.0 : castProgress
+    uniforms.uProgress.value = isChannel ? 1.0 : castProgressRef.current
     uniforms.uOpacity.value += (targetOpacity - currentOpacity) * delta * 8
     
     // Update colors only when they change (compare hex)

@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import Connector from '@/components/Connector';
 import styles from "./styles.module.css";
 
-export const Slot = ({ keyBind, icon, active, disabled, tooltip, ...handlers }) => {
+export const Slot = memo(function Slot({ keyBind, icon, active, disabled, tooltip, ...handlers }) {
     const [showTooltip, setShowTooltip] = useState(false);
     
     return (
@@ -69,7 +69,7 @@ export const Slot = ({ keyBind, icon, active, disabled, tooltip, ...handlers }) 
             )}
         </div>
     );
-}
+});
 
 export function ConsumableSlot({ children }) {
   return (

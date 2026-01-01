@@ -155,21 +155,35 @@ export function PlayerStateProvider({ children }) {
   const [castProgress, setCastProgressState] = useState(0);
   const [mana, setMana] = useState(MAX_MANA);
   const [health, setHealth] = useState(MAX_HEALTH);
-  const [buffs, setBuffs] = useState([]); // Array of { id, name, icon, expiresAt, duration }
+  const [buffs, setBuffs] = useState([]);
   const castProgressRef = useRef(0);
+  const lastUIUpdateRef = useRef(0);
   const manaRef = useRef(MAX_MANA);
   const healthRef = useRef(MAX_HEALTH);
   const buffsRef = useRef([]);
   const listenersRef = useRef(new Set());
   const stateRef = useRef(state.current);
   const activeActionRef = useRef(null);
-  const heldInputsRef = useRef(new Set()); // Track which inputs are currently held
-  const clickTriggeredRef = useRef(false); // Track if current action was triggered by a click (not hold)
-  const handleInputRef = useRef(null); // Ref for global event listeners
+  const heldInputsRef = useRef(new Set());
+  const clickTriggeredRef = useRef(false);
+  const handleInputRef = useRef(null);
 
+  // Throttled setter - only updates React state every 50ms to reduce re-renders
+  // 3D components read castProgressRef directly in useFrame
   const setCastProgress = useCallback((progress) => {
     castProgressRef.current = progress;
-    setCastProgressState(progress);
+    
+    const now = performance.now();
+    // Throttle UI updates to ~20fps (50ms) - 3D components use ref directly
+    if (now - lastUIUpdateRef.current > 50) {
+      lastUIUpdateRef.current = now;
+      setCastProgressState(progress);
+    }
+  }, []);
+  
+  // Force UI sync when cast ends (progress = 0 or 1)
+  const syncCastProgressUI = useCallback(() => {
+    setCastProgressState(castProgressRef.current);
   }, []);
 
   useEffect(() => {
@@ -221,10 +235,13 @@ export function PlayerStateProvider({ children }) {
     return 0;
   }, []);
 
+  // Single consolidated game tick: handles mana/health regen + buff expiration
   useEffect(() => {
     const interval = setInterval(() => {
+      const now = Date.now();
       const tickSeconds = REGEN_INTERVAL / 1000;
       
+      // Mana regeneration
       setMana(current => {
         let newMana = current;
         
@@ -245,6 +262,7 @@ export function PlayerStateProvider({ children }) {
         return newMana;
       });
       
+      // Health regeneration
       setHealth(current => {
         const totalRegen = HEALTH_REGEN_RATE + getBuffHealthRegenBonus();
         let newHealth = current + (totalRegen * tickSeconds);
@@ -252,26 +270,8 @@ export function PlayerStateProvider({ children }) {
         healthRef.current = newHealth;
         return newHealth;
       });
-    }, REGEN_INTERVAL);
-    
-    return () => clearInterval(interval);
-  }, [getBuffManaRegenBonus]);
-
-  // Stop movement if mana runs out during a manaPerSecond ability
-  useEffect(() => {
-    if (state.current === STATES.MOVING && state.activeAction && mana <= 0) {
-      const actionConfig = getActionById(state.activeAction);
-      if (actionConfig?.manaPerSecond) {
-        // Force stop - out of mana
-        dispatch({ type: 'STOP', actionId: null });
-      }
-    }
-  }, [mana, state.current, state.activeAction]);
-
-  // Buff expiration tick
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const now = Date.now();
+      
+      // Buff expiration check
       setBuffs(current => {
         const active = current.filter(b => b.expiresAt > now);
         if (active.length !== current.length) {
@@ -280,10 +280,20 @@ export function PlayerStateProvider({ children }) {
         }
         return current;
       });
-    }, 100);
+    }, REGEN_INTERVAL);
     
     return () => clearInterval(interval);
-  }, []);
+  }, [getBuffManaRegenBonus, getBuffHealthRegenBonus]);
+
+  // Stop movement if mana runs out during a manaPerSecond ability
+  useEffect(() => {
+    if (state.current === STATES.MOVING && state.activeAction && mana <= 0) {
+      const actionConfig = getActionById(state.activeAction);
+      if (actionConfig?.manaPerSecond) {
+        dispatch({ type: 'STOP', actionId: null });
+      }
+    }
+  }, [mana, state.current, state.activeAction]);
 
   const spendMana = useCallback((amount) => {
     if (amount === 0) return true; // No cost, always succeed
@@ -521,12 +531,15 @@ export function PlayerStateProvider({ children }) {
 
   // Calculate regen info for tooltips - recalculates when buffs or activeAction change
   const regenInfo = useMemo(() => {
-    // Calculate buff bonus directly from buffs state
-    let manaBuffBonus = 0;
     const now = Date.now();
+    
+    // Calculate buff bonuses directly from buffs state
+    let manaBuffBonus = 0;
+    let healthBuffBonus = 0;
     for (const buff of buffs) {
-      if (buff.expiresAt > now && buff.manaRegenBonus) {
-        manaBuffBonus += buff.manaRegenBonus;
+      if (buff.expiresAt > now) {
+        if (buff.manaRegenBonus) manaBuffBonus += buff.manaRegenBonus;
+        if (buff.healthRegenBonus) healthBuffBonus += buff.healthRegenBonus;
       }
     }
     
@@ -548,8 +561,8 @@ export function PlayerStateProvider({ children }) {
       },
       health: {
         base: HEALTH_REGEN_RATE,
-        buff: 0, // No health regen buffs yet
-        net: HEALTH_REGEN_RATE,
+        buff: healthBuffBonus,
+        net: HEALTH_REGEN_RATE + healthBuffBonus,
       },
     };
   }, [buffs, state.activeAction]);
@@ -563,7 +576,9 @@ export function PlayerStateProvider({ children }) {
     interruptedProgress: state.interruptedProgress,
     animation,
     castProgress,
+    castProgressRef,
     setCastProgress,
+    syncCastProgressUI,
     mana,
     maxMana: MAX_MANA,
     health,
@@ -577,7 +592,7 @@ export function PlayerStateProvider({ children }) {
     is,
     can,
     STATES,
-  }), [state, animation, castProgress, setCastProgress, mana, health, buffs, regenInfo, handleInput, dispatchAction, tryRecast, subscribe, is, can]);
+  }), [state, animation, castProgress, setCastProgress, syncCastProgressUI, mana, health, buffs, regenInfo, handleInput, dispatchAction, tryRecast, subscribe, is, can]);
 
   return (
     <PlayerStateContext.Provider value={value}>

@@ -1,9 +1,8 @@
 import { usePlayerState } from "@/hooks/usePlayerState";
-import { useState, useEffect } from "react";
+import { useState, useEffect, memo, useMemo } from "react";
 import styles from "./styles.module.css";
 import arcaneRushIcon from '@/assets/icons/arcane-rush.svg';
 
-// Buff descriptions for tooltips
 const BUFF_INFO = {
   mana_body: {
     description: 'Your body is infused with pure mana, greatly increasing mana regeneration.',
@@ -23,8 +22,7 @@ const BUFF_INFO = {
   },
 };
 
-// Timed buff icon (with countdown)
-const BuffIcon = ({ buff, now }) => {
+const BuffIcon = memo(function BuffIcon({ buff, now }) {
   const remaining = Math.max(0, (buff.expiresAt - now) / 1000);
   const progress = remaining / buff.duration;
   const [showTooltip, setShowTooltip] = useState(false);
@@ -68,10 +66,9 @@ const BuffIcon = ({ buff, now }) => {
       )}
     </div>
   );
-};
+});
 
-// Active skill buff icon (no timer, shows while key held)
-const ActiveBuffIcon = ({ id, name, icon }) => {
+const ActiveBuffIcon = memo(function ActiveBuffIcon({ id, name, icon }) {
   const [showTooltip, setShowTooltip] = useState(false);
   const buffInfo = BUFF_INFO[id] || {};
   
@@ -106,33 +103,33 @@ const ActiveBuffIcon = ({ id, name, icon }) => {
       )}
     </div>
   );
-};
+});
 
 export default function BuffBar() {
   const { buffs, state, activeAction, STATES } = usePlayerState();
   const [now, setNow] = useState(Date.now());
   
-  // Check if Arcane Rush is active
   const isArcaneRushActive = state === STATES.MOVING && activeAction === 'skill_3';
   
-  // Update timer every 100ms to keep countdown accurate
+  const hasTimedBuffs = buffs && buffs.length > 0;
+  
+  // Only run timer interval when there are timed buffs to update
   useEffect(() => {
-    if (!buffs || buffs.length === 0) return;
+    if (!hasTimedBuffs) return;
     
     const interval = setInterval(() => {
       setNow(Date.now());
     }, 100);
     
     return () => clearInterval(interval);
-  }, [buffs]);
+  }, [hasTimedBuffs]);
   
-  const hasBuffs = (buffs && buffs.length > 0) || isArcaneRushActive;
+  const hasBuffs = hasTimedBuffs || isArcaneRushActive;
   
   if (!hasBuffs) return null;
   
   return (
     <div className={styles["buff-bar"]}>
-      {/* Active skill buffs */}
       {isArcaneRushActive && (
         <ActiveBuffIcon 
           id="arcane_rush"
@@ -141,7 +138,6 @@ export default function BuffBar() {
         />
       )}
       
-      {/* Timed buffs */}
       {buffs.map(buff => (
         <BuffIcon key={buff.id} buff={buff} now={now} />
       ))}

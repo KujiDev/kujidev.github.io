@@ -266,7 +266,7 @@ function easeOutBack(t, overshoot = 1.4) {
 // ============ MAIN COMPONENT ============
 
 export default function Meteor({ targetPosition = [0, 0, 5] }) {
-  const { state, activeAction, castProgress, STATES } = usePlayerState()
+  const { state, activeAction, castProgressRef, STATES } = usePlayerState()
   
   const groupRef = useRef()
   const meteorRef = useRef()
@@ -274,6 +274,8 @@ export default function Meteor({ targetPosition = [0, 0, 5] }) {
   const circleRef = useRef()
   const bubbleRef = useRef()
   const trailRef = useRef()
+  const meteorLightRef = useRef()
+  const impactLightRef = useRef()
   const timeRef = useRef(0)
   
   const isCasting = (state === STATES.CASTING || state === STATES.ATTACKING) && activeAction === 'skill_2'
@@ -337,7 +339,7 @@ export default function Meteor({ targetPosition = [0, 0, 5] }) {
       return
     }
     
-    const p = castProgress
+    const p = castProgressRef.current
     
     circleMaterial.uniforms.uProgress.value = p
     bubbleMaterial.uniforms.uTime.value = timeRef.current
@@ -424,6 +426,14 @@ export default function Meteor({ targetPosition = [0, 0, 5] }) {
       s.y += (bubbleTargetScale - s.y) * delta * speed
       s.z += (bubbleTargetScale - s.z) * delta * speed
     }
+    
+    // Update light intensities (avoid re-renders by setting directly)
+    if (meteorLightRef.current) {
+      meteorLightRef.current.intensity = p * 6
+    }
+    if (impactLightRef.current) {
+      impactLightRef.current.intensity = smoothstep(0.85, 0.92, p) * (1 - smoothstep(0.92, 1, p)) * 15
+    }
   })
   
   const [tx, , tz] = targetPosition
@@ -463,13 +473,14 @@ export default function Meteor({ targetPosition = [0, 0, 5] }) {
         </mesh>
         
         {/* Meteor light */}
-        <pointLight color={FIRE_COLOR} intensity={castProgress * 6} distance={5} />
+        <pointLight ref={meteorLightRef} color={FIRE_COLOR} intensity={0} distance={5} />
       </group>
       
       {/* Impact light burst */}
       <pointLight 
+        ref={impactLightRef}
         color={FIRE_HOT} 
-        intensity={smoothstep(0.85, 0.92, castProgress) * (1 - smoothstep(0.92, 1, castProgress)) * 15} 
+        intensity={0} 
         distance={6} 
         decay={2}
         position={[0, 0.3, 0]}

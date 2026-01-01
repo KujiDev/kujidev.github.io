@@ -250,13 +250,15 @@ function easeOutElastic(t) {
 // ============ MAIN COMPONENT ============
 
 export default function IceShard({ targetPosition = [0, 0, 5] }) {
-  const { state, activeAction, castProgress, STATES } = usePlayerState()
+  const { state, activeAction, castProgressRef, STATES } = usePlayerState()
   
   const groupRef = useRef()
   const crystalRef = useRef()
   const coreRef = useRef()
   const circleRef = useRef()
   const bubbleRef = useRef()
+  const crystalLightRef = useRef()
+  const impactLightRef = useRef()
   const timeRef = useRef(0)
   
   const isCasting = (state === STATES.CASTING || state === STATES.ATTACKING) && activeAction === 'skill_1'
@@ -320,7 +322,7 @@ export default function IceShard({ targetPosition = [0, 0, 5] }) {
       return
     }
     
-    const p = castProgress
+    const p = castProgressRef.current
     
     // Update shaders
     circleMaterial.uniforms.uProgress.value = p
@@ -415,6 +417,14 @@ export default function IceShard({ targetPosition = [0, 0, 5] }) {
       s.y += (bubbleTargetScale - s.y) * delta * speed
       s.z += (bubbleTargetScale - s.z) * delta * speed
     }
+    
+    // Update light intensities (avoid re-renders by setting directly)
+    if (crystalLightRef.current) {
+      crystalLightRef.current.intensity = p * 4
+    }
+    if (impactLightRef.current) {
+      impactLightRef.current.intensity = smoothstep(0.8, 0.9, p) * (1 - smoothstep(0.9, 1, p)) * 10
+    }
   })
   
   const [tx, , tz] = targetPosition
@@ -459,13 +469,14 @@ export default function IceShard({ targetPosition = [0, 0, 5] }) {
           />
         </mesh>
         
-        <pointLight color={ICE_COLOR} intensity={castProgress * 4} distance={3} />
+        <pointLight ref={crystalLightRef} color={ICE_COLOR} intensity={0} distance={3} />
       </group>
       
       {/* Impact light burst */}
       <pointLight 
+        ref={impactLightRef}
         color={ICE_CORE} 
-        intensity={smoothstep(0.8, 0.9, castProgress) * (1 - smoothstep(0.9, 1, castProgress)) * 10} 
+        intensity={0} 
         distance={4} 
         decay={2}
         position={[0, 0.2, 0]}
