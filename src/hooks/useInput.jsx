@@ -54,18 +54,20 @@ export function InputProvider({ children }) {
 export function KeyboardSync() {
   const { syncKeyboardState } = useInput();
   
-  // Subscribe to each action's keyboard state
-  const skill1 = useKeyboardControls((state) => state.skill_1);
-  const skill2 = useKeyboardControls((state) => state.skill_2);
-  const skill3 = useKeyboardControls((state) => state.skill_3);
-  const skill4 = useKeyboardControls((state) => state.skill_4);
-  const skill5 = useKeyboardControls((state) => state.skill_5);
+  // Subscribe to slot-based keyboard state
+  const slot1 = useKeyboardControls((state) => state.slot_1);
+  const slot2 = useKeyboardControls((state) => state.slot_2);
+  const slot3 = useKeyboardControls((state) => state.slot_3);
+  const slot4 = useKeyboardControls((state) => state.slot_4);
+  const slotC1 = useKeyboardControls((state) => state.slot_consumable_1);
+  const slotC2 = useKeyboardControls((state) => state.slot_consumable_2);
 
-  useEffect(() => { syncKeyboardState('skill_1', skill1); }, [skill1, syncKeyboardState]);
-  useEffect(() => { syncKeyboardState('skill_2', skill2); }, [skill2, syncKeyboardState]);
-  useEffect(() => { syncKeyboardState('skill_3', skill3); }, [skill3, syncKeyboardState]);
-  useEffect(() => { syncKeyboardState('skill_4', skill4); }, [skill4, syncKeyboardState]);
-  useEffect(() => { syncKeyboardState('skill_5', skill5); }, [skill5, syncKeyboardState]);
+  useEffect(() => { syncKeyboardState('slot_1', slot1); }, [slot1, syncKeyboardState]);
+  useEffect(() => { syncKeyboardState('slot_2', slot2); }, [slot2, syncKeyboardState]);
+  useEffect(() => { syncKeyboardState('slot_3', slot3); }, [slot3, syncKeyboardState]);
+  useEffect(() => { syncKeyboardState('slot_4', slot4); }, [slot4, syncKeyboardState]);
+  useEffect(() => { syncKeyboardState('slot_consumable_1', slotC1); }, [slotC1, syncKeyboardState]);
+  useEffect(() => { syncKeyboardState('slot_consumable_2', slotC2); }, [slotC2, syncKeyboardState]);
 
   return null;
 }

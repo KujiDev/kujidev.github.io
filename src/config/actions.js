@@ -163,10 +163,10 @@ export const ACTIONS = {
   // Consumable - food
   FOOD: {
     id: 'food',
-    label: 'Roasted Meat',
-    description: 'Eat a hearty meal that restores health over time.',
+    label: 'Mana Biscuit',
+    description: 'Eat an enchanted biscuit that restores mana over time.',
     type: 'Consumable',
-    element: 'healing',
+    element: 'mana',
     defaultKey: 'KeyF',
     fsmAction: 'INSTANT',
     displayKey: 'F',
@@ -174,10 +174,10 @@ export const ACTIONS = {
     manaCost: 0,
     buff: {
       id: 'food_buff',
-      name: 'Well Fed',
+      name: 'Mana Infused',
       icon: foodIcon,
       duration: 15, // seconds
-      healthRegenBonus: 5, // Additional health per second
+      manaRegenBonus: 5, // Additional mana per second
     },
   },
 };
@@ -188,12 +188,6 @@ export const getElementForAction = (actionId) => {
   return ELEMENTS[action.element] || null;
 };
 
-export const getDefaultKeyMap = () => 
-  Object.values(ACTIONS).map(action => ({
-    name: action.id,
-    keys: [action.defaultKey],
-  }));
-
 export const getFsmAction = (inputId) => {
   const action = Object.values(ACTIONS).find(a => a.id === inputId);
   return action?.fsmAction || null;
@@ -202,9 +196,32 @@ export const getFsmAction = (inputId) => {
 export const getActionById = (inputId) => 
   Object.values(ACTIONS).find(a => a.id === inputId);
 
-export const SKILL_BAR_ACTIONS = [
-  ACTIONS.SKILL_1,
-  ACTIONS.SKILL_2,
-  ACTIONS.SKILL_3,
-  ACTIONS.SKILL_4,
-];
+/**
+ * Get the drag type for an action - determines which slots it can be dropped into
+ * 'skill' can go into skill/mouse slots, 'consumable' can go into consumable slots
+ */
+export const getDragType = (action) => {
+  if (!action) return null;
+  return action.type === 'Consumable' ? 'consumable' : 'skill';
+};
+
+/**
+ * Get all spell actions (non-consumables)
+ */
+export const getSpells = () => 
+  Object.values(ACTIONS).filter(a => a.type !== 'Consumable');
+
+/**
+ * Get all consumable actions
+ */
+export const getConsumables = () => 
+  Object.values(ACTIONS).filter(a => a.type === 'Consumable');
+
+/**
+ * Get consumables by sub-type (based on id pattern or buff type)
+ */
+export const getPotions = () => 
+  Object.values(ACTIONS).filter(a => a.type === 'Consumable' && a.id.includes('potion'));
+
+export const getFood = () => 
+  Object.values(ACTIONS).filter(a => a.type === 'Consumable' && a.id.includes('food'));

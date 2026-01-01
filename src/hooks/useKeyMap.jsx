@@ -1,9 +1,9 @@
 import { createContext, useCallback, useContext, useState, useMemo } from "react";
-import { getDefaultKeyMap } from "@/config/actions";
+import { ALL_SLOTS } from "./useSlotMap";
 
 const STORAGE_KEY = 'player_keymap';
 const VERSION_KEY = 'player_keymap_version';
-const CURRENT_VERSION = 2; // Bump this when default keybindings change
+const CURRENT_VERSION = 3; // Bump: now using slots instead of action IDs
 
 const MOUSE_BUTTONS = {
   0: 'MouseLeft',
@@ -16,6 +16,27 @@ const MOUSE_DISPLAY = {
   MouseRight: 'RMB',
   MouseMiddle: 'MMB',
 };
+
+/**
+ * Default key mappings for slots (not actions)
+ */
+const DEFAULT_SLOT_KEYS = {
+  slot_1: 'KeyQ',
+  slot_2: 'KeyW',
+  slot_3: 'KeyE',
+  slot_4: 'KeyR',
+  slot_lmb: 'MouseLeft',
+  slot_rmb: 'MouseRight',
+  slot_consumable_1: 'KeyD',
+  slot_consumable_2: 'KeyF',
+};
+
+const getDefaultKeyMap = () => 
+  ALL_SLOTS.map(slot => ({
+    name: slot.id,
+    keys: [DEFAULT_SLOT_KEYS[slot.id] || ''],
+    label: slot.id.replace('slot_', '').replace('consumable_', 'C').toUpperCase(),
+  }));
 
 const saveKeyMap = (keyMap) => {
   try {

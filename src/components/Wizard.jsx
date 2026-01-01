@@ -13,6 +13,7 @@ import CastingCircle from '@/components/CastingCircle'
 import ShieldEffect from '@/components/ShieldEffect'
 import ManaShield from '@/components/ManaShield'
 import ArcaneTrail from '@/components/ArcaneTrail'
+import HealingParticles from '@/components/HealingParticles'
 import { getElementForAction, ELEMENTS } from '@/config/actions'
 import * as THREE from 'three'
 
@@ -145,6 +146,7 @@ export function Model(props) {
       <CastingCircle position={[0, 0.02, 0]} />
       <ShieldEffect position={[0, 1.5, 0]} />
       <ManaShield position={[0, 1.5, 0]} />
+      <HealingParticles position={[0, 0, 0]} />
       <ArcaneTrail wizardRef={wizardRef} />
     </group>
   )

@@ -1,25 +1,100 @@
-import { useState, memo } from 'react';
+import { useState, useRef, memo, forwardRef } from 'react';
 import Connector from '@/components/Connector';
+import { useDropTarget, useDragDrop } from '@/hooks/useDragDrop';
+import { getSlotType } from '@/hooks/useSlotMap';
 import styles from "./styles.module.css";
 
-export const Slot = memo(function Slot({ keyBind, icon, active, disabled, tooltip, ...handlers }) {
+export const Slot = memo(forwardRef(function Slot({ 
+  slotId,
+  actionId,
+  keyBind, 
+  icon, 
+  active, 
+  disabled, 
+  tooltip, 
+  ...handlers 
+}, forwardedRef) {
     const [showTooltip, setShowTooltip] = useState(false);
+    const { ref: dropRef, isHovered, isDragging } = useDropTarget(slotId);
+    const { startDrag } = useDragDrop();
+    const longPressTimer = useRef(null);
+    const startPos = useRef(null);
+    
+    // Get slot type for drag compatibility
+    const slotType = getSlotType(slotId);
+    
+    // Combine refs
+    const setRefs = (el) => {
+      dropRef.current = el;
+      if (forwardedRef) {
+        if (typeof forwardedRef === 'function') forwardedRef(el);
+        else forwardedRef.current = el;
+      }
+    };
+    
+    // Drag handlers for slot-to-slot dragging
+    const handlePointerDown = (e) => {
+      if (!actionId || !icon) return; // Can't drag empty slot
+      startPos.current = { x: e.clientX, y: e.clientY };
+      
+      // For touch, use long-press to initiate drag
+      if (e.pointerType === 'touch') {
+        longPressTimer.current = setTimeout(() => {
+          startDrag(
+            { id: actionId, icon, label: tooltip?.name || actionId, dragType: slotType },
+            startPos.current,
+            slotId // Pass source slot ID
+          );
+        }, 300);
+      }
+    };
+    
+    const handlePointerMove = (e) => {
+      if (!startPos.current || !actionId || !icon) return;
+      
+      // For mouse, start drag after small movement
+      if (e.pointerType === 'mouse') {
+        const dx = e.clientX - startPos.current.x;
+        const dy = e.clientY - startPos.current.y;
+        if (Math.sqrt(dx * dx + dy * dy) > 5) {
+          startDrag(
+            { id: actionId, icon, label: tooltip?.name || actionId, dragType: slotType },
+            { x: e.clientX, y: e.clientY },
+            slotId // Pass source slot ID
+          );
+          startPos.current = null;
+        }
+      }
+    };
+    
+    const handlePointerUp = () => {
+      if (longPressTimer.current) {
+        clearTimeout(longPressTimer.current);
+        longPressTimer.current = null;
+      }
+      startPos.current = null;
+    };
     
     return (
         <div 
+            ref={setRefs}
             className={styles["slot-wrapper"]}
             onMouseEnter={() => setShowTooltip(true)}
             onMouseLeave={() => setShowTooltip(false)}
+            onPointerDown={handlePointerDown}
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerUp}
+            onPointerCancel={handlePointerUp}
         >
             <button 
-                className={`${styles["skill-slot"]} ${active ? styles["pressed"] : ""} ${disabled ? styles["disabled"] : ""}`}
+                className={`${styles["skill-slot"]} ${active ? styles["pressed"] : ""} ${disabled ? styles["disabled"] : ""} ${isHovered && isDragging ? styles["drop-hover"] : ""}`}
                 disabled={disabled}
                 {...handlers}
             >
                 {icon && <img src={icon} alt="" className={styles["skill-icon"]} />}
                 <span className={styles["key"]}>{keyBind}</span>
             </button>
-            {tooltip && showTooltip && (
+            {tooltip && showTooltip && !isDragging && (
                 <div className={styles["tooltip"]}>
                     <Connector position="bottom" />
                     <div className={styles["tooltip-header"]}>
@@ -69,7 +144,7 @@ export const Slot = memo(function Slot({ keyBind, icon, active, disabled, toolti
             )}
         </div>
     );
-});
+}));
 
 export function ConsumableSlot({ children }) {
   return (

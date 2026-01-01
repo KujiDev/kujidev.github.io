@@ -20,7 +20,9 @@ import { KeyMapProvider, useKeyMap } from "@/hooks/useKeyMap";
 import { PlayerStateProvider, usePlayerState } from "@/hooks/usePlayerState";
 import { InputProvider, KeyboardSync, useActionButton } from "@/hooks/useInput";
 import { AchievementProvider, useAchievements } from "@/hooks/useAchievements";
-import { SKILL_BAR_ACTIONS, getActionById, getElementForAction } from "@/config/actions";
+import { SlotMapProvider, useSlotMap, SKILL_SLOTS, MOUSE_SLOTS, CONSUMABLE_SLOTS } from "@/hooks/useSlotMap";
+import { DragDropProvider } from "@/hooks/useDragDrop";
+import { getActionById, getElementForAction } from "@/config/actions";
 
 
 const AchievementTracker = () => {
@@ -50,20 +52,46 @@ const AchievementTracker = () => {
 
 const InputToStateSync = () => {
   const { handleInput } = usePlayerState();
+  const { getActionForSlot } = useSlotMap();
   
-  const skill1 = useKeyboardControls((state) => state.skill_1);
-  const skill2 = useKeyboardControls((state) => state.skill_2);
-  const skill3 = useKeyboardControls((state) => state.skill_3);
-  const skill4 = useKeyboardControls((state) => state.skill_4);
-  const potion = useKeyboardControls((state) => state.potion);
-  const food = useKeyboardControls((state) => state.food);
+  // Subscribe to slot-based keyboard controls
+  const slot1 = useKeyboardControls((state) => state.slot_1);
+  const slot2 = useKeyboardControls((state) => state.slot_2);
+  const slot3 = useKeyboardControls((state) => state.slot_3);
+  const slot4 = useKeyboardControls((state) => state.slot_4);
+  const slotC1 = useKeyboardControls((state) => state.slot_consumable_1);
+  const slotC2 = useKeyboardControls((state) => state.slot_consumable_2);
 
-  useEffect(() => { handleInput('skill_1', skill1); }, [skill1, handleInput]);
-  useEffect(() => { handleInput('skill_2', skill2); }, [skill2, handleInput]);
-  useEffect(() => { handleInput('skill_3', skill3); }, [skill3, handleInput]);
-  useEffect(() => { handleInput('skill_4', skill4); }, [skill4, handleInput]);
-  useEffect(() => { handleInput('potion', potion); }, [potion, handleInput]);
-  useEffect(() => { handleInput('food', food); }, [food, handleInput]);
+  // When a slot key is pressed, find the action in that slot and trigger it
+  useEffect(() => {
+    const actionId = getActionForSlot('slot_1');
+    if (actionId) handleInput(actionId, slot1);
+  }, [slot1, handleInput, getActionForSlot]);
+  
+  useEffect(() => {
+    const actionId = getActionForSlot('slot_2');
+    if (actionId) handleInput(actionId, slot2);
+  }, [slot2, handleInput, getActionForSlot]);
+  
+  useEffect(() => {
+    const actionId = getActionForSlot('slot_3');
+    if (actionId) handleInput(actionId, slot3);
+  }, [slot3, handleInput, getActionForSlot]);
+  
+  useEffect(() => {
+    const actionId = getActionForSlot('slot_4');
+    if (actionId) handleInput(actionId, slot4);
+  }, [slot4, handleInput, getActionForSlot]);
+  
+  useEffect(() => {
+    const actionId = getActionForSlot('slot_consumable_1');
+    if (actionId) handleInput(actionId, slotC1);
+  }, [slotC1, handleInput, getActionForSlot]);
+  
+  useEffect(() => {
+    const actionId = getActionForSlot('slot_consumable_2');
+    if (actionId) handleInput(actionId, slotC2);
+  }, [slotC2, handleInput, getActionForSlot]);
 
   return null;
 };
@@ -103,34 +131,48 @@ const useCanAffordAction = (action) => {
   return hasEnoughMana && hasEnoughHealth && hasTarget;
 };
 
-const SkillButton = ({ actionId }) => {
+/**
+ * Slot-based skill button - gets action from slotMap
+ */
+const SlotButton = ({ slotId }) => {
   const { getDisplayKey } = useKeyMap();
-  const { active, handlers } = useActionButton(actionId);
-  const action = getActionById(actionId);
+  const { getActionObjectForSlot } = useSlotMap();
+  
+  const action = getActionObjectForSlot(slotId);
+  const { active, handlers } = useActionButton(action?.id);
   const canAfford = useCanAffordAction(action);
   
   return (
     <Slot 
-      keyBind={getDisplayKey(actionId)} 
+      slotId={slotId}
+      actionId={action?.id}
+      keyBind={getDisplayKey(slotId)} 
       icon={action?.icon}
       active={active}
-      disabled={!canAfford}
+      disabled={!action || !canAfford}
       tooltip={buildTooltip(action)}
       {...handlers}
     />
   );
 };
 
-const MouseButton = ({ actionId }) => {
+/**
+ * Mouse slot button - display only, no click handlers (uses actual mouse)
+ */
+const MouseSlotButton = ({ slotId }) => {
   const { getDisplayKey } = useKeyMap();
-  const action = getActionById(actionId);
+  const { getActionObjectForSlot } = useSlotMap();
+  
+  const action = getActionObjectForSlot(slotId);
   const canAfford = useCanAffordAction(action);
   
   return (
     <Slot 
-      keyBind={getDisplayKey(actionId)}
+      slotId={slotId}
+      actionId={action?.id}
+      keyBind={getDisplayKey(slotId)}
       icon={action?.icon}
-      disabled={!canAfford}
+      disabled={!action || !canAfford}
       tooltip={buildTooltip(action)}
     />
   );
@@ -146,15 +188,16 @@ const GameUI = () => (
         <CastingBar />
         <MenuBar />
         <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-end' }}>
-          <SkillButton actionId="potion" />
+          <SlotButton slotId={CONSUMABLE_SLOTS[0].id} />
           <SkillBar>
-            {SKILL_BAR_ACTIONS.map(action => (
-              <SkillButton key={action.id} actionId={action.id} />
+            {SKILL_SLOTS.map(slot => (
+              <SlotButton key={slot.id} slotId={slot.id} />
             ))}
-            <MouseButton actionId="primary_attack" />
-            <MouseButton actionId="secondary_attack" />
+            {MOUSE_SLOTS.map(slot => (
+              <MouseSlotButton key={slot.id} slotId={slot.id} />
+            ))}
           </SkillBar>
-          <SkillButton actionId="food" />
+          <SlotButton slotId={CONSUMABLE_SLOTS[1].id} />
         </div>
       </div>
       <Orb type="mana" label="Mana" />
@@ -272,6 +315,8 @@ export default function App() {
   return (
     <TargetProvider>
     <KeyMapProvider>
+    <SlotMapProvider>
+    <DragDropProvider>
       <AchievementProvider>
       <PlayerStateProvider>
         <GameControls>
@@ -289,6 +334,8 @@ export default function App() {
         </GameControls>
       </PlayerStateProvider>
       </AchievementProvider>
+    </DragDropProvider>
+    </SlotMapProvider>
     </KeyMapProvider>
     </TargetProvider>
   );

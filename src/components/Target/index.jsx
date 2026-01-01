@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, createContext, useContext, useCallback, useMemo } from 'react'
 import { usePlayerState } from '@/hooks/usePlayerState'
+import { useSlotMap } from '@/hooks/useSlotMap'
 
 const TargetContext = createContext(null)
 
@@ -58,6 +59,11 @@ export default function Target({
     }
   }, [targetData, isLocked, setTarget])
   
+  // Get actions from slot map - with fallback
+  const slotMap = useSlotMap()
+  const lmbAction = slotMap?.getActionForSlot?.('slot_lmb') ?? 'primary_attack'
+  const rmbAction = slotMap?.getActionForSlot?.('slot_rmb') ?? 'secondary_attack'
+  
   // Lock target and set data
   const lockAndSetTarget = useCallback(() => {
     lockTarget?.(targetId)
@@ -78,40 +84,40 @@ export default function Target({
     if (!isLocked) setTarget?.(null)
   }, [isLocked, setTarget])
   
-  // Left click - lock and primary attack (single click, no recast)
+  // Left click - lock and use LMB slot action (single click, no recast)
   const handlePointerDown = useCallback((e) => {
     if (e.button !== 0) return
     e.stopPropagation()
     
     if (!isLocked) lockAndSetTarget()
-    handleInput?.('primary_attack', true, true) // isClick = true
-  }, [isLocked, lockAndSetTarget, handleInput])
+    if (lmbAction) handleInput?.(lmbAction, true, true) // isClick = true
+  }, [isLocked, lockAndSetTarget, handleInput, lmbAction])
   
   const handlePointerUp = useCallback((e) => {
     if (e.button !== 0) return
     e.stopPropagation()
-    handleInput?.('primary_attack', false)
-  }, [handleInput])
+    if (lmbAction) handleInput?.(lmbAction, false)
+  }, [handleInput, lmbAction])
   
-  // Right click - lock and secondary attack (single click, no recast)
+  // Right click - lock and use RMB slot action (single click, no recast)
   const handleContextMenu = useCallback((e) => {
     e.stopPropagation()
     e.nativeEvent?.preventDefault?.()
     
     if (!isLocked) lockAndSetTarget()
-    handleInput?.('secondary_attack', true, true) // isClick = true
-  }, [isLocked, lockAndSetTarget, handleInput])
+    if (rmbAction) handleInput?.(rmbAction, true, true) // isClick = true
+  }, [isLocked, lockAndSetTarget, handleInput, rmbAction])
   
   // Track right mouse release globally
   useEffect(() => {
     const onMouseUp = (e) => {
-      if (e.button === 2) {
-        handleInput?.('secondary_attack', false)
+      if (e.button === 2 && rmbAction) {
+        handleInput?.(rmbAction, false)
       }
     }
     window.addEventListener('mouseup', onMouseUp)
     return () => window.removeEventListener('mouseup', onMouseUp)
-  }, [handleInput])
+  }, [handleInput, rmbAction])
   
   return (
     <group

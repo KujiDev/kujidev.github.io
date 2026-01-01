@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import { MenuButton, Drawer, DrawerTitle, ScrollList } from '@/ui';
 import styles from './styles.module.css';
 import { useKeyMap } from '@/hooks/useKeyMap';
-import { ACTIONS } from '@/config/actions';
+import { useSlotMap, ALL_SLOTS } from '@/hooks/useSlotMap';
 
 const GearIcon = () => (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -11,11 +11,23 @@ const GearIcon = () => (
     </svg>
 );
 
+// Friendly labels for slots
+const SLOT_LABELS = {
+  slot_1: 'Skill Slot 1',
+  slot_2: 'Skill Slot 2',
+  slot_3: 'Skill Slot 3',
+  slot_4: 'Skill Slot 4',
+  slot_lmb: 'Primary Attack',
+  slot_rmb: 'Secondary Attack',
+  slot_consumable_1: 'Consumable 1',
+  slot_consumable_2: 'Consumable 2',
+};
+
 export default function Settings() {
     const [isOpen, setIsOpen] = useState(false);
     const buttonRef = useRef(null);
     const { getDisplayKey, startRebind, rebinding, resetToDefaults } = useKeyMap();
-    const actions = Object.values(ACTIONS);
+    const { getActionObjectForSlot } = useSlotMap();
 
     return (
         <>
@@ -25,29 +37,38 @@ export default function Settings() {
                 isOpen={isOpen}
                 onClick={() => setIsOpen(!isOpen)}
                 label="Toggle settings"
+                tooltip="Key Bindings"
                 activeAnimation="rotate"
             />
 
             <Drawer 
                 isOpen={isOpen} 
                 anchorRef={buttonRef} 
-                width={280}
+                width={300}
                 portalId="settings-portal"
             >
                 <DrawerTitle>Key Bindings</DrawerTitle>
 
-                <ScrollList maxHeight={280} gap={6}>
-                    {actions.map((action) => (
-                        <div key={action.id} className={styles['keybind-row']}>
-                            <span className={styles['keybind-action']}>{action.label}</span>
-                            <button 
-                                className={`${styles['keybind-key']} ${rebinding === action.id ? styles['rebinding'] : ''}`}
-                                onClick={() => startRebind(action.id)}
-                            >
-                                {rebinding === action.id ? '...' : getDisplayKey(action.id)}
-                            </button>
-                        </div>
-                    ))}
+                <ScrollList maxHeight={320} gap={6}>
+                    {ALL_SLOTS.map((slot) => {
+                        const action = getActionObjectForSlot(slot.id);
+                        return (
+                            <div key={slot.id} className={styles['keybind-row']}>
+                                <div className={styles['keybind-info']}>
+                                    <span className={styles['keybind-slot']}>{SLOT_LABELS[slot.id]}</span>
+                                    {action && (
+                                        <span className={styles['keybind-action']}>{action.label}</span>
+                                    )}
+                                </div>
+                                <button 
+                                    className={`${styles['keybind-key']} ${rebinding === slot.id ? styles['rebinding'] : ''}`}
+                                    onClick={() => startRebind(slot.id)}
+                                >
+                                    {rebinding === slot.id ? '...' : getDisplayKey(slot.id)}
+                                </button>
+                            </div>
+                        );
+                    })}
                 </ScrollList>
 
                 <button className={styles['reset-button']} onClick={resetToDefaults}>

@@ -1,7 +1,9 @@
 import { useState, useMemo, useRef } from 'react';
 import { MenuButton, Drawer, DrawerTitle, ScrollList } from '@/ui';
+import { useDraggable } from '@/hooks/useDragDrop';
+import { useSlotMap } from '@/hooks/useSlotMap';
 import styles from './styles.module.css';
-import { ACTIONS, ELEMENTS } from '@/config/actions';
+import { getSpells, ELEMENTS } from '@/config/actions';
 
 const BookIcon = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -17,21 +19,28 @@ const TABS = [
   { id: 'fire', label: 'Fire', color: ELEMENTS.fire.primary },
   { id: 'arcane', label: 'Arcane', color: ELEMENTS.arcane.primary },
   { id: 'mana', label: 'Mana', color: ELEMENTS.mana.primary },
-  { id: 'healing', label: 'Consumables', color: ELEMENTS.healing.primary },
 ];
 
 function SpellCard({ action }) {
   const element = action.element ? ELEMENTS[action.element] : null;
+  const { handlers, isDragging } = useDraggable(action);
+  const { getSlotForAction } = useSlotMap();
+  
+  // Check if this spell is currently assigned to a slot
+  const assignedSlot = getSlotForAction(action.id);
   
   return (
-    <div className={styles['spell-card']}>
+    <div 
+      className={`${styles['spell-card']} ${isDragging ? styles['dragging'] : ''} ${assignedSlot ? styles['assigned'] : ''}`}
+      {...handlers}
+    >
       <div className={styles['spell-header']}>
         {action.icon && (
           <div 
             className={styles['spell-icon']}
             style={{ '--element-color': element?.primary || '#a89878' }}
           >
-            <img src={action.icon} alt="" />
+            <img src={action.icon} alt="" draggable={false} />
           </div>
         )}
         <div className={styles['spell-info']}>
@@ -46,8 +55,12 @@ function SpellCard({ action }) {
               </span>
             )}
             <span className={styles['spell-type']}>{action.type}</span>
+            {assignedSlot && (
+              <span className={styles['spell-assigned']}>Equipped</span>
+            )}
           </div>
         </div>
+        <div className={styles['drag-hint']}>⋮⋮</div>
       </div>
       
       <p className={styles['spell-desc']}>{action.description}</p>
@@ -103,15 +116,13 @@ export default function SpellBook() {
   const [activeTab, setActiveTab] = useState('all');
   const buttonRef = useRef(null);
   
-  const allActions = Object.values(ACTIONS);
+  // Get only spells (not consumables)
+  const allSpells = getSpells();
   
-  const filteredActions = useMemo(() => {
-    if (activeTab === 'all') return allActions;
-    if (activeTab === 'healing') {
-      return allActions.filter(a => a.element === 'healing');
-    }
-    return allActions.filter(a => a.element === activeTab);
-  }, [activeTab, allActions]);
+  const filteredSpells = useMemo(() => {
+    if (activeTab === 'all') return allSpells;
+    return allSpells.filter(a => a.element === activeTab);
+  }, [activeTab, allSpells]);
 
   return (
     <>
@@ -121,6 +132,7 @@ export default function SpellBook() {
         isOpen={isOpen}
         onClick={() => setIsOpen(!isOpen)}
         label="Toggle spell book"
+        tooltip="Spell Book"
       />
 
       <Drawer 
@@ -145,10 +157,10 @@ export default function SpellBook() {
         </div>
         
         <ScrollList maxHeight={320} gap={8}>
-          {filteredActions.length === 0 ? (
+          {filteredSpells.length === 0 ? (
             <div className={styles['empty-state']}>No spells in this category</div>
           ) : (
-            filteredActions.map(action => (
+            filteredSpells.map(action => (
               <SpellCard key={action.id} action={action} />
             ))
           )}

@@ -603,10 +603,8 @@ export function PlayerStateProvider({ children }) {
 
 export function usePlayerState() {
   const context = useContext(PlayerStateContext);
-  if (!context) {
-    throw new Error('usePlayerState must be used within a PlayerStateProvider');
-  }
-  return context;
+  // Return empty object if outside provider (allows for use in Canvas components)
+  return context || {};
 }
 
 /**

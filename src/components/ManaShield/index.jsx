@@ -7,14 +7,17 @@ import { createFresnelAuraMaterial } from '@/materials/fresnelAura'
 // Blue/cyan mana shield color
 const SHIELD_COLOR = '#77bbff'
 
+// Only these buffs trigger the mana shield visual
+const MANA_BUFF_IDS = ['mana_body']
+
 export default function ManaShield({ position = [0, 0, 0] }) {
   const groupRef = useRef()
   const meshRef = useRef()
   const materialRef = useRef()
   const { buffs } = usePlayerState()
   
-  // Active when any buff is present
-  const isActive = buffs.length > 0
+  // Active only when mana-related buffs are present (not healing buffs)
+  const isActive = buffs.some(buff => MANA_BUFF_IDS.includes(buff.id))
   
   // Create sphere geometry - sized to wrap around character
   const sphereGeometry = useMemo(() => {

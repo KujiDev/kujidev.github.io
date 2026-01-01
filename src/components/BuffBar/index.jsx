@@ -17,8 +17,8 @@ const BUFF_INFO = {
     effect: '+8 Health per second',
   },
   food_buff: {
-    description: 'A hearty meal fills your belly, slowly restoring your vitality.',
-    effect: '+5 Health per second',
+    description: 'An enchanted biscuit infuses you with arcane energy, restoring your mana.',
+    effect: '+5 Mana per second',
   },
 };
 

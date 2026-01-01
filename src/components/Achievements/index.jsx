@@ -30,6 +30,7 @@ export default function Achievements() {
         isOpen={isOpen}
         onClick={() => setIsOpen(!isOpen)}
         label="Toggle achievements"
+        tooltip="Achievements"
       />
 
       <Drawer 
