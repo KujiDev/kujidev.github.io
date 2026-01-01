@@ -2,6 +2,7 @@ import { useRef, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { usePlayerState } from '@/hooks/usePlayerState'
+import { ELEMENTS } from '@/config/actions'
 
 // Configuration
 const RISING_PARTICLE_COUNT = 16
@@ -13,9 +14,9 @@ const ORBIT_RADIUS = 1.2
 const ORBIT_SPEED = 1.8
 const PARTICLE_SIZE = 0.12
 
-// Colors for different buff types
-const POTION_COLOR = new THREE.Color('#ff6b6b') // Red/pink for health potion
-const FOOD_COLOR = new THREE.Color('#60a0ff')   // Blue for mana food
+// Colors for different buff types - use unified element colors
+const POTION_COLOR = new THREE.Color(ELEMENTS.healing.primary)
+const FOOD_COLOR = new THREE.Color(ELEMENTS.mana.glow)
 
 // Create a soft glowing particle texture
 const createParticleTexture = () => {

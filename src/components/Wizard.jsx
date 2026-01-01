@@ -27,11 +27,11 @@ Object.values(ELEMENTS).forEach(element => {
   })
 })
 
-// Pre-create Arcane Rush material once to avoid repeated allocations
+// Pre-create Arcane Rush material - matches ELEMENTS.arcane colors
 const ARCANE_RUSH_MATERIAL = new THREE.MeshBasicMaterial({
-  color: new THREE.Color(0.35, 0.19, 0.55),
+  color: new THREE.Color('#8b30a0'), // Matches arcane secondary
   transparent: true,
-  opacity: 0.7,
+  opacity: 0.75,
 })
 
 export function Model(props) {

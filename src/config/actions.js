@@ -16,41 +16,54 @@ import arcaneBlastIcon from '@/assets/icons/arcane-blast.svg';
 import healthPotionIcon from '@/assets/icons/health-potion.svg';
 import foodIcon from '@/assets/icons/food.svg';
 
+/**
+ * Element color palette - unified across UI and 3D
+ * Each element has:
+ * - primary: Main color for UI elements, casting circles
+ * - secondary: Lighter accent for highlights, trails
+ * - glow: Emissive color for 3D materials (staff glow, particles)
+ * - dark: Deep shadow tone for UI depth
+ */
 export const ELEMENTS = {
   ice: {
     id: 'ice',
     name: 'Ice',
-    primary: '#4fc3f7',
-    secondary: '#81d4fa',
-    glow: '#4fc3f7',
+    primary: '#5ba4d0',    // Cool cyan-blue
+    secondary: '#8ed3f7',  // Light ice highlight
+    glow: '#5ba4d0',
+    dark: '#1a3a4a',
   },
   fire: {
     id: 'fire',
     name: 'Fire',
-    primary: '#ff6b35',
-    secondary: '#ffa040',
+    primary: '#e85a30',    // Warm orange-red
+    secondary: '#ffa040',  // Hot yellow-orange highlight
     glow: '#ff6b35',
+    dark: '#4a1a10',
   },
   arcane: {
     id: 'arcane',
     name: 'Arcane',
-    primary: '#da70d6',
-    secondary: '#ee82ee',
-    glow: '#da70d6',
+    primary: '#9070c0',    // Rich purple - matches icon colors
+    secondary: '#c0a8e8',  // Light lavender highlight
+    glow: '#bb77ff',       // Matches ShieldEffect aura
+    dark: '#2a1a3a',
   },
   mana: {
     id: 'mana',
     name: 'Mana',
-    primary: '#60a0ff',
-    secondary: '#a0d0ff',
+    primary: '#4080ff',    // Deep blue
+    secondary: '#80c0ff',  // Bright sky blue
     glow: '#60a0ff',
+    dark: '#0d1a3a',
   },
   healing: {
     id: 'healing',
     name: 'Healing',
-    primary: '#ff6b6b',
-    secondary: '#ffaaaa',
+    primary: '#e85050',    // Warm red
+    secondary: '#ff8080',  // Soft pink highlight
     glow: '#ff6b6b',
+    dark: '#3a1010',
   },
 };
 

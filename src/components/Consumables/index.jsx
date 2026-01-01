@@ -1,19 +1,10 @@
 import { useState, useMemo, useRef } from 'react';
-import { MenuButton, Drawer, DrawerTitle, ScrollList } from '@/ui';
+import { MenuButton, Drawer, DrawerTitle, ScrollList, SvgIcon } from '@/ui';
 import { useDraggable } from '@/hooks/useDragDrop';
 import { useSlotMap } from '@/hooks/useSlotMap';
 import styles from './styles.module.css';
 import { getConsumables, ELEMENTS } from '@/config/actions';
-
-const PotionIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M10 2v4.5" />
-    <path d="M14 2v4.5" />
-    <path d="M8.5 6.5h7" />
-    <path d="M17.5 22h-11a2 2 0 0 1-1.8-2.9l3.3-6.6v-6h8v6l3.3 6.6a2 2 0 0 1-1.8 2.9z" />
-    <path d="M7 15h10" />
-  </svg>
-);
+import potionIcon from '@/assets/icons/potion.svg?raw';
 
 const TABS = [
   { id: 'all', label: 'All', color: '#a89878' },
@@ -98,7 +89,7 @@ export default function Consumables() {
     <>
       <MenuButton 
         ref={buttonRef}
-        icon={<PotionIcon />}
+        icon={<SvgIcon svg={potionIcon} />}
         isOpen={isOpen}
         onClick={() => setIsOpen(!isOpen)}
         label="Toggle consumables"

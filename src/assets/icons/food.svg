@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <!-- Dark background -->
-  <rect width="64" height="64" rx="4" fill="#1a1f2e"/>
-  <rect x="2" y="2" width="60" height="60" rx="3" fill="#0d1117" stroke="#2a3444" stroke-width="1"/>
+  <!-- Dark background - Consumable theme -->
+  <rect width="64" height="64" rx="4" fill="#1a1a2e"/>
+  <rect x="2" y="2" width="60" height="60" rx="3" fill="#0d0d17" stroke="#2a2a44" stroke-width="1"/>
   
   <defs>
     <linearGradient id="potBody" x1="0%" y1="0%" x2="0%" y2="100%">

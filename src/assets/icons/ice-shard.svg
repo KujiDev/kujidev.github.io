@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <!-- Dark background -->
-  <rect width="64" height="64" rx="4" fill="#1a1f2e"/>
-  <rect x="2" y="2" width="60" height="60" rx="3" fill="#0d1117" stroke="#2a3444" stroke-width="1"/>
+  <!-- Dark background - Ice theme -->
+  <rect width="64" height="64" rx="4" fill="#1a202e"/>
+  <rect x="2" y="2" width="60" height="60" rx="3" fill="#0d1018" stroke="#2a3a4a" stroke-width="1"/>
   
   <!-- Ground shadow -->
   <ellipse cx="32" cy="56" rx="16" ry="3" fill="#4a8fb8" opacity="0.3"/>

@@ -1,17 +1,10 @@
 import { useState, useMemo, useRef } from 'react';
-import { MenuButton, Drawer, DrawerTitle, ScrollList } from '@/ui';
+import { MenuButton, Drawer, DrawerTitle, ScrollList, SvgIcon } from '@/ui';
 import { useDraggable } from '@/hooks/useDragDrop';
 import { useSlotMap } from '@/hooks/useSlotMap';
 import styles from './styles.module.css';
 import { getSpells, ELEMENTS } from '@/config/actions';
-
-const BookIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
-    <path d="M8 7h8M8 11h6" />
-  </svg>
-);
+import bookIcon from '@/assets/icons/book.svg?raw';
 
 const TABS = [
   { id: 'all', label: 'All', color: '#a89878' },
@@ -128,7 +121,7 @@ export default function SpellBook() {
     <>
       <MenuButton 
         ref={buttonRef}
-        icon={<BookIcon />}
+        icon={<SvgIcon svg={bookIcon} />}
         isOpen={isOpen}
         onClick={() => setIsOpen(!isOpen)}
         label="Toggle spell book"

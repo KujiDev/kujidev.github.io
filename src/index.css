@@ -59,23 +59,28 @@
   --transition-slow: 0.3s ease;
 
   /* ============ ELEMENT COLORS ============ */
-  --element-fire: #ff6b35;
-  --element-ice: #4fc3f7;
-  --element-arcane: #9c27b0;
-  --element-nature: #4caf50;
-  --element-holy: #ffd54f;
-  --element-shadow: #7b1fa2;
+  /* Matches ELEMENTS config in actions.js for UI/3D consistency */
+  --element-fire: #e85a30;
+  --element-fire-light: #ffa040;
+  --element-ice: #5ba4d0;
+  --element-ice-light: #8ed3f7;
+  --element-arcane: #9070c0;
+  --element-arcane-light: #c0a8e8;
+  --element-mana: #4080ff;
+  --element-mana-light: #80c0ff;
+  --element-healing: #e85050;
+  --element-healing-light: #ff8080;
   
-  /* Health/Mana */
-  --color-health: #c41e1e;
-  --color-health-light: #ff4444;
-  --color-mana: #1e5cc4;
-  --color-mana-light: #4488ff;
+  /* Health/Mana orbs */
+  --color-health: #c02020;
+  --color-health-light: #e85050;
+  --color-mana: #2060c0;
+  --color-mana-light: #4080ff;
   
   /* Status */
-  --color-success: #4caf50;
-  --color-warning: #ff9800;
-  --color-error: #f44336;
+  --color-success: #40a050;
+  --color-warning: #e89030;
+  --color-error: #e84040;
 
   color-scheme: light dark;
   color: rgba(255, 255, 255, 0.87);

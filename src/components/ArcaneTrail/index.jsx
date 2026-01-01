@@ -3,12 +3,16 @@ import { useFrame } from '@react-three/fiber'
 import { useGLTF } from '@react-three/drei'
 import { SkeletonUtils } from 'three-stdlib'
 import { usePlayerState } from '@/hooks/usePlayerState'
+import { ELEMENTS } from '@/config/actions'
 import * as THREE from 'three'
 
 const MAX_GHOSTS = 5
 const SPAWN_INTERVAL = 0.07 // seconds between spawning new ghost
 const GHOST_LIFETIME = 0.4 // seconds before ghost fades completely
 const TRAIL_SPEED = 3.5 // how fast ghosts move backward
+
+// Parse arcane color once for ghost tinting
+const arcaneBase = new THREE.Color(ELEMENTS.arcane.primary)
 
 // Single ghost - a clone that syncs pose and moves backward
 function Ghost({ sourceClone, spawnTime, index }) {
@@ -22,9 +26,9 @@ function Ghost({ sourceClone, spawnTime, index }) {
     const cloned = SkeletonUtils.clone(sourceClone)
     const mats = []
     
-    // Each ghost gets progressively lighter purple
-    const intensity = 0.55 + index * 0.08
-    const color = new THREE.Color(intensity * 0.65, intensity * 0.35, intensity)
+    // Each ghost gets progressively lighter arcane purple
+    const intensity = 0.7 + index * 0.08
+    const color = arcaneBase.clone().multiplyScalar(intensity)
     
     cloned.traverse((child) => {
       if (child.isMesh) {

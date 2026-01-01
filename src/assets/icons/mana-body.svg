@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <!-- Dark background -->
+  <!-- Dark background - Mana theme -->
   <rect width="64" height="64" rx="4" fill="#1a1a2e"/>
-  <rect x="2" y="2" width="60" height="60" rx="3" fill="#0d1117" stroke="#2a3a5a" stroke-width="1"/>
+  <rect x="2" y="2" width="60" height="60" rx="3" fill="#0d0d17" stroke="#2a3a5a" stroke-width="1"/>
   
   <!-- Outer aura glow -->
   <ellipse cx="32" cy="32" rx="24" ry="26" fill="url(#auraGlow)" opacity="0.4"/>

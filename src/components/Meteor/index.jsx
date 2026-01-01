@@ -2,10 +2,11 @@ import { useRef, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { usePlayerState } from '@/hooks/usePlayerState'
+import { ELEMENTS } from '@/config/actions'
 
-// Fire colors matching actions.js element
-const FIRE_COLOR = new THREE.Color('#ff6b35')
-const FIRE_CORE = new THREE.Color('#ffa040')
+// Fire colors from unified element palette
+const FIRE_COLOR = new THREE.Color(ELEMENTS.fire.primary)
+const FIRE_CORE = new THREE.Color(ELEMENTS.fire.secondary)
 const FIRE_HOT = new THREE.Color('#ffdd44')
 
 const FORM_HEIGHT = 8.0 // Meteor comes from higher
@@ -328,14 +329,43 @@ export default function Meteor({ targetPosition = [0, 0, 5] }) {
   useFrame((_, delta) => {
     timeRef.current += delta
     
+    // Smooth lerp factors matching CastingCircle for consistency
+    const opacityLerp = delta * 8
+    const scaleLerp = delta * 6
+    
     if (!isCasting) {
-      // Reset when not casting
-      circleMaterial.uniforms.uProgress.value = 0
-      circleMaterial.uniforms.uImpact.value = 0
-      meteorMaterial.uniforms.uOpacity.value = 0
-      bubbleMaterial.uniforms.uOpacity.value = 0
-      if (circleRef.current) circleRef.current.scale.setScalar(0.5)
-      if (bubbleRef.current) bubbleRef.current.scale.setScalar(0.5)
+      // Smooth fade out instead of instant reset (matches CastingCircle)
+      const currentOpacity = circleMaterial.uniforms.uProgress.value
+      
+      // Early exit optimization when fully invisible
+      if (currentOpacity < 0.01 && meteorMaterial.uniforms.uOpacity.value < 0.01) {
+        // Ensure everything is at reset state
+        circleMaterial.uniforms.uProgress.value = 0
+        circleMaterial.uniforms.uImpact.value = 0
+        meteorMaterial.uniforms.uOpacity.value = 0
+        bubbleMaterial.uniforms.uOpacity.value = 0
+        return
+      }
+      
+      // Smooth fade out
+      circleMaterial.uniforms.uProgress.value += (0 - circleMaterial.uniforms.uProgress.value) * opacityLerp
+      circleMaterial.uniforms.uImpact.value += (0 - circleMaterial.uniforms.uImpact.value) * opacityLerp
+      meteorMaterial.uniforms.uOpacity.value += (0 - meteorMaterial.uniforms.uOpacity.value) * opacityLerp
+      bubbleMaterial.uniforms.uOpacity.value += (0 - bubbleMaterial.uniforms.uOpacity.value) * opacityLerp
+      
+      // Smooth scale down
+      if (circleRef.current) {
+        const s = circleRef.current.scale
+        s.x += (0.5 - s.x) * scaleLerp
+        s.y += (0.5 - s.y) * scaleLerp
+        s.z += (0.5 - s.z) * scaleLerp
+      }
+      if (bubbleRef.current) {
+        const s = bubbleRef.current.scale
+        s.x += (0.5 - s.x) * scaleLerp
+        s.y += (0.5 - s.y) * scaleLerp
+        s.z += (0.5 - s.z) * scaleLerp
+      }
       return
     }
     
@@ -414,17 +444,20 @@ export default function Meteor({ targetPosition = [0, 0, 5] }) {
     
     if (circleRef.current) {
       const s = circleRef.current.scale
-      const speed = impactProgress > 0 ? 22 : 8
-      s.x += (circleTargetScale - s.x) * delta * speed
-      s.y += (circleTargetScale - s.y) * delta * speed
-      s.z += (circleTargetScale - s.z) * delta * speed
+      // Use consistent lerp factor matching CastingCircle (delta * 6)
+      // Impact gets slightly faster response but still smooth
+      const lerpFactor = impactProgress > 0 ? scaleLerp * 1.5 : scaleLerp
+      s.x += (circleTargetScale - s.x) * lerpFactor
+      s.y += (circleTargetScale - s.y) * lerpFactor
+      s.z += (circleTargetScale - s.z) * lerpFactor
     }
     if (bubbleRef.current) {
       const s = bubbleRef.current.scale
-      const speed = impactProgress > 0 ? 28 : 8
-      s.x += (bubbleTargetScale - s.x) * delta * speed
-      s.y += (bubbleTargetScale - s.y) * delta * speed
-      s.z += (bubbleTargetScale - s.z) * delta * speed
+      // Use consistent lerp factor matching CastingCircle (delta * 6)
+      const lerpFactor = impactProgress > 0 ? scaleLerp * 1.8 : scaleLerp
+      s.x += (bubbleTargetScale - s.x) * lerpFactor
+      s.y += (bubbleTargetScale - s.y) * lerpFactor
+      s.z += (bubbleTargetScale - s.z) * lerpFactor
     }
     
     // Update light intensities (avoid re-renders by setting directly)

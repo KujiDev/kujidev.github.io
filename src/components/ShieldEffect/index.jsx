@@ -3,9 +3,10 @@ import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { usePlayerState } from '@/hooks/usePlayerState'
 import { createFresnelAuraMaterial } from '@/materials/fresnelAura'
+import { ELEMENTS } from '@/config/actions'
 
-// Arcane Rush - purple/magenta speed aura
-const AURA_COLOR = '#bb77ff'
+// Arcane Rush - uses unified arcane glow color
+const AURA_COLOR = ELEMENTS.arcane.glow
 
 export default function ShieldEffect({ position = [0, 0, 0] }) {
   const groupRef = useRef()

@@ -3,9 +3,10 @@ import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { usePlayerState } from '@/hooks/usePlayerState'
 import { createFresnelAuraMaterial } from '@/materials/fresnelAura'
+import { ELEMENTS } from '@/config/actions'
 
-// Blue/cyan mana shield color
-const SHIELD_COLOR = '#77bbff'
+// Mana shield - uses unified mana glow color
+const SHIELD_COLOR = ELEMENTS.mana.glow
 
 // Only these buffs trigger the mana shield visual
 const MANA_BUFF_IDS = ['mana_body']
