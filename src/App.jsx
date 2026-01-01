@@ -1,7 +1,7 @@
 import { Canvas } from "@react-three/fiber";
 import { CameraControls, Environment, KeyboardControls, useKeyboardControls } from "@react-three/drei";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, Suspense } from "react";
 
 import Hud from "@/components/Hud";
 import SkillBar, { Slot } from "@/components/SkillBar";
@@ -15,6 +15,7 @@ import Target, { TargetProvider, useTarget } from "@/components/Target";
 import TargetHealthBar from "@/components/TargetHealthBar";
 import IceShard from "@/components/IceShard";
 import Meteor from "@/components/Meteor";
+import LoadingScreen from "@/components/LoadingScreen";
 
 import { KeyMapProvider, useKeyMap } from "@/hooks/useKeyMap";
 import { PlayerStateProvider, usePlayerState } from "@/hooks/usePlayerState";
@@ -320,6 +321,7 @@ export default function App() {
       <AchievementProvider>
       <PlayerStateProvider>
         <GameControls>
+          <LoadingScreen />
           <AchievementToast />
           <div style={{ width: "100vw", height: "100vh" }}>
             <Canvas 
@@ -328,7 +330,9 @@ export default function App() {
               eventSource={document.getElementById('root')} 
               eventPrefix="client"
             >
-              <Scene />
+              <Suspense fallback={null}>
+                <Scene />
+              </Suspense>
             </Canvas>
           </div>
         </GameControls>
