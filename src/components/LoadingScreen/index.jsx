@@ -48,16 +48,13 @@ export default function LoadingScreen() {
           </div>
           <div className={styles.orbGlow} />
           
-          {/* Orbiting particles */}
+          {/* Orbiting particles - reduced to 4 for performance */}
           <div className={styles.particles}>
-            {[...Array(6)].map((_, i) => (
+            {[...Array(4)].map((_, i) => (
               <div 
                 key={i} 
                 className={styles.particle}
-                style={{ 
-                  '--delay': `${i * -0.5}s`,
-                  '--duration': `${2.5 + i * 0.2}s`
-                }}
+                style={{ '--index': i }}
               />
             ))}
           </div>

@@ -1,153 +1,134 @@
+/* TargetHealthBar Component - Optimized for performance */
+
 .container {
   position: fixed;
-  top: 24px;
+  top: 1.5rem;
   left: 50%;
   transform: translateX(-50%);
   z-index: 1000;
   pointer-events: none;
   animation: fadeIn 0.15s ease-out;
+  will-change: opacity;
 }
 
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .nameLabel {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  margin-bottom: 8px;
+  gap: 0.625rem;
+  margin-bottom: 0.5rem;
 }
 
 .level {
   font-size: var(--font-sm);
   font-weight: var(--weight-semibold);
-  color: #a08050;
-  text-shadow: 
-    0 1px 2px rgba(0,0,0,1),
-    0 0 6px rgba(0,0,0,0.6);
+  color: var(--color-muted);
 }
 
 .name {
   font-size: var(--font-md);
   font-weight: var(--weight-bold);
-  letter-spacing: 1px;
+  letter-spacing: 0.0625rem;
   text-transform: uppercase;
-  color: #e8d4a8;
-  text-shadow: 
-    0 1px 2px rgba(0,0,0,1),
-    0 0 8px rgba(0,0,0,0.6);
+  color: var(--color-gold);
 }
 
 .eliteBadge {
   font-size: var(--font-xs);
   font-weight: var(--weight-bold);
   text-transform: uppercase;
-  letter-spacing: 1px;
-  padding: 2px 6px;
+  letter-spacing: 0.0625rem;
+  padding: 0.125rem 0.375rem;
   border-radius: 2px;
   color: #ffd060;
   background: rgba(80,60,20,0.8);
   border: 1px solid rgba(200,160,60,0.5);
-  text-shadow: 0 0 4px rgba(255,200,60,0.5);
 }
 
 .bossBadge {
   font-size: var(--font-xs);
   font-weight: var(--weight-bold);
   text-transform: uppercase;
-  letter-spacing: 1px;
-  padding: 2px 6px;
+  letter-spacing: 0.0625rem;
+  padding: 0.125rem 0.375rem;
   border-radius: 2px;
   color: #e0a0ff;
   background: rgba(60,30,80,0.8);
   border: 1px solid rgba(180,100,220,0.5);
-  text-shadow: 0 0 4px rgba(200,100,255,0.5);
 }
 
 .frame {
   position: relative;
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 10px;
-  min-width: 240px;
+  gap: 0.5rem;
+  padding: 0.375rem 0.625rem;
+  min-width: 15rem;
   
-  /* Dark metal frame like casting bar */
-  background: 
-    linear-gradient(180deg, 
-      rgba(35,28,20,0.98) 0%, 
-      rgba(18,14,10,0.98) 50%,
-      rgba(10,8,5,0.98) 100%);
+  /* Dark metal frame */
+  background: linear-gradient(180deg, 
+    var(--bg-card) 0%, 
+    var(--bg-dark) 50%,
+    rgba(10,8,5,0.98) 100%);
   
   border: 2px solid;
-  border-color: #5a4525 #3a2815 #2a180a #4a3520;
-  border-radius: 6px;
+  border-color: var(--border-light) var(--border-mid) var(--border-dark) var(--border-light);
+  border-radius: 0.375rem;
   
-  box-shadow:
-    0 0 30px rgba(0,0,0,0.7),
-    0 6px 20px rgba(0,0,0,0.8),
-    inset 0 1px 0 rgba(255,220,160,0.08),
-    inset 0 -2px 10px rgba(0,0,0,0.6);
+  box-shadow: var(--shadow-lg), var(--shadow-inset);
 }
 
 .frame::before {
   content: "";
   position: absolute;
   inset: 2px;
-  border-radius: 4px;
-  border: 1px solid rgba(255,200,120,0.1);
+  border-radius: 0.25rem;
+  border: 1px solid var(--highlight-subtle);
   pointer-events: none;
 }
 
 .levelBox {
-  width: 28px;
-  height: 28px;
+  width: 1.75rem;
+  height: 1.75rem;
   flex-shrink: 0;
-  border-radius: 4px;
+  border-radius: 0.25rem;
   overflow: hidden;
   
   display: flex;
   align-items: center;
   justify-content: center;
   
-  background: 
-    linear-gradient(180deg, #3a3a3a 0%, #1a1a1a 50%, #0a0a0a 100%);
-  border: 1px solid #4a3520;
+  background: linear-gradient(180deg, #3a3a3a 0%, #1a1a1a 50%, #0a0a0a 100%);
+  border: 1px solid var(--border-light);
   
   box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.08),
-    inset 0 -2px 6px rgba(0,0,0,0.8);
+    inset 0 1px 0 var(--highlight-subtle),
+    inset 0 -0.125rem 0.375rem rgba(0,0,0,0.8);
     
   font-size: var(--font-md);
   font-weight: var(--weight-bold);
   color: #c0a060;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.8);
 }
 
 .barTrack {
   position: relative;
   flex: 1;
-  height: 18px;
-  min-width: 180px;
-  border-radius: 3px;
+  height: 1.125rem;
+  min-width: 11.25rem;
+  border-radius: 0.1875rem;
   overflow: hidden;
   
   /* Recessed track */
-  background: 
-    linear-gradient(180deg, #0a0806 0%, #151210 50%, #0a0806 100%);
+  background: linear-gradient(180deg, #0a0806 0%, #151210 50%, #0a0806 100%);
   border: 1px solid;
   border-color: #1a1510 #2a2018 #2a2018 #1a1510;
   
-  box-shadow:
-    inset 0 2px 4px rgba(0,0,0,0.9),
-    inset 0 0 8px rgba(0,0,0,0.5);
+  box-shadow: inset 0 0.125rem 0.25rem rgba(0,0,0,0.9);
 }
 
 .barFill {
@@ -156,19 +137,18 @@
   left: 1px;
   bottom: 1px;
   border-radius: 2px;
-  transition: width 0.3s ease-out;
+  transition: width var(--transition-slow);
+  will-change: width;
   
   /* Default enemy - red */
-  background: 
-    linear-gradient(180deg, 
-      #e85040 0%, 
-      #c03020 30%, 
-      #a02818 70%, 
-      #801810 100%);
+  background: linear-gradient(180deg, 
+    #e85040 0%, 
+    #c03020 30%, 
+    #a02818 70%, 
+    #801810 100%);
   box-shadow:
     inset 0 1px 0 rgba(255,180,140,0.5),
-    inset 0 -1px 2px rgba(0,0,0,0.4),
-    0 0 10px rgba(220,80,60,0.5);
+    0 0 0.625rem rgba(220,80,60,0.5);
 }
 
 .barShine {
@@ -194,12 +174,8 @@
   
   font-size: var(--font-xs);
   font-weight: var(--weight-bold);
-  letter-spacing: 0.5px;
+  letter-spacing: 0.03em;
   color: #fff;
-  text-shadow: 
-    0 1px 1px rgba(0,0,0,1),
-    0 0 4px rgba(0,0,0,0.8);
-  
   pointer-events: none;
 }
 
@@ -213,37 +189,30 @@
 }
 
 .type-enemy .barFill {
-  background: 
-    linear-gradient(180deg, 
-      #e85040 0%, 
-      #c03020 30%, 
-      #a02818 70%, 
-      #801810 100%);
+  background: linear-gradient(180deg, 
+    #e85040 0%, 
+    #c03020 30%, 
+    #a02818 70%, 
+    #801810 100%);
   box-shadow:
     inset 0 1px 0 rgba(255,180,140,0.5),
-    inset 0 -1px 2px rgba(0,0,0,0.4),
-    0 0 10px rgba(220,80,60,0.5);
+    0 0 0.625rem rgba(220,80,60,0.5);
 }
 
 /* Elite - golden */
 .type-elite .name {
   color: #ffd060;
-  text-shadow: 
-    0 0 10px rgba(255, 200, 60, 0.5),
-    0 1px 2px rgba(0,0,0,1);
 }
 
 .type-elite .barFill {
-  background: 
-    linear-gradient(180deg, 
-      #d8a830 0%, 
-      #b08018 30%, 
-      #907010 70%, 
-      #705008 100%);
+  background: linear-gradient(180deg, 
+    #d8a830 0%, 
+    #b08018 30%, 
+    #907010 70%, 
+    #705008 100%);
   box-shadow:
     inset 0 1px 0 rgba(255,230,160,0.5),
-    inset 0 -1px 2px rgba(0,0,0,0.4),
-    0 0 10px rgba(200,160,60,0.5);
+    0 0 0.625rem rgba(200,160,60,0.5);
 }
 
 .type-elite .frame {
@@ -258,22 +227,17 @@
 /* Boss - purple */
 .type-boss .name {
   color: #e0a0ff;
-  text-shadow: 
-    0 0 10px rgba(200, 100, 255, 0.5),
-    0 1px 2px rgba(0,0,0,1);
 }
 
 .type-boss .barFill {
-  background: 
-    linear-gradient(180deg, 
-      #9840c8 0%, 
-      #7020a0 30%, 
-      #581890 70%, 
-      #400870 100%);
+  background: linear-gradient(180deg, 
+    #9840c8 0%, 
+    #7020a0 30%, 
+    #581890 70%, 
+    #400870 100%);
   box-shadow:
     inset 0 1px 0 rgba(220,180,255,0.5),
-    inset 0 -1px 2px rgba(0,0,0,0.4),
-    0 0 12px rgba(150,80,200,0.6);
+    0 0 0.75rem rgba(150,80,200,0.6);
 }
 
 .type-boss .frame {
@@ -286,28 +250,23 @@
 }
 
 .type-boss .barTrack {
-  height: 22px;
+  height: 1.375rem;
 }
 
 /* Friendly - green */
 .type-friendly .name {
   color: #80e890;
-  text-shadow: 
-    0 0 10px rgba(100, 220, 120, 0.4),
-    0 1px 2px rgba(0,0,0,1);
 }
 
 .type-friendly .barFill {
-  background: 
-    linear-gradient(180deg, 
-      #40c060 0%, 
-      #28a048 30%, 
-      #208038 70%, 
-      #106028 100%);
+  background: linear-gradient(180deg, 
+    #40c060 0%, 
+    #28a048 30%, 
+    #208038 70%, 
+    #106028 100%);
   box-shadow:
     inset 0 1px 0 rgba(180,255,180,0.5),
-    inset 0 -1px 2px rgba(0,0,0,0.4),
-    0 0 10px rgba(80,180,80,0.5);
+    0 0 0.625rem rgba(80,180,80,0.5);
 }
 
 .type-friendly .levelBox {
@@ -321,50 +280,39 @@
 .statusBar {
   display: flex;
   justify-content: center;
-  gap: 4px;
-  margin-top: 8px;
+  gap: 0.25rem;
+  margin-top: 0.5rem;
   pointer-events: auto;
 }
 
 .statusIcon {
   position: relative;
-  width: 24px;
-  height: 24px;
-  border-radius: 4px;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 0.25rem;
   overflow: hidden;
   
-  background: 
-    linear-gradient(180deg, rgba(40,32,24,0.95) 0%, rgba(20,16,12,0.95) 100%);
+  background: linear-gradient(180deg, var(--bg-card) 0%, var(--bg-dark) 100%);
   border: 1px solid rgba(90,70,45,0.8);
   
-  box-shadow:
-    inset 0 1px 0 rgba(255,220,160,0.1),
-    inset 0 -1px 3px rgba(0,0,0,0.5),
-    0 2px 4px rgba(0,0,0,0.4);
+  box-shadow: var(--shadow-inset);
 }
 
 .statusIcon.buff {
   border-color: rgba(100,160,90,0.8);
-  box-shadow:
-    inset 0 1px 0 rgba(180,255,160,0.1),
-    inset 0 -1px 3px rgba(0,0,0,0.5),
-    0 0 6px rgba(100,180,80,0.3);
+  box-shadow: var(--shadow-inset), 0 0 0.375rem rgba(100,180,80,0.3);
 }
 
 .statusIcon.debuff {
   border-color: rgba(180,80,80,0.8);
-  box-shadow:
-    inset 0 1px 0 rgba(255,160,160,0.1),
-    inset 0 -1px 3px rgba(0,0,0,0.5),
-    0 0 6px rgba(200,80,80,0.3);
+  box-shadow: var(--shadow-inset), 0 0 0.375rem rgba(200,80,80,0.3);
 }
 
 .statusImage {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  padding: 2px;
-  filter: drop-shadow(0 1px 1px rgba(0,0,0,0.5));
+  padding: 0.125rem;
 }
 
 .statusSweep {
@@ -380,16 +328,12 @@
 
 .statusTimer {
   position: absolute;
-  bottom: -1px;
+  bottom: -0.0625rem;
   left: 50%;
   transform: translateX(-50%);
   
-  font-size: 8px;
+  font-size: 0.5rem;
   font-weight: 700;
   color: #fff;
-  text-shadow: 
-    0 0 2px #000,
-    0 0 2px #000,
-    0 1px 1px #000;
   pointer-events: none;
 }

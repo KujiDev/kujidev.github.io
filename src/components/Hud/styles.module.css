@@ -1,21 +1,20 @@
+/* Hud Component - Optimized for performance */
+
 .hud {
     position: fixed;
-    bottom: 24px;
+    bottom: 1.5rem;
     left: 50%;
     transform: translateX(-50%);
     display: flex;
     align-items: flex-end;
-    gap: 20px;
+    gap: 1.25rem;
     z-index: 1;
-    
-    /* Subtle ambient glow under entire HUD */
-    filter: drop-shadow(0 8px 20px rgba(0,0,0,0.5));
 }
 
 @media (max-width: 768px) {
     .hud {
-        bottom: 12px;
-        gap: 10px;
+        bottom: 0.75rem;
+        gap: 0.625rem;
         transform: translateX(-50%) scale(0.7);
         transform-origin: bottom center;
     }

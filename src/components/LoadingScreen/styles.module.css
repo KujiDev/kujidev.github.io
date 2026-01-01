@@ -1,4 +1,5 @@
 /* Loading Screen - Fantasy themed with consistent styling */
+/* Optimized for performance on all devices */
 
 .overlay {
   position: fixed;
@@ -12,6 +13,7 @@
   background: radial-gradient(ellipse at center, #1a1510 0%, #0d0a08 60%, #050403 100%);
   
   transition: opacity 0.5s ease-out;
+  will-change: opacity;
 }
 
 .overlay.fadeOut {
@@ -23,7 +25,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 24px;
+  gap: 1.5rem;
   opacity: 0;
   transition: opacity 0.3s ease-in;
 }
@@ -35,8 +37,8 @@
 /* Magical Orb */
 .orbContainer {
   position: relative;
-  width: 120px;
-  height: 120px;
+  width: 7.5rem;
+  height: 7.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -44,102 +46,95 @@
 
 .orb {
   position: relative;
-  width: 60px;
-  height: 60px;
+  width: 3.75rem;
+  height: 3.75rem;
   border-radius: 50%;
   background: 
     radial-gradient(circle at 35% 35%, rgba(255,220,160,0.9) 0%, transparent 40%),
     radial-gradient(circle at 50% 50%, #c9a55a 0%, #8b6914 60%, #3d2e0a 100%);
-  box-shadow:
-    inset 0 -4px 12px rgba(0,0,0,0.5),
-    inset 0 4px 8px rgba(255,220,160,0.3);
+  box-shadow: inset 0 -0.25rem 0.75rem rgba(0,0,0,0.5);
   animation: pulse 2s ease-in-out infinite;
+  will-change: transform;
 }
 
 .orbInner {
   position: absolute;
-  inset: 8px;
+  inset: 0.5rem;
   border-radius: 50%;
   background: radial-gradient(circle at 40% 40%, rgba(255,240,200,0.4) 0%, transparent 60%);
 }
 
 .orbShine {
   position: absolute;
-  top: 8px;
-  left: 12px;
-  width: 16px;
-  height: 10px;
+  top: 0.5rem;
+  left: 0.75rem;
+  width: 1rem;
+  height: 0.625rem;
   border-radius: 50%;
-  background: rgba(255,255,255,0.6);
-  filter: blur(2px);
+  background: radial-gradient(ellipse, rgba(255,255,255,0.6) 0%, transparent 70%);
 }
 
 .orbGlow {
   position: absolute;
-  inset: -20px;
+  inset: -1.25rem;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(201,165,90,0.4) 0%, rgba(201,165,90,0.1) 40%, transparent 70%);
+  background: radial-gradient(circle, rgba(201,165,90,0.35) 0%, rgba(201,165,90,0.08) 40%, transparent 70%);
   animation: glowPulse 2s ease-in-out infinite;
+  will-change: opacity, transform;
 }
 
-/* Orbiting particles */
+/* Orbiting particles - optimized with single rotation */
 .particles {
   position: absolute;
   inset: 0;
-  animation: spin 8s linear infinite;
+  animation: spin 6s linear infinite;
+  will-change: transform;
 }
 
 .particle {
   position: absolute;
-  width: 6px;
-  height: 6px;
+  width: 0.375rem;
+  height: 0.375rem;
   border-radius: 50%;
   background: radial-gradient(circle, #ffd88a 0%, #c9a55a 100%);
-  box-shadow: 0 0 8px rgba(255,216,138,0.8);
-  animation: orbit var(--duration) ease-in-out infinite;
-  animation-delay: var(--delay);
+  box-shadow: 0 0 0.5rem rgba(255,216,138,0.7);
+  opacity: 0.8;
 }
 
+/* Position 4 particles evenly around the orbit */
 .particle:nth-child(1) { top: 0; left: 50%; transform: translateX(-50%); }
-.particle:nth-child(2) { top: 25%; right: 10%; }
-.particle:nth-child(3) { bottom: 25%; right: 10%; }
-.particle:nth-child(4) { bottom: 0; left: 50%; transform: translateX(-50%); }
-.particle:nth-child(5) { bottom: 25%; left: 10%; }
-.particle:nth-child(6) { top: 25%; left: 10%; }
+.particle:nth-child(2) { top: 50%; right: 0; transform: translateY(-50%); }
+.particle:nth-child(3) { bottom: 0; left: 50%; transform: translateX(-50%); }
+.particle:nth-child(4) { top: 50%; left: 0; transform: translateY(-50%); }
 
 /* Title */
 .title {
   margin: 0;
   font-family: 'Philosopher', 'Palatino Linotype', Georgia, serif;
-  font-size: 32px;
+  font-size: 2rem;
   font-weight: 700;
-  letter-spacing: 3px;
+  letter-spacing: 0.1875rem;
   text-transform: uppercase;
   
   background: linear-gradient(180deg, #f0e6c8 0%, #c9a55a 50%, #8b6914 100%);
   background-clip: text;
   -webkit-background-clip: text;
   color: transparent;
-  
-  text-shadow: 0 2px 20px rgba(201,165,90,0.5);
 }
 
 /* Progress bar */
 .progressContainer {
   position: relative;
-  width: 280px;
+  width: 17.5rem;
 }
 
 .progressTrack {
   position: relative;
-  height: 8px;
-  border-radius: 4px;
-  background: 
-    linear-gradient(180deg, rgba(20,15,10,0.9) 0%, rgba(30,22,14,0.9) 100%);
+  height: 0.5rem;
+  border-radius: 0.25rem;
+  background: linear-gradient(180deg, rgba(20,15,10,0.9) 0%, rgba(30,22,14,0.9) 100%);
   border: 1px solid rgba(90,69,37,0.6);
-  box-shadow:
-    inset 0 2px 4px rgba(0,0,0,0.5),
-    0 1px 0 rgba(255,220,160,0.05);
+  box-shadow: inset 0 0.125rem 0.25rem rgba(0,0,0,0.5);
   overflow: hidden;
 }
 
@@ -148,9 +143,10 @@
   top: 1px;
   left: 1px;
   bottom: 1px;
-  border-radius: 3px;
+  border-radius: 0.1875rem;
   background: linear-gradient(180deg, #d4b066 0%, #a88832 50%, #7a5a14 100%);
   transition: width 0.3s ease-out;
+  will-change: width;
 }
 
 .progressGlow {
@@ -158,51 +154,47 @@
   top: 0;
   left: 0;
   height: 100%;
-  background: linear-gradient(90deg, transparent 80%, rgba(255,220,160,0.6) 100%);
+  background: linear-gradient(90deg, transparent 80%, rgba(255,220,160,0.5) 100%);
   transition: width 0.3s ease-out;
   animation: shimmer 1.5s ease-in-out infinite;
+  will-change: opacity;
 }
 
 .progressJewels {
   display: flex;
   justify-content: space-between;
-  margin-top: -5px;
-  padding: 0 4px;
+  margin-top: -0.3125rem;
+  padding: 0 0.25rem;
 }
 
 .jewel {
-  width: 10px;
-  height: 10px;
+  width: 0.625rem;
+  height: 0.625rem;
   border-radius: 50%;
-  background: 
-    radial-gradient(circle at 35% 35%, rgba(80,60,40,0.8) 0%, rgba(40,30,20,0.9) 100%);
+  background: radial-gradient(circle at 35% 35%, rgba(80,60,40,0.8) 0%, rgba(40,30,20,0.9) 100%);
   border: 1px solid rgba(90,69,37,0.8);
-  box-shadow:
-    inset 0 1px 2px rgba(0,0,0,0.5),
-    0 0 4px rgba(0,0,0,0.3);
-  transition: all 0.3s ease;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.5);
+  transition: background 0.3s ease, box-shadow 0.3s ease;
 }
 
 .jewel.active {
-  background: 
-    radial-gradient(circle at 35% 35%, rgba(255,220,160,0.9) 0%, #c9a55a 40%, #8b6914 100%);
+  background: radial-gradient(circle at 35% 35%, rgba(255,220,160,0.9) 0%, #c9a55a 40%, #8b6914 100%);
   border-color: rgba(201,165,90,0.8);
-  box-shadow:
-    inset 0 1px 2px rgba(255,255,255,0.3),
-    0 0 8px rgba(201,165,90,0.6);
+  box-shadow: 0 0 0.5rem rgba(201,165,90,0.5);
 }
 
 /* Loading text */
 .loadingText {
   margin: 0;
   font-family: 'Philosopher', 'Palatino Linotype', Georgia, serif;
-  font-size: 14px;
+  font-size: 0.875rem;
   color: #a89878;
-  letter-spacing: 1px;
+  letter-spacing: 0.0625rem;
   animation: textPulse 2s ease-in-out infinite;
+  will-change: opacity;
 }
 
-/* Animations */
+/* Animations - GPU accelerated */
 @keyframes pulse {
   0%, 100% { transform: scale(1); }
   50% { transform: scale(1.05); }
@@ -218,17 +210,6 @@
   to { transform: rotate(360deg); }
 }
 
-@keyframes orbit {
-  0%, 100% { 
-    opacity: 0.4;
-    transform: scale(0.8);
-  }
-  50% { 
-    opacity: 1;
-    transform: scale(1.2);
-  }
-}
-
 @keyframes shimmer {
   0%, 100% { opacity: 0.5; }
   50% { opacity: 1; }
@@ -237,4 +218,19 @@
 @keyframes textPulse {
   0%, 100% { opacity: 0.7; }
   50% { opacity: 1; }
+}
+
+/* Reduced motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .orb,
+  .orbGlow,
+  .particles,
+  .progressGlow,
+  .loadingText {
+    animation: none;
+  }
+  
+  .orb { transform: scale(1); }
+  .orbGlow { opacity: 0.8; }
+  .loadingText { opacity: 0.85; }
 }
