@@ -11,14 +11,12 @@ const shouldKeepActiveAction = (actionType, activeActionId) => {
   return false;
 };
 
-// Resource constants
 const MAX_MANA = 100;
 const MAX_HEALTH = 100;
 const MANA_REGEN_RATE = 5; // Mana per second
 const HEALTH_REGEN_RATE = 2; // Health per second
 const REGEN_INTERVAL = 100; // ms
 
-// States
 export const STATES = {
   IDLE: 'idle',
   CASTING: 'casting',
@@ -27,7 +25,6 @@ export const STATES = {
   DEAD: 'dead',
 };
 
-// Map states to animations
 export const STATE_ANIMATIONS = {
   [STATES.IDLE]: 'Idle',
   [STATES.CASTING]: 'Spell1',
@@ -36,7 +33,6 @@ export const STATE_ANIMATIONS = {
   [STATES.DEAD]: 'Death',
 };
 
-// Define valid transitions: { [fromState]: { [action]: toState } }
 const transitions = {
   [STATES.IDLE]: {
     CAST: STATES.CASTING,
@@ -171,33 +167,27 @@ export function PlayerStateProvider({ children }) {
   const clickTriggeredRef = useRef(false); // Track if current action was triggered by a click (not hold)
   const handleInputRef = useRef(null); // Ref for global event listeners
 
-  // Wrapper to update both state and ref
   const setCastProgress = useCallback((progress) => {
     castProgressRef.current = progress;
     setCastProgressState(progress);
   }, []);
 
-  // Keep mana ref in sync
   useEffect(() => {
     manaRef.current = mana;
   }, [mana]);
 
-  // Keep health ref in sync
   useEffect(() => {
     healthRef.current = health;
   }, [health]);
 
-  // Keep buffs ref in sync
   useEffect(() => {
     buffsRef.current = buffs;
   }, [buffs]);
 
-  // Keep activeAction ref in sync
   useEffect(() => {
     activeActionRef.current = state.activeAction;
   }, [state.activeAction]);
 
-  // Calculate bonus mana regen from buffs
   const getBuffManaRegenBonus = useCallback(() => {
     let bonus = 0;
     const now = Date.now();
@@ -209,7 +199,6 @@ export function PlayerStateProvider({ children }) {
     return bonus;
   }, []);
 
-  // Calculate bonus health regen from buffs
   const getBuffHealthRegenBonus = useCallback(() => {
     let bonus = 0;
     const now = Date.now();
@@ -221,7 +210,6 @@ export function PlayerStateProvider({ children }) {
     return bonus;
   }, []);
 
-  // Calculate current mana drain from active ability
   const getManaDrainRate = useCallback(() => {
     const activeAction = activeActionRef.current;
     if (activeAction) {
@@ -233,20 +221,16 @@ export function PlayerStateProvider({ children }) {
     return 0;
   }, []);
 
-  // Mana and health regeneration
   useEffect(() => {
     const interval = setInterval(() => {
       const tickSeconds = REGEN_INTERVAL / 1000;
       
-      // Mana regen
       setMana(current => {
         let newMana = current;
         
-        // Base regen + buff bonus
         const totalRegen = MANA_REGEN_RATE + getBuffManaRegenBonus();
         newMana += totalRegen * tickSeconds;
         
-        // If we have an active action with manaPerSecond, drain it
         const activeAction = activeActionRef.current;
         if (activeAction) {
           const actionConfig = getActionById(activeAction);
@@ -255,16 +239,12 @@ export function PlayerStateProvider({ children }) {
           }
         }
         
-        // Clamp between 0 and max
         newMana = Math.max(0, Math.min(MAX_MANA, newMana));
-        
-        // Update ref immediately for accurate checks
         manaRef.current = newMana;
         
         return newMana;
       });
       
-      // Health regen
       setHealth(current => {
         const totalRegen = HEALTH_REGEN_RATE + getBuffHealthRegenBonus();
         let newHealth = current + (totalRegen * tickSeconds);
@@ -305,7 +285,6 @@ export function PlayerStateProvider({ children }) {
     return () => clearInterval(interval);
   }, []);
 
-  // Spend mana for a skill (returns true if successful)
   const spendMana = useCallback((amount) => {
     if (amount === 0) return true; // No cost, always succeed
     if (manaRef.current < amount) {
@@ -316,7 +295,6 @@ export function PlayerStateProvider({ children }) {
     return true;
   }, []);
 
-  // Spend health for a skill (returns true if successful)
   const spendHealth = useCallback((amount) => {
     if (amount === 0) return true;
     if (healthRef.current <= amount) {
@@ -327,7 +305,6 @@ export function PlayerStateProvider({ children }) {
     return true;
   }, []);
 
-  // Apply a buff
   const applyBuff = useCallback((buffConfig) => {
     if (!buffConfig) return;
     
@@ -351,13 +328,11 @@ export function PlayerStateProvider({ children }) {
     });
   }, []);
 
-  // Restore mana (e.g., from Arcane Bolt hits)
   const gainMana = useCallback((amount) => {
     setMana(current => Math.min(MAX_MANA, current + amount));
     manaRef.current = Math.min(MAX_MANA, manaRef.current + amount);
   }, []);
 
-  // Apply buff and mana gain when an action completes successfully
   useEffect(() => {
     if (state.completedAction) {
       const actionConfig = getActionById(state.completedAction);
@@ -367,29 +342,24 @@ export function PlayerStateProvider({ children }) {
       if (actionConfig?.manaGain) {
         gainMana(actionConfig.manaGain);
       }
-      // Clear completedAction
       dispatch({ type: 'CLEAR_COMPLETED' });
     }
   }, [state.completedAction, applyBuff, gainMana]);
 
-  // Keep refs in sync - use layout effect to update synchronously before browser paint
-  // This prevents race conditions where event handlers read stale refs
+  // Sync refs before paint to prevent stale reads in event handlers
   useLayoutEffect(() => {
     stateRef.current = state.current;
   }, [state.current]);
 
-  // Subscribe to state changes
   const subscribe = useCallback((listener) => {
     listenersRef.current.add(listener);
     return () => listenersRef.current.delete(listener);
   }, []);
 
-  // Notify listeners on state change
   useEffect(() => {
     listenersRef.current.forEach(listener => listener(state.current, state.previous));
   }, [state.current, state.previous]);
 
-  // Dispatch FSM action by name
   const dispatchAction = useCallback((actionType) => {
     dispatch({ type: actionType });
   }, []);
@@ -539,7 +509,6 @@ export function PlayerStateProvider({ children }) {
     return true;
   }, [state.activeAction, spendMana, spendHealth, gainMana, setCastProgress]);
 
-  // Check helpers
   const is = useCallback((stateName) => state.current === stateName, [state.current]);
   
   const can = useCallback((actionName) => {

@@ -16,7 +16,6 @@ import ArcaneTrail from '@/components/ArcaneTrail'
 import { getElementForAction, ELEMENTS } from '@/config/actions'
 import * as THREE from 'three'
 
-// Create glow materials for each element
 const GLOW_MATERIALS = {}
 Object.values(ELEMENTS).forEach(element => {
   GLOW_MATERIALS[element.id] = new THREE.MeshStandardMaterial({
@@ -40,17 +39,14 @@ export function Model(props) {
   const { actions } = useAnimations(gltfAnimations, clone)
   const { animation, state, activeAction, setCastProgress, dispatchAction, tryRecast, STATES, buffs } = usePlayerState()
 
-  // Assign clone to wizardRef for ArcaneTrail
   useEffect(() => {
     wizardRef.current = clone
   }, [clone])
 
-  // Store reference to staff mesh and cache ALL original materials (runs once)
   useEffect(() => {
     clone.traverse((child) => {
       if (!child.isMesh) return
       
-      // Cache all original materials
       originalMaterialsRef.current.set(child, child.material.clone())
       
       if (child.name.includes('Wizard_Staff')) {
@@ -60,12 +56,10 @@ export function Model(props) {
     })
   }, [clone])
 
-  // Apply ghost effect during Arcane Rush
   const isArcaneRush = state === STATES.MOVING && activeAction === 'skill_3'
   
   useEffect(() => {
     if (isArcaneRush) {
-      // Apply ghost material to all meshes
       clone.traverse((child) => {
         if (child.isMesh) {
           child.material = new THREE.MeshBasicMaterial({
@@ -76,7 +70,6 @@ export function Model(props) {
         }
       })
     } else {
-      // Restore original materials
       clone.traverse((child) => {
         if (child.isMesh && originalMaterialsRef.current.has(child)) {
           child.material = originalMaterialsRef.current.get(child).clone()
@@ -85,18 +78,14 @@ export function Model(props) {
     }
   }, [isArcaneRush, clone])
 
-  // Toggle glow based on active action's element
   useEffect(() => {
     if (!staffMaterialRef.current) return
 
-    // Get element for active action
     const element = activeAction ? getElementForAction(activeAction) : null
     
     if (element && state !== STATES.IDLE) {
-      // Use element's glow material
       staffMaterialRef.current.material = GLOW_MATERIALS[element.id] || originalStaffMaterialRef.current
     } else {
-      // Reset to original
       staffMaterialRef.current.material = originalStaffMaterialRef.current
     }
   }, [state, activeAction, STATES])
@@ -105,20 +94,17 @@ export function Model(props) {
     const currentAction = actions?.[animation]
     if (!currentAction) return
 
-    // Store reference for progress tracking
     currentActionRef.current = currentAction
 
-    // Fade out all other animations and play the current one
     Object.values(actions).forEach((action) => {
       if (action !== currentAction) action?.fadeOut(0.2)
     })
 
-    // For casting/attacking, play once and don't loop
     const isCastingOrAttacking = state === STATES.CASTING || state === STATES.ATTACKING
     if (isCastingOrAttacking) {
       currentAction.setLoop(THREE.LoopOnce, 1)
       currentAction.clampWhenFinished = true
-      setCastProgress(0) // Reset progress at start
+      setCastProgress(0)
     } else {
       currentAction.setLoop(THREE.LoopRepeat)
     }
@@ -126,23 +112,19 @@ export function Model(props) {
     currentAction.reset().fadeIn(0.2).play()
   }, [animation, actions, state, activeAction, STATES, setCastProgress])
 
-  // Track animation progress for casting bar and auto-finish
   useFrame(() => {
     const action = currentActionRef.current
     if (!action) return
 
-    // Only track progress for casting/attacking states
     if (state === STATES.CASTING || state === STATES.ATTACKING) {
       const duration = action.getClip().duration
-      const time = Math.min(action.time, duration) // Clamp to duration
+      const time = Math.min(action.time, duration)
       const progress = time / duration
       setCastProgress(progress)
 
-      // When animation completes, try to recast or finish
       if (progress >= 0.99) {
         // tryRecast returns true if recasting (key held + has mana)
         if (tryRecast()) {
-          // Reset animation for recast - no state change needed
           action.reset().play()
           recastCounterRef.current++
         } else {

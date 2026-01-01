@@ -2,10 +2,6 @@ import { useTarget } from '@/components/Target'
 import Connector from '@/components/Connector'
 import styles from './styles.module.css'
 
-/**
- * Target health bar - matches casting bar style.
- * Name displayed above, bar with level icon box.
- */
 export default function TargetHealthBar() {
   const { target } = useTarget() || {}
   
@@ -16,7 +12,6 @@ export default function TargetHealthBar() {
   
   return (
     <div className={`${styles.container} ${typeClass}`}>
-      {/* Name label above the bar */}
       <div className={styles.nameLabel}>
         {target.level && (
           <span className={styles.level}>Lv.{target.level}</span>
@@ -30,12 +25,9 @@ export default function TargetHealthBar() {
         )}
       </div>
       
-      {/* Health bar frame - casting bar style */}
       <div className={styles.frame}>
-        {/* Left side connector with jewel */}
         <Connector position="left" />
         
-        {/* Health bar track */}
         <div className={styles.barTrack}>
           <div 
             className={styles.barFill}
@@ -47,7 +39,6 @@ export default function TargetHealthBar() {
           </span>
         </div>
         
-        {/* Right side connector with jewel */}
         <Connector position="right" />
       </div>
     </div>

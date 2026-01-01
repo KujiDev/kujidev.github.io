@@ -4,41 +4,29 @@ import { usePlayerState } from "@/hooks/usePlayerState";
 
 const InputContext = createContext(null);
 
-/**
- * Unified input handling for both keyboard and UI button presses.
- * Tracks which actions are currently active and provides a clean API
- * for the rest of the app to consume.
- */
 export function InputProvider({ children }) {
-  // Track active state for each action (true = pressed)
   const [activeInputs, setActiveInputs] = useState({});
   
-  // Track UI-triggered presses separately (for cases where we need to distinguish)
   const [uiPresses, setUiPresses] = useState({});
 
-  // Press an action (from UI button)
   const pressAction = useCallback((actionId) => {
     setActiveInputs(prev => ({ ...prev, [actionId]: true }));
     setUiPresses(prev => ({ ...prev, [actionId]: true }));
   }, []);
 
-  // Release an action (from UI button)
   const releaseAction = useCallback((actionId) => {
     setActiveInputs(prev => ({ ...prev, [actionId]: false }));
     setUiPresses(prev => ({ ...prev, [actionId]: false }));
   }, []);
 
-  // Check if an action is currently active
   const isActive = useCallback((actionId) => {
     return !!activeInputs[actionId];
   }, [activeInputs]);
 
-  // Check if action was triggered from UI
   const isUiTriggered = useCallback((actionId) => {
     return !!uiPresses[actionId];
   }, [uiPresses]);
 
-  // Update from keyboard state (called by KeyboardSync component)
   const syncKeyboardState = useCallback((actionId, isPressed) => {
     setActiveInputs(prev => {
       // Don't override UI presses with keyboard state
@@ -63,10 +51,6 @@ export function InputProvider({ children }) {
   );
 }
 
-/**
- * Syncs drei's KeyboardControls state with our unified input system.
- * Must be rendered inside KeyboardControls.
- */
 export function KeyboardSync() {
   const { syncKeyboardState } = useInput();
   
@@ -86,9 +70,6 @@ export function KeyboardSync() {
   return null;
 }
 
-/**
- * Hook to access input state and actions.
- */
 export function useInput() {
   const context = useContext(InputContext);
   if (!context) {
@@ -97,11 +78,6 @@ export function useInput() {
   return context;
 }
 
-/**
- * Hook for use with skill bar buttons.
- * Returns handlers and state for a specific action.
- * Handles both touch and mouse input without conflicts.
- */
 export function useActionButton(actionId) {
   const { isActive, pressAction, releaseAction } = useInput();
   const { handleInput } = usePlayerState();
@@ -110,7 +86,6 @@ export function useActionButton(actionId) {
   // Track if currently in a touch interaction to prevent mouse events from double-firing
   const isTouchingRef = useRef(false);
   const pressedRef = useRef(false);
-  
   const active = isActive(actionId) || keyboardState;
 
   const doPress = useCallback(() => {

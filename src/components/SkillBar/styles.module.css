@@ -24,7 +24,6 @@
     inset 0 -2px 8px rgba(0,0,0,0.9);
 }
 
-/* Single consumable slot wrapper (potion, food) */
 .consumable-slot {
   position: relative;
   display: flex;
@@ -48,7 +47,6 @@
     inset 0 -2px 8px rgba(0,0,0,0.9);
 }
 
-/* Gold inner border trim for consumable */
 .consumable-slot::before {
   content: "";
   position: absolute;
@@ -60,7 +58,6 @@
   pointer-events: none;
 }
 
-/* Gold inner border trim */
 .skill-bar::before {
   content: "";
   position: absolute;
@@ -72,7 +69,6 @@
   pointer-events: none;
 }
 
-/* Bottom ambient glow */
 .skill-bar::after {
   content: "";
   position: absolute;
@@ -128,7 +124,6 @@
   border-radius: 4px;
 }
 
-/* Glossy highlight */
 .skill-slot::before {
   content: "";
   position: absolute;
@@ -138,7 +133,6 @@
   pointer-events: none;
 }
 
-/* Inner socket depth */
 .skill-slot::after {
   content: "";
   position: absolute;
@@ -217,7 +211,6 @@
   }
 }
 
-/* Disabled state - not enough mana */
 .skill-slot.disabled {
   cursor: not-allowed;
   opacity: 0.5;
@@ -237,12 +230,10 @@
   filter: grayscale(0.7);
 }
 
-/* Slot wrapper for tooltip positioning */
 .slot-wrapper {
   position: relative;
 }
 
-/* Tooltip styles */
 .tooltip {
   position: absolute;
   bottom: calc(100% + 14px);
@@ -275,7 +266,6 @@
   backdrop-filter: blur(8px);
 }
 
-/* Inner glow border */
 .tooltip::before {
   content: "";
   position: absolute;

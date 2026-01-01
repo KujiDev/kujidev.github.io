@@ -2,7 +2,6 @@ import { createContext, useContext, useState, useCallback, useEffect, useRef } f
 
 const STORAGE_KEY = 'player_achievements';
 
-// Achievement definitions
 export const ACHIEVEMENTS = {
   first_cast: {
     id: 'first_cast',
@@ -20,7 +19,6 @@ export const ACHIEVEMENTS = {
   },
 };
 
-// Rarity colors for styling
 export const RARITY_COLORS = {
   common: { primary: '#9d9d9d', glow: 'rgba(157, 157, 157, 0.5)' },
   uncommon: { primary: '#1eff00', glow: 'rgba(30, 255, 0, 0.5)' },
@@ -31,7 +29,6 @@ export const RARITY_COLORS = {
 
 const AchievementContext = createContext(null);
 
-// Load unlocked achievements from localStorage
 const loadUnlocked = () => {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
@@ -44,7 +41,6 @@ const loadUnlocked = () => {
   return new Set();
 };
 
-// Save unlocked achievements to localStorage
 const saveUnlocked = (unlocked) => {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify([...unlocked]));
@@ -60,7 +56,6 @@ export function AchievementProvider({ children }) {
   const toastTimeoutRef = useRef(null);
   const isProcessingRef = useRef(false);
 
-  // Process toast queue
   useEffect(() => {
     if (currentToast === null && toastQueue.length > 0 && !isProcessingRef.current) {
       isProcessingRef.current = true;
@@ -82,12 +77,10 @@ export function AchievementProvider({ children }) {
     }
   }, [currentToast, toastQueue]);
 
-  // Check if achievement is unlocked
   const isUnlocked = useCallback((achievementId) => {
     return unlocked.has(achievementId);
   }, [unlocked]);
 
-  // Unlock an achievement
   const unlock = useCallback((achievementId) => {
     if (unlocked.has(achievementId)) return false;
     
@@ -101,13 +94,11 @@ export function AchievementProvider({ children }) {
       return updated;
     });
 
-    // Queue toast notification
     setToastQueue(prev => [...prev, achievement]);
     
     return true;
   }, [unlocked]);
 
-  // Dismiss current toast
   const dismissToast = useCallback(() => {
     if (toastTimeoutRef.current) {
       clearTimeout(toastTimeoutRef.current);
@@ -115,7 +106,6 @@ export function AchievementProvider({ children }) {
     setCurrentToast(null);
   }, []);
 
-  // Get all achievements with unlock status
   const getAllAchievements = useCallback(() => {
     return Object.values(ACHIEVEMENTS).map(a => ({
       ...a,
@@ -123,7 +113,6 @@ export function AchievementProvider({ children }) {
     }));
   }, [unlocked]);
 
-  // Get unlock progress
   const getProgress = useCallback(() => {
     const total = Object.keys(ACHIEVEMENTS).length;
     const unlockedCount = unlocked.size;

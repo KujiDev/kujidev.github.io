@@ -17,7 +17,6 @@ export default function Settings() {
 
     return (
         <>
-            {/* Toggle button */}
             <button 
                 className={`${styles['menu-button']} ${isOpen ? styles['active'] : ''}`}
                 onClick={() => setIsOpen(!isOpen)}
@@ -26,7 +25,6 @@ export default function Settings() {
                 <GearIcon />
             </button>
 
-            {/* Drawer panel - positioned absolutely */}
             {isOpen && (
                 <div className={styles['settings-drawer']}>
                     <div className={styles['drawer-title']}>Key Bindings</div>

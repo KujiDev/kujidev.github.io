@@ -22,7 +22,6 @@ export default function Achievements() {
 
   return (
     <>
-      {/* Toggle button */}
       <button
         className={`${styles['menu-button']} ${isOpen ? styles['active'] : ''}`}
         onClick={() => setIsOpen(!isOpen)}
@@ -31,7 +30,6 @@ export default function Achievements() {
         <TrophyIcon />
       </button>
 
-      {/* Drawer panel - positioned absolutely */}
       {isOpen && (
         <div className={styles['achievements-drawer']}>
           <div className={styles['drawer-header']}>

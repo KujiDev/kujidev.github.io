@@ -22,16 +22,13 @@ import { InputProvider, KeyboardSync, useActionButton } from "@/hooks/useInput";
 import { AchievementProvider, useAchievements } from "@/hooks/useAchievements";
 import { SKILL_BAR_ACTIONS, getActionById, getElementForAction } from "@/config/actions";
 
-/**
- * Tracks player actions and unlocks achievements.
- */
+
 const AchievementTracker = () => {
   const { state, activeAction, buffs } = usePlayerState();
   const { unlock } = useAchievements();
   const hasTrackedCast = useRef(false);
   const trackedPotionBuff = useRef(false);
 
-  // First cast achievement
   useEffect(() => {
     if (!hasTrackedCast.current && (state === 'casting' || state === 'attacking') && activeAction) {
       if (['skill_1', 'skill_2', 'skill_3', 'skill_4', 'primary_attack', 'secondary_attack'].includes(activeAction)) {
@@ -41,7 +38,6 @@ const AchievementTracker = () => {
     }
   }, [state, activeAction, unlock]);
 
-  // Potion achievement - when health_potion buff appears
   useEffect(() => {
     if (!trackedPotionBuff.current && buffs.some(b => b.id === 'health_potion')) {
       unlock('potion_master');
@@ -52,10 +48,6 @@ const AchievementTracker = () => {
   return null;
 };
 
-/**
- * Syncs keyboard input to player state FSM.
- * Bridges the gap between raw input and game state.
- */
 const InputToStateSync = () => {
   const { handleInput } = usePlayerState();
   
@@ -76,9 +68,6 @@ const InputToStateSync = () => {
   return null;
 };
 
-/**
- * Builds tooltip data from an action config.
- */
 const buildTooltip = (action) => {
   if (!action) return null;
   const element = getElementForAction(action.id);
@@ -96,9 +85,6 @@ const buildTooltip = (action) => {
   };
 };
 
-/**
- * Calculates if player can afford to use an action.
- */
 const useCanAffordAction = (action) => {
   const { mana, health } = usePlayerState();
   const { target } = useTarget() || {};
@@ -117,9 +103,6 @@ const useCanAffordAction = (action) => {
   return hasEnoughMana && hasEnoughHealth && hasTarget;
 };
 
-/**
- * Skill button for keyboard-activated skills.
- */
 const SkillButton = ({ actionId }) => {
   const { getDisplayKey } = useKeyMap();
   const { active, handlers } = useActionButton(actionId);
@@ -138,9 +121,6 @@ const SkillButton = ({ actionId }) => {
   );
 };
 
-/**
- * Skill button for mouse-activated skills (no keyboard handlers).
- */
 const MouseButton = ({ actionId }) => {
   const { getDisplayKey } = useKeyMap();
   const action = getActionById(actionId);
@@ -156,9 +136,6 @@ const MouseButton = ({ actionId }) => {
   );
 };
 
-/**
- * Game UI overlay - skill bar and orbs.
- */
 const GameUI = () => (
   <>
     <TargetHealthBar />

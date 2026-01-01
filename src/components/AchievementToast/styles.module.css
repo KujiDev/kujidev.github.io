@@ -1,4 +1,3 @@
-/* Toast container - top center of screen */
 .toast {
   position: fixed;
   top: 80px;
@@ -12,7 +11,6 @@
   padding: 16px 24px 20px;
   min-width: 320px;
   
-  /* Dark panel matching game style */
   background: 
     linear-gradient(180deg, 
       rgba(42,34,24,0.98) 0%, 
@@ -35,7 +33,6 @@
   pointer-events: auto;
 }
 
-/* Inner glow border */
 .toast::before {
   content: "";
   position: absolute;
@@ -46,7 +43,6 @@
   pointer-events: none;
 }
 
-/* Icon container */
 .toast-icon {
   width: 48px;
   height: 48px;
@@ -76,14 +72,12 @@
   50% { box-shadow: inset 0 1px 0 rgba(255,220,160,0.1), inset 0 -2px 6px rgba(0,0,0,0.6), 0 0 30px rgba(255,180,60,0.3); }
 }
 
-/* Text content */
 .toast-content {
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
 
-/* Label */
 .toast-label {
   font-size: var(--font-xs);
   font-weight: var(--weight-semibold);
@@ -95,7 +89,6 @@
     0 2px 4px rgba(0,0,0,1);
 }
 
-/* Achievement name */
 .toast-name {
   font-size: var(--font-lg);
   font-weight: var(--weight-bold);
@@ -106,7 +99,6 @@
   letter-spacing: 0.5px;
 }
 
-/* Description */
 .toast-desc {
   font-size: var(--font-sm);
   color: #a89878;
@@ -114,7 +106,6 @@
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
 }
 
-/* Progress bar at bottom */
 .toast-progress {
   position: absolute;
   bottom: 4px;
@@ -147,7 +138,6 @@
   to { width: 0%; }
 }
 
-/* Animation states */
 .entering {
   animation: toastEnter 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 }

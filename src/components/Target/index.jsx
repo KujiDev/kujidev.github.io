@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef, createContext, useContext, useCallback, useMemo } from 'react'
 import { usePlayerState } from '@/hooks/usePlayerState'
 
-// Context to share target state between 3D scene and HUD
 const TargetContext = createContext(null)
 
 export const useTarget = () => useContext(TargetContext)
@@ -33,10 +32,6 @@ export function TargetProvider({ children }) {
   )
 }
 
-/**
- * Wraps a 3D model to make it targetable.
- * Handles hover targeting, click-to-lock, and mouse attacks.
- */
 export default function Target({ 
   name = 'Unknown', 
   health = 100, 

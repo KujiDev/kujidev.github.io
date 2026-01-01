@@ -16,7 +16,6 @@ import arcaneBlastIcon from '@/assets/icons/arcane-blast.svg';
 import healthPotionIcon from '@/assets/icons/health-potion.svg';
 import foodIcon from '@/assets/icons/food.svg';
 
-// Element definitions - colors for circles and staff glow
 export const ELEMENTS = {
   ice: {
     id: 'ice',
@@ -183,31 +182,26 @@ export const ACTIONS = {
   },
 };
 
-// Get element config for an action
 export const getElementForAction = (actionId) => {
   const action = Object.values(ACTIONS).find(a => a.id === actionId);
   if (!action?.element) return null;
   return ELEMENTS[action.element] || null;
 };
 
-// Generate default keymap from actions
 export const getDefaultKeyMap = () => 
   Object.values(ACTIONS).map(action => ({
     name: action.id,
     keys: [action.defaultKey],
   }));
 
-// Get FSM action for an input
 export const getFsmAction = (inputId) => {
   const action = Object.values(ACTIONS).find(a => a.id === inputId);
   return action?.fsmAction || null;
 };
 
-// Get action config by input ID
 export const getActionById = (inputId) => 
   Object.values(ACTIONS).find(a => a.id === inputId);
 
-// List of skill bar actions (for UI rendering)
 export const SKILL_BAR_ACTIONS = [
   ACTIONS.SKILL_1,
   ACTIONS.SKILL_2,

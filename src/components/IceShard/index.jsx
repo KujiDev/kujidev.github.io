@@ -3,7 +3,6 @@ import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { usePlayerState } from '@/hooks/usePlayerState'
 
-// Ice colors matching the art style
 const ICE_COLOR = new THREE.Color('#77ddff')
 const ICE_CORE = new THREE.Color('#aaeeff')
 
