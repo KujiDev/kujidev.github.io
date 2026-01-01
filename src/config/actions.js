@@ -13,6 +13,8 @@ import arcaneRushIcon from '@/assets/icons/arcane-rush.svg';
 import manaBodyIcon from '@/assets/icons/mana-body.svg';
 import arcaneBoltIcon from '@/assets/icons/arcane-bolt.svg';
 import arcaneBlastIcon from '@/assets/icons/arcane-blast.svg';
+import healthPotionIcon from '@/assets/icons/health-potion.svg';
+import foodIcon from '@/assets/icons/food.svg';
 
 // Element definitions - colors for circles and staff glow
 export const ELEMENTS = {
@@ -43,6 +45,13 @@ export const ELEMENTS = {
     primary: '#60a0ff',
     secondary: '#a0d0ff',
     glow: '#60a0ff',
+  },
+  healing: {
+    id: 'healing',
+    name: 'Healing',
+    primary: '#ff6b6b',
+    secondary: '#ffaaaa',
+    glow: '#ff6b6b',
   },
 };
 
@@ -131,6 +140,46 @@ export const ACTIONS = {
     icon: arcaneBlastIcon,
     manaCost: 20,
     requiresTarget: true,
+  },
+  // Consumable - health potion
+  POTION: {
+    id: 'potion',
+    label: 'Health Potion',
+    description: 'Drink a restorative potion that heals you over time.',
+    type: 'Consumable',
+    element: 'healing',
+    defaultKey: 'KeyD',
+    fsmAction: 'INSTANT', // Instant use, no cast time
+    displayKey: 'D',
+    icon: healthPotionIcon,
+    manaCost: 0,
+    buff: {
+      id: 'health_potion',
+      name: 'Regeneration',
+      icon: healthPotionIcon,
+      duration: 10, // seconds
+      healthRegenBonus: 8, // Additional health per second
+    },
+  },
+  // Consumable - food
+  FOOD: {
+    id: 'food',
+    label: 'Roasted Meat',
+    description: 'Eat a hearty meal that restores health over time.',
+    type: 'Consumable',
+    element: 'healing',
+    defaultKey: 'KeyF',
+    fsmAction: 'INSTANT',
+    displayKey: 'F',
+    icon: foodIcon,
+    manaCost: 0,
+    buff: {
+      id: 'food_buff',
+      name: 'Well Fed',
+      icon: foodIcon,
+      duration: 15, // seconds
+      healthRegenBonus: 5, // Additional health per second
+    },
   },
 };
 

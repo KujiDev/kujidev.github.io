@@ -168,6 +168,8 @@ export function PlayerStateProvider({ children }) {
   const stateRef = useRef(state.current);
   const activeActionRef = useRef(null);
   const heldInputsRef = useRef(new Set()); // Track which inputs are currently held
+  const clickTriggeredRef = useRef(false); // Track if current action was triggered by a click (not hold)
+  const handleInputRef = useRef(null); // Ref for global event listeners
 
   // Wrapper to update both state and ref
   const setCastProgress = useCallback((progress) => {
@@ -202,6 +204,18 @@ export function PlayerStateProvider({ children }) {
     for (const buff of buffsRef.current) {
       if (buff.expiresAt > now && buff.manaRegenBonus) {
         bonus += buff.manaRegenBonus;
+      }
+    }
+    return bonus;
+  }, []);
+
+  // Calculate bonus health regen from buffs
+  const getBuffHealthRegenBonus = useCallback(() => {
+    let bonus = 0;
+    const now = Date.now();
+    for (const buff of buffsRef.current) {
+      if (buff.expiresAt > now && buff.healthRegenBonus) {
+        bonus += buff.healthRegenBonus;
       }
     }
     return bonus;
@@ -252,7 +266,8 @@ export function PlayerStateProvider({ children }) {
       
       // Health regen
       setHealth(current => {
-        let newHealth = current + (HEALTH_REGEN_RATE * tickSeconds);
+        const totalRegen = HEALTH_REGEN_RATE + getBuffHealthRegenBonus();
+        let newHealth = current + (totalRegen * tickSeconds);
         newHealth = Math.max(0, Math.min(MAX_HEALTH, newHealth));
         healthRef.current = newHealth;
         return newHealth;
@@ -324,6 +339,7 @@ export function PlayerStateProvider({ children }) {
       duration: buffConfig.duration,
       expiresAt: now + (buffConfig.duration * 1000),
       manaRegenBonus: buffConfig.manaRegenBonus || 0,
+      healthRegenBonus: buffConfig.healthRegenBonus || 0,
     };
     
     setBuffs(current => {
@@ -379,18 +395,40 @@ export function PlayerStateProvider({ children }) {
   }, []);
 
   // Handle input press/release from any source
-  const handleInput = useCallback((inputName, isPressed) => {
-    const fsmAction = getFsmAction(inputName);
-    if (!fsmAction) return;
-
-    // Track held state
+  // isClick: true = single click (no recast), false/undefined = can be held for recast
+  const handleInput = useCallback((inputName, isPressed, isClick = false) => {
+    // Track held state FIRST - before any early returns
+    // This ensures release events always clear the held state
     if (isPressed) {
       heldInputsRef.current.add(inputName);
     } else {
       heldInputsRef.current.delete(inputName);
     }
 
+    const fsmAction = getFsmAction(inputName);
+    if (!fsmAction) return;
+
     if (isPressed) {
+      // Mark if this action was triggered by a click (single fire, no recast)
+      clickTriggeredRef.current = isClick;
+
+      // Handle INSTANT actions (like potions) - they bypass the FSM
+      if (fsmAction === 'INSTANT') {
+        const actionConfig = getActionById(inputName);
+        const manaCost = actionConfig?.manaCost ?? 0;
+        const healthCost = actionConfig?.healthCost ?? 0;
+        
+        // Check and spend resources
+        if (healthCost > 0 && !spendHealth(healthCost)) return;
+        if (manaCost > 0 && !spendMana(manaCost)) return;
+        
+        // Apply the buff immediately
+        if (actionConfig?.buff) {
+          applyBuff(actionConfig.buff);
+        }
+        return;
+      }
+      
       // Only update activeAction if the transition is valid
       const currentTransitions = transitions[stateRef.current] || {};
       if (fsmAction in currentTransitions) {
@@ -428,13 +466,43 @@ export function PlayerStateProvider({ children }) {
       }
       // For casting/attacking, let the animation complete (handled in Wizard.jsx)
     }
-  }, [dispatchAction, spendMana, spendHealth]);
+  }, [dispatchAction, spendMana, spendHealth, applyBuff]);
+
+  // Keep handleInput ref up to date for global event listeners
+  useEffect(() => {
+    handleInputRef.current = handleInput;
+  }, [handleInput]);
+
+  // Global mouseup listener to ensure mouse button releases are always captured
+  // This is a fallback in case the Target component's listener doesn't fire
+  useEffect(() => {
+    const onGlobalMouseUp = (e) => {
+      // Right mouse button
+      if (e.button === 2) {
+        heldInputsRef.current.delete('secondary_attack');
+      }
+      // Left mouse button
+      if (e.button === 0) {
+        heldInputsRef.current.delete('primary_attack');
+      }
+    };
+    
+    // Use capture phase to ensure we get the event first
+    document.addEventListener('mouseup', onGlobalMouseUp, true);
+    return () => document.removeEventListener('mouseup', onGlobalMouseUp, true);
+  }, []);
 
   // Try to recast the active action if key is still held and has mana
   // Returns true if recast will happen (caller should NOT dispatch FINISH)
   const tryRecast = useCallback(() => {
     const currentAction = state.activeAction;
     if (!currentAction) return false;
+    
+    // If action was triggered by a click (not hold), don't recast
+    if (clickTriggeredRef.current) {
+      clickTriggeredRef.current = false; // Reset for next action
+      return false;
+    }
     
     // Check if key is still held
     if (!heldInputsRef.current.has(currentAction)) return false;

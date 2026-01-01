@@ -1,7 +1,7 @@
 import { Canvas } from "@react-three/fiber";
 import { CameraControls, Environment, KeyboardControls, useKeyboardControls } from "@react-three/drei";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 import Hud from "@/components/Hud";
 import SkillBar, { Slot } from "@/components/SkillBar";
@@ -9,7 +9,8 @@ import Orb from "@/components/Orb";
 import CastingBar from "@/components/CastingBar";
 import BuffBar from "@/components/BuffBar";
 import { Model as Wizard } from "@/components/Wizard";
-import Settings from "@/components/Settings";
+import MenuBar from "@/components/MenuBar";
+import AchievementToast from "@/components/AchievementToast";
 import Target, { TargetProvider, useTarget } from "@/components/Target";
 import TargetHealthBar from "@/components/TargetHealthBar";
 import IceShard from "@/components/IceShard";
@@ -18,7 +19,38 @@ import Meteor from "@/components/Meteor";
 import { KeyMapProvider, useKeyMap } from "@/hooks/useKeyMap";
 import { PlayerStateProvider, usePlayerState } from "@/hooks/usePlayerState";
 import { InputProvider, KeyboardSync, useActionButton } from "@/hooks/useInput";
+import { AchievementProvider, useAchievements } from "@/hooks/useAchievements";
 import { SKILL_BAR_ACTIONS, getActionById, getElementForAction } from "@/config/actions";
+
+/**
+ * Tracks player actions and unlocks achievements.
+ */
+const AchievementTracker = () => {
+  const { state, activeAction, buffs } = usePlayerState();
+  const { unlock } = useAchievements();
+  const hasTrackedCast = useRef(false);
+  const trackedPotionBuff = useRef(false);
+
+  // First cast achievement
+  useEffect(() => {
+    if (!hasTrackedCast.current && (state === 'casting' || state === 'attacking') && activeAction) {
+      if (['skill_1', 'skill_2', 'skill_3', 'skill_4', 'primary_attack', 'secondary_attack'].includes(activeAction)) {
+        unlock('first_cast');
+        hasTrackedCast.current = true;
+      }
+    }
+  }, [state, activeAction, unlock]);
+
+  // Potion achievement - when health_potion buff appears
+  useEffect(() => {
+    if (!trackedPotionBuff.current && buffs.some(b => b.id === 'health_potion')) {
+      unlock('potion_master');
+      trackedPotionBuff.current = true;
+    }
+  }, [buffs, unlock]);
+
+  return null;
+};
 
 /**
  * Syncs keyboard input to player state FSM.
@@ -31,11 +63,15 @@ const InputToStateSync = () => {
   const skill2 = useKeyboardControls((state) => state.skill_2);
   const skill3 = useKeyboardControls((state) => state.skill_3);
   const skill4 = useKeyboardControls((state) => state.skill_4);
+  const potion = useKeyboardControls((state) => state.potion);
+  const food = useKeyboardControls((state) => state.food);
 
   useEffect(() => { handleInput('skill_1', skill1); }, [skill1, handleInput]);
   useEffect(() => { handleInput('skill_2', skill2); }, [skill2, handleInput]);
   useEffect(() => { handleInput('skill_3', skill3); }, [skill3, handleInput]);
   useEffect(() => { handleInput('skill_4', skill4); }, [skill4, handleInput]);
+  useEffect(() => { handleInput('potion', potion); }, [potion, handleInput]);
+  useEffect(() => { handleInput('food', food); }, [food, handleInput]);
 
   return null;
 };
@@ -131,14 +167,18 @@ const GameUI = () => (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', position: 'relative' }}>
         <BuffBar />
         <CastingBar />
-        <Settings />
-        <SkillBar>
-          {SKILL_BAR_ACTIONS.map(action => (
-            <SkillButton key={action.id} actionId={action.id} />
-          ))}
-          <MouseButton actionId="primary_attack" />
-          <MouseButton actionId="secondary_attack" />
-        </SkillBar>
+        <MenuBar />
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-end' }}>
+          <SkillButton actionId="potion" />
+          <SkillBar>
+            {SKILL_BAR_ACTIONS.map(action => (
+              <SkillButton key={action.id} actionId={action.id} />
+            ))}
+            <MouseButton actionId="primary_attack" />
+            <MouseButton actionId="secondary_attack" />
+          </SkillBar>
+          <SkillButton actionId="food" />
+        </div>
       </div>
       <Orb type="mana" label="Mana" />
     </Hud>
@@ -157,6 +197,7 @@ const GameControls = ({ children }) => {
         {children}
         <KeyboardSync />
         <InputToStateSync />
+        <AchievementTracker />
         <GameUI />
       </InputProvider>
     </KeyboardControls>
@@ -254,8 +295,10 @@ export default function App() {
   return (
     <TargetProvider>
     <KeyMapProvider>
+      <AchievementProvider>
       <PlayerStateProvider>
         <GameControls>
+          <AchievementToast />
           <div style={{ width: "100vw", height: "100vh" }}>
             <Canvas 
               flat 
@@ -268,6 +311,7 @@ export default function App() {
           </div>
         </GameControls>
       </PlayerStateProvider>
+      </AchievementProvider>
     </KeyMapProvider>
     </TargetProvider>
   );

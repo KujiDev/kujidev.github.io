@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Dark background -->
+  <rect width="64" height="64" rx="4" fill="#1a1f2e"/>
+  <rect x="2" y="2" width="60" height="60" rx="3" fill="#0d1117" stroke="#2a3444" stroke-width="1"/>
+  
+  <defs>
+    <linearGradient id="potionGlow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ff6b6b"/>
+      <stop offset="50%" style="stop-color:#ee5a5a"/>
+      <stop offset="100%" style="stop-color:#cc4444"/>
+    </linearGradient>
+    <linearGradient id="glassShine" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:rgba(255,255,255,0.4)"/>
+      <stop offset="50%" style="stop-color:rgba(255,255,255,0.1)"/>
+      <stop offset="100%" style="stop-color:rgba(255,255,255,0)"/>
+    </linearGradient>
+    <filter id="innerGlow">
+      <feGaussianBlur stdDeviation="2" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+  
+  <!-- Cork/stopper -->
+  <rect x="24" y="10" width="16" height="8" rx="2" fill="#8B5A2B" stroke="#6d4520" stroke-width="1"/>
+  <rect x="25" y="11" width="6" height="6" rx="1" fill="#A0522D" opacity="0.6"/>
+  
+  <!-- Bottle neck -->
+  <path d="M26 18 L26 24 Q26 26 28 26 L36 26 Q38 26 38 24 L38 18" fill="#2a3a4a" stroke="#4a5a6a" stroke-width="1"/>
+  
+  <!-- Bottle body -->
+  <path d="M28 26 L22 34 Q18 40 18 46 L18 52 Q18 58 24 58 L40 58 Q46 58 46 52 L46 46 Q46 40 42 34 L36 26" 
+        fill="url(#potionGlow)" stroke="#aa3333" stroke-width="1.5" filter="url(#innerGlow)"/>
+  
+  <!-- Glass shine -->
+  <path d="M28 28 L24 34 Q22 38 22 42 L22 50 Q22 54 26 54" 
+        fill="none" stroke="url(#glassShine)" stroke-width="3" stroke-linecap="round"/>
+  
+  <!-- Bubbles -->
+  <circle cx="28" cy="46" r="2" fill="rgba(255,255,255,0.5)"/>
+  <circle cx="36" cy="50" r="1.5" fill="rgba(255,255,255,0.4)"/>
+  <circle cx="32" cy="42" r="1" fill="rgba(255,255,255,0.6)"/>
+  
+  <!-- Heart symbol -->
+  <path d="M32 40 C30 38 27 38 27 41 C27 44 32 48 32 48 C32 48 37 44 37 41 C37 38 34 38 32 40" 
+        fill="#ffcccc" opacity="0.8"/>
+</svg>

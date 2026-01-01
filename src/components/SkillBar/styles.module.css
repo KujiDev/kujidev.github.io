@@ -24,6 +24,42 @@
     inset 0 -2px 8px rgba(0,0,0,0.9);
 }
 
+/* Single consumable slot wrapper (potion, food) */
+.consumable-slot {
+  position: relative;
+  display: flex;
+  padding: 14px;
+
+  /* Same polished dark metal with gold trim */
+  background:
+    linear-gradient(180deg, 
+      #2a2218 0%, 
+      #1a140c 40%,
+      #0d0906 100%);
+
+  border: 2px solid;
+  border-color: #6b5530 #3d2a15 #2a1c0d #4a3820;
+  border-radius: 12px;
+
+  box-shadow:
+    0 0 40px rgba(0,0,0,0.8),
+    0 8px 32px rgba(0,0,0,0.9),
+    inset 0 1px 0 rgba(255,220,160,0.1),
+    inset 0 -2px 8px rgba(0,0,0,0.9);
+}
+
+/* Gold inner border trim for consumable */
+.consumable-slot::before {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border-radius: 9px;
+  border: 1px solid rgba(255,200,120,0.15);
+  background: linear-gradient(180deg, rgba(255,220,160,0.03) 0%, transparent 30%);
+  box-shadow: inset 0 0 30px rgba(0,0,0,0.8);
+  pointer-events: none;
+}
+
 /* Gold inner border trim */
 .skill-bar::before {
   content: "";
@@ -359,6 +395,13 @@
   color: #ff7070;
   text-shadow: 
     0 0 8px rgba(255, 112, 112, 0.5),
+    0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.tooltip-heal {
+  color: #90ff90;
+  text-shadow: 
+    0 0 8px rgba(144, 255, 144, 0.5),
     0 1px 2px rgba(0, 0, 0, 0.8);
 }
 

@@ -2,6 +2,8 @@ import { createContext, useCallback, useContext, useState, useMemo } from "react
 import { getDefaultKeyMap } from "@/config/actions";
 
 const STORAGE_KEY = 'player_keymap';
+const VERSION_KEY = 'player_keymap_version';
+const CURRENT_VERSION = 2; // Bump this when default keybindings change
 
 // Mouse button mappings
 const MOUSE_BUTTONS = {
@@ -20,6 +22,7 @@ const MOUSE_DISPLAY = {
 const saveKeyMap = (keyMap) => {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(keyMap));
+    localStorage.setItem(VERSION_KEY, String(CURRENT_VERSION));
   } catch (e) {
     console.warn('Failed to save keymap:', e);
   }
@@ -30,16 +33,26 @@ const loadKeyMap = () => {
   const defaults = getDefaultKeyMap();
   
   try {
+    const savedVersion = parseInt(localStorage.getItem(VERSION_KEY) || '0', 10);
     const saved = localStorage.getItem(STORAGE_KEY);
+    
+    // If version changed, reset to defaults (new/changed keybindings)
+    if (savedVersion !== CURRENT_VERSION) {
+      console.log(`Keymap version changed (${savedVersion} -> ${CURRENT_VERSION}), resetting to defaults`);
+      saveKeyMap(defaults);
+      return defaults;
+    }
+    
     if (saved) {
       const parsed = JSON.parse(saved);
       
-      // Merge: use saved bindings where they exist, defaults for new actions
-      const merged = defaults.map(def => 
-        parsed.find(s => s.name === def.name) || def
-      );
+      // Build a map of saved custom bindings
+      const savedMap = new Map(parsed.map(s => [s.name, s]));
       
-      // Persist if we added new bindings
+      // Merge: use saved bindings where they exist, defaults for new actions
+      const merged = defaults.map(def => savedMap.get(def.name) || def);
+      
+      // Check if we added new actions
       if (merged.length !== parsed.length) {
         saveKeyMap(merged);
       }
@@ -50,6 +63,7 @@ const loadKeyMap = () => {
     console.warn('Failed to load keymap:', e);
   }
   
+  saveKeyMap(defaults);
   return defaults;
 };
 

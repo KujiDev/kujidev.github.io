@@ -13,6 +13,14 @@ const BUFF_INFO = {
     description: 'Surging with arcane energy, you knock back enemies on impact.',
     effect: 'Pushes enemies away',
   },
+  health_potion: {
+    description: 'A restorative potion courses through your veins, healing your wounds.',
+    effect: '+8 Health per second',
+  },
+  food_buff: {
+    description: 'A hearty meal fills your belly, slowly restoring your vitality.',
+    effect: '+5 Health per second',
+  },
 };
 
 // Timed buff icon (with countdown)

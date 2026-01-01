@@ -83,13 +83,13 @@ export default function Target({
     if (!isLocked) setTarget?.(null)
   }, [isLocked, setTarget])
   
-  // Left click - lock and primary attack
+  // Left click - lock and primary attack (single click, no recast)
   const handlePointerDown = useCallback((e) => {
     if (e.button !== 0) return
     e.stopPropagation()
     
     if (!isLocked) lockAndSetTarget()
-    handleInput?.('primary_attack', true)
+    handleInput?.('primary_attack', true, true) // isClick = true
   }, [isLocked, lockAndSetTarget, handleInput])
   
   const handlePointerUp = useCallback((e) => {
@@ -98,19 +98,21 @@ export default function Target({
     handleInput?.('primary_attack', false)
   }, [handleInput])
   
-  // Right click - lock and secondary attack
+  // Right click - lock and secondary attack (single click, no recast)
   const handleContextMenu = useCallback((e) => {
     e.stopPropagation()
     e.nativeEvent?.preventDefault?.()
     
     if (!isLocked) lockAndSetTarget()
-    handleInput?.('secondary_attack', true)
+    handleInput?.('secondary_attack', true, true) // isClick = true
   }, [isLocked, lockAndSetTarget, handleInput])
   
   // Track right mouse release globally
   useEffect(() => {
     const onMouseUp = (e) => {
-      if (e.button === 2) handleInput?.('secondary_attack', false)
+      if (e.button === 2) {
+        handleInput?.('secondary_attack', false)
+      }
     }
     window.addEventListener('mouseup', onMouseUp)
     return () => window.removeEventListener('mouseup', onMouseUp)

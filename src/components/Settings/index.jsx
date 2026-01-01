@@ -12,42 +12,44 @@ const GearIcon = () => (
 
 export default function Settings() {
     const [isOpen, setIsOpen] = useState(false);
-    const { keyMap, getDisplayKey, startRebind, rebinding, resetToDefaults } = useKeyMap();
+    const { getDisplayKey, startRebind, rebinding, resetToDefaults } = useKeyMap();
     const actions = Object.values(ACTIONS);
 
     return (
-        <div className={styles['settings-container']}>
-            {/* Drawer panel */}
-            <div className={`${styles['settings-drawer']} ${isOpen ? styles['open'] : ''}`}>
-                <div className={styles['settings-title']}>Key Bindings</div>
-
-                <div className={styles['keybind-list']}>
-                    {actions.map((action) => (
-                        <div key={action.id} className={styles['keybind-row']}>
-                            <span className={styles['keybind-action']}>{action.label}</span>
-                            <button 
-                                className={`${styles['keybind-key']} ${rebinding === action.id ? styles['rebinding'] : ''}`}
-                                onClick={() => startRebind(action.id)}
-                            >
-                                {rebinding === action.id ? '...' : getDisplayKey(action.id)}
-                            </button>
-                        </div>
-                    ))}
-                </div>
-
-                <button className={styles['reset-button']} onClick={resetToDefaults}>
-                    Reset to Defaults
-                </button>
-            </div>
-
+        <>
             {/* Toggle button */}
             <button 
-                className={`${styles['toggle-button']} ${isOpen ? styles['active'] : ''}`}
+                className={`${styles['menu-button']} ${isOpen ? styles['active'] : ''}`}
                 onClick={() => setIsOpen(!isOpen)}
                 aria-label="Toggle settings"
             >
                 <GearIcon />
             </button>
-        </div>
+
+            {/* Drawer panel - positioned absolutely */}
+            {isOpen && (
+                <div className={styles['settings-drawer']}>
+                    <div className={styles['drawer-title']}>Key Bindings</div>
+
+                    <div className={styles['keybind-list']}>
+                        {actions.map((action) => (
+                            <div key={action.id} className={styles['keybind-row']}>
+                                <span className={styles['keybind-action']}>{action.label}</span>
+                                <button 
+                                    className={`${styles['keybind-key']} ${rebinding === action.id ? styles['rebinding'] : ''}`}
+                                    onClick={() => startRebind(action.id)}
+                                >
+                                    {rebinding === action.id ? '...' : getDisplayKey(action.id)}
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+
+                    <button className={styles['reset-button']} onClick={resetToDefaults}>
+                        Reset to Defaults
+                    </button>
+                </div>
+            )}
+        </>
     )
 }

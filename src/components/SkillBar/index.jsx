@@ -55,6 +55,12 @@ export const Slot = ({ keyBind, icon, active, disabled, tooltip, ...handlers }) 
                         {tooltip.buff && (
                             <span className={styles["tooltip-buff"]}>Duration: {tooltip.buff.duration}s</span>
                         )}
+                        {tooltip.buff?.healthRegenBonus > 0 && (
+                            <span className={styles["tooltip-heal"]}>Heal/sec: +{tooltip.buff.healthRegenBonus}</span>
+                        )}
+                        {tooltip.buff?.manaRegenBonus > 0 && (
+                            <span className={styles["tooltip-mana-gain"]}>Mana/sec: +{tooltip.buff.manaRegenBonus}</span>
+                        )}
                         {tooltip.requiresTarget && (
                             <span className={styles["tooltip-target"]}>Requires Target</span>
                         )}
@@ -63,6 +69,14 @@ export const Slot = ({ keyBind, icon, active, disabled, tooltip, ...handlers }) 
             )}
         </div>
     );
+}
+
+export function ConsumableSlot({ children }) {
+  return (
+    <div className={styles["consumable-slot"]}>
+      {children}
+    </div>
+  );
 }
 
 export default function SkillBar({ children }) {

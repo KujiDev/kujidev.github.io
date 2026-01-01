@@ -1,17 +1,9 @@
-/* Container for drawer + toggle button */
-.settings-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-}
-
-/* Toggle button */
-.toggle-button {
-  width: 36px;
-  height: 36px;
-  padding: 8px;
-  border-radius: 8px;
+/* Menu button (used within MenuBar) */
+.menu-button {
+  width: 32px;
+  height: 32px;
+  padding: 6px;
+  border-radius: 6px;
   cursor: pointer;
   
   display: flex;
@@ -19,66 +11,63 @@
   justify-content: center;
   
   background: 
-    linear-gradient(180deg, #3a2a1a 0%, #1a140c 50%, #0d0906 100%);
-  border: 2px solid;
+    linear-gradient(180deg, rgba(60,45,30,0.6) 0%, rgba(25,18,10,0.8) 100%);
+  border: 1px solid;
   border-color: #5a4525 #3a2a15 #2a1a0a #4a3520;
   color: #a89878;
   
   box-shadow:
-    inset 0 1px 0 rgba(255,220,160,0.1),
-    inset 0 -2px 6px rgba(0,0,0,0.8),
-    0 3px 8px rgba(0,0,0,0.6);
+    inset 0 1px 0 rgba(255,220,160,0.08),
+    inset 0 -1px 4px rgba(0,0,0,0.5);
   
   transition: all 0.2s ease;
-  
-  /* Touch handling */
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
 }
 
-.toggle-button svg {
-  width: 18px;
-  height: 18px;
+.menu-button svg {
+  width: 16px;
+  height: 16px;
   transition: transform 0.3s ease;
 }
 
-.toggle-button:hover {
+.menu-button:hover {
   border-color: #7a5a35 #5a4025 #3a2515 #6a4a28;
   color: #d4c4a0;
-  box-shadow:
-    inset 0 1px 0 rgba(255,220,160,0.15),
-    inset 0 -2px 6px rgba(0,0,0,0.8),
-    0 3px 8px rgba(0,0,0,0.6),
-    0 0 15px rgba(255,180,80,0.15);
+  background: 
+    linear-gradient(180deg, rgba(70,50,30,0.7) 0%, rgba(35,25,15,0.9) 100%);
 }
 
-.toggle-button.active {
+.menu-button.active {
   background: 
-    linear-gradient(180deg, #4a3520 0%, #2a1a10 50%, #1a0f08 100%);
+    linear-gradient(180deg, rgba(80,55,30,0.8) 0%, rgba(40,28,15,0.95) 100%);
   border-color: #8a6a40 #6a4a28 #4a3018 #7a5a35;
   color: #e8d6a8;
   box-shadow:
-    inset 0 1px 0 rgba(255,220,160,0.2),
-    inset 0 -2px 6px rgba(0,0,0,0.8),
-    0 0 20px rgba(255,180,80,0.25);
+    inset 0 1px 0 rgba(255,220,160,0.15),
+    inset 0 -1px 4px rgba(0,0,0,0.5),
+    0 0 12px rgba(255,180,80,0.2);
 }
 
-.toggle-button.active svg {
+.menu-button.active svg {
   transform: rotate(90deg);
 }
 
-/* Drawer panel */
+/* Drawer panel - positioned above menu bar */
 .settings-drawer {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 8px;
+  z-index: 1000;
+  
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 10px;
-  
-  /* Hidden by default */
-  max-height: 0;
-  opacity: 0;
-  overflow: hidden;
-  padding: 0 20px;
+  width: 280px;
+  padding: 14px 20px 16px;
   
   /* Premium dark panel */
   background: 
@@ -99,14 +88,12 @@
     inset 0 1px 0 rgba(255,220,160,0.08),
     inset 0 -3px 15px rgba(0,0,0,0.6);
   
-  transition: all 0.3s ease;
+  animation: fadeIn 0.2s ease;
 }
 
-.settings-drawer.open {
-  max-height: 400px;
-  opacity: 1;
-  padding: 14px 20px 16px;
-  margin-bottom: 4px;
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .settings-drawer::before {
@@ -119,7 +106,7 @@
   pointer-events: none;
 }
 
-.settings-title {
+.drawer-title {
   font-size: var(--font-md);
   font-weight: var(--weight-semibold);
   letter-spacing: 1.5px;
@@ -133,7 +120,7 @@
   margin-bottom: 2px;
 }
 
-.settings-title::after {
+.drawer-title::after {
   content: "";
   position: absolute;
   bottom: 0;
@@ -148,6 +135,31 @@
   flex-direction: column;
   gap: 6px;
   width: 100%;
+  max-height: 280px;
+  overflow-y: auto;
+  padding-right: 4px;
+  
+  /* Custom scrollbar */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,200,120,0.3) transparent;
+}
+
+.keybind-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.keybind-list::-webkit-scrollbar-track {
+  background: rgba(0,0,0,0.3);
+  border-radius: 3px;
+}
+
+.keybind-list::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #6b5530, #4a3820);
+  border-radius: 3px;
+}
+
+.keybind-list::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #8a6a40, #5a4528);
 }
 
 .keybind-row {

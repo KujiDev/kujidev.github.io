@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Dark background -->
+  <rect width="64" height="64" rx="4" fill="#1a1f2e"/>
+  <rect x="2" y="2" width="60" height="60" rx="3" fill="#0d1117" stroke="#2a3444" stroke-width="1"/>
+  
+  <defs>
+    <linearGradient id="potBody" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#5a5a5a"/>
+      <stop offset="30%" style="stop-color:#4a4a4a"/>
+      <stop offset="100%" style="stop-color:#303030"/>
+    </linearGradient>
+    <linearGradient id="potRim" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#6a6a6a"/>
+      <stop offset="100%" style="stop-color:#4a4a4a"/>
+    </linearGradient>
+    <radialGradient id="stewHighlight" cx="30%" cy="30%" r="50%">
+      <stop offset="0%" style="stop-color:#e8a060"/>
+      <stop offset="100%" style="stop-color:#a85d32"/>
+    </radialGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="1.5" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+  
+  <!-- Steam wisps -->
+  <path d="M24 16 Q22 10 25 6" stroke="rgba(255,255,255,0.5)" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <path d="M32 14 Q30 8 33 4" stroke="rgba(255,255,255,0.6)" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <path d="M40 16 Q38 10 41 6" stroke="rgba(255,255,255,0.5)" stroke-width="2" fill="none" stroke-linecap="round"/>
+  
+  <!-- Pot handles -->
+  <ellipse cx="14" cy="40" rx="4" ry="5" fill="none" stroke="url(#potRim)" stroke-width="3"/>
+  <ellipse cx="50" cy="40" rx="4" ry="5" fill="none" stroke="url(#potRim)" stroke-width="3"/>
+  
+  <!-- Pot body -->
+  <path d="M16 30 L16 50 Q16 58 26 58 L38 58 Q48 58 48 50 L48 30" 
+        fill="url(#potBody)" stroke="#2a2a2a" stroke-width="1"/>
+  
+  <!-- Pot rim -->
+  <ellipse cx="32" cy="30" rx="18" ry="5" fill="url(#potRim)" stroke="#2a2a2a" stroke-width="1"/>
+  
+  <!-- Stew surface -->
+  <ellipse cx="32" cy="30" rx="14" ry="3.5" fill="url(#stewHighlight)" filter="url(#glow)"/>
+  
+  <!-- Stew chunks - carrots -->
+  <ellipse cx="26" cy="29" rx="2.5" ry="1.2" fill="#e87830" transform="rotate(-15 26 29)"/>
+  <ellipse cx="38" cy="31" rx="2" ry="1" fill="#e87830" transform="rotate(20 38 31)"/>
+  
+  <!-- Stew chunks - potatoes -->
+  <ellipse cx="32" cy="28" rx="2.5" ry="1.5" fill="#d4b896"/>
+  <ellipse cx="24" cy="31" rx="1.5" ry="1" fill="#d4b896"/>
+  
+  <!-- Stew chunks - meat -->
+  <ellipse cx="36" cy="29" rx="2" ry="1.2" fill="#8b5030"/>
+  <ellipse cx="28" cy="30" rx="1.5" ry="1" fill="#8b5030"/>
+  
+  <!-- Herbs/green -->
+  <circle cx="30" cy="29" r="0.7" fill="#6a9a50"/>
+  <circle cx="34" cy="30" r="0.5" fill="#6a9a50"/>
+  <circle cx="40" cy="29" r="0.6" fill="#6a9a50"/>
+  
+  <!-- Pot shine -->
+  <path d="M20 34 L20 46" stroke="rgba(255,255,255,0.15)" stroke-width="2" stroke-linecap="round"/>
+  
+  <!-- Rim highlight -->
+  <path d="M18 28 Q32 22 46 28" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/>
+</svg>
