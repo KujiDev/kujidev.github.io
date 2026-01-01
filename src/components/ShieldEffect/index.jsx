@@ -2,48 +2,10 @@ import { useRef, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { usePlayerState } from '@/hooks/usePlayerState'
+import { createFresnelAuraMaterial } from '@/materials/fresnelAura'
 
 // Arcane Rush - purple/magenta speed aura
 const AURA_COLOR = '#bb77ff'
-
-// Vertex shader
-const vertexShader = `
-  varying vec3 vNormal;
-  varying vec3 vViewPosition;
-  
-  void main() {
-    vNormal = normalize(normalMatrix * normal);
-    vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-    vViewPosition = -mvPosition.xyz;
-    gl_Position = projectionMatrix * mvPosition;
-  }
-`
-
-// Fragment shader - enhanced aura effect
-const fragmentShader = `
-  uniform float uTime;
-  uniform float uOpacity;
-  uniform vec3 uColor;
-  
-  varying vec3 vNormal;
-  varying vec3 vViewPosition;
-  
-  void main() {
-    vec3 viewDir = normalize(vViewPosition);
-    float fresnel = pow(1.0 - abs(dot(viewDir, normalize(vNormal))), 3.0);
-    
-    // Add some energy variation
-    float pulse = sin(uTime * 6.0) * 0.12 + 0.88;
-    float wave = sin(vNormal.y * 4.0 + uTime * 8.0) * 0.08 + 0.92;
-    
-    float alpha = fresnel * uOpacity * pulse * wave * 0.5;
-    
-    // Slight color shift based on fresnel
-    vec3 color = uColor + vec3(0.15, 0.05, 0.2) * fresnel;
-    
-    gl_FragColor = vec4(color, alpha);
-  }
-`
 
 export default function ShieldEffect({ position = [0, 0, 0] }) {
   const groupRef = useRef()
@@ -58,20 +20,14 @@ export default function ShieldEffect({ position = [0, 0, 0] }) {
     return new THREE.SphereGeometry(1.7, 32, 32)
   }, [])
   
-  // Create shader material
+  // Create shader material using shared factory
   const shaderMaterial = useMemo(() => {
-    return new THREE.ShaderMaterial({
-      vertexShader,
-      fragmentShader,
-      uniforms: {
-        uTime: { value: 0 },
-        uOpacity: { value: 0 },
-        uColor: { value: new THREE.Color(AURA_COLOR) },
-      },
-      transparent: true,
-      side: THREE.BackSide,
-      depthWrite: false,
-      blending: THREE.AdditiveBlending,
+    return createFresnelAuraMaterial({
+      color: AURA_COLOR,
+      pulseSpeed: 6.0,
+      waveFreq: 4.0,
+      waveSpeed: 8.0,
+      colorShift: '0.15, 0.05, 0.2'
     })
   }, [])
   

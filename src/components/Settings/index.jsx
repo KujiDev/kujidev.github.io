@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect } from 'react';
-import { createPortal } from 'react-dom';
+import { useState, useRef } from 'react';
+import { MenuButton, Drawer, DrawerTitle, ScrollList } from '@/ui';
 import styles from './styles.module.css';
 import { useKeyMap } from '@/hooks/useKeyMap';
 import { ACTIONS } from '@/config/actions';
@@ -16,63 +16,44 @@ export default function Settings() {
     const buttonRef = useRef(null);
     const { getDisplayKey, startRebind, rebinding, resetToDefaults } = useKeyMap();
     const actions = Object.values(ACTIONS);
-    
-    const [portalContainer] = useState(() => {
-        const div = document.createElement('div');
-        div.id = 'settings-portal';
-        return div;
-    });
-    
-    useEffect(() => {
-        document.body.appendChild(portalContainer);
-        return () => document.body.removeChild(portalContainer);
-    }, [portalContainer]);
 
     return (
         <>
-            <button 
+            <MenuButton 
                 ref={buttonRef}
-                className={`${styles['menu-button']} ${isOpen ? styles['active'] : ''}`}
+                icon={<GearIcon />}
+                isOpen={isOpen}
                 onClick={() => setIsOpen(!isOpen)}
-                aria-label="Toggle settings"
+                label="Toggle settings"
+                activeAnimation="rotate"
+            />
+
+            <Drawer 
+                isOpen={isOpen} 
+                anchorRef={buttonRef} 
+                width={280}
+                portalId="settings-portal"
             >
-                <GearIcon />
-            </button>
+                <DrawerTitle>Key Bindings</DrawerTitle>
 
-            {isOpen && createPortal(
-                <div 
-                    className={styles['settings-drawer']}
-                    style={{
-                        position: 'fixed',
-                        bottom: buttonRef.current 
-                            ? window.innerHeight - buttonRef.current.getBoundingClientRect().top + 8 
-                            : 100,
-                        left: '50%',
-                        transform: 'translateX(-50%)',
-                    }}
-                >
-                    <div className={styles['drawer-title']}>Key Bindings</div>
+                <ScrollList maxHeight={280} gap={6}>
+                    {actions.map((action) => (
+                        <div key={action.id} className={styles['keybind-row']}>
+                            <span className={styles['keybind-action']}>{action.label}</span>
+                            <button 
+                                className={`${styles['keybind-key']} ${rebinding === action.id ? styles['rebinding'] : ''}`}
+                                onClick={() => startRebind(action.id)}
+                            >
+                                {rebinding === action.id ? '...' : getDisplayKey(action.id)}
+                            </button>
+                        </div>
+                    ))}
+                </ScrollList>
 
-                    <div className={styles['keybind-list']}>
-                        {actions.map((action) => (
-                            <div key={action.id} className={styles['keybind-row']}>
-                                <span className={styles['keybind-action']}>{action.label}</span>
-                                <button 
-                                    className={`${styles['keybind-key']} ${rebinding === action.id ? styles['rebinding'] : ''}`}
-                                    onClick={() => startRebind(action.id)}
-                                >
-                                    {rebinding === action.id ? '...' : getDisplayKey(action.id)}
-                                </button>
-                            </div>
-                        ))}
-                    </div>
-
-                    <button className={styles['reset-button']} onClick={resetToDefaults}>
-                        Reset to Defaults
-                    </button>
-                </div>,
-                portalContainer
-            )}
+                <button className={styles['reset-button']} onClick={resetToDefaults}>
+                    Reset to Defaults
+                </button>
+            </Drawer>
         </>
     )
 }

@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
+import { MenuButton, Drawer, DrawerTitle, ScrollList } from '@/ui';
 import styles from './styles.module.css';
 import { useAchievements, RARITY_COLORS } from '@/hooks/useAchievements';
 
@@ -15,6 +16,7 @@ const TrophyIcon = () => (
 
 export default function Achievements() {
   const [isOpen, setIsOpen] = useState(false);
+  const buttonRef = useRef(null);
   const { getAllAchievements, getProgress } = useAchievements();
   
   const achievements = getAllAchievements();
@@ -22,58 +24,58 @@ export default function Achievements() {
 
   return (
     <>
-      <button
-        className={`${styles['menu-button']} ${isOpen ? styles['active'] : ''}`}
+      <MenuButton 
+        ref={buttonRef}
+        icon={<TrophyIcon />}
+        isOpen={isOpen}
         onClick={() => setIsOpen(!isOpen)}
-        aria-label="Toggle achievements"
+        label="Toggle achievements"
+      />
+
+      <Drawer 
+        isOpen={isOpen} 
+        anchorRef={buttonRef} 
+        width={320}
+        portalId="achievements-portal"
       >
-        <TrophyIcon />
-      </button>
-
-      {isOpen && (
-        <div 
-          className={styles['achievements-drawer']}
-          onWheel={(e) => e.stopPropagation()}
-        >
-          <div className={styles['drawer-header']}>
-            <div className={styles['drawer-title']}>Achievements</div>
-            <div className={styles['drawer-progress']}>
-              {progress.unlocked}/{progress.total}
-            </div>
-          </div>
-
-          <div className={styles['progress-bar']}>
-            <div 
-              className={styles['progress-fill']} 
-              style={{ width: `${progress.percent}%` }}
-            />
-          </div>
-
-          <div className={styles['achievement-list']}>
-            {achievements.map((achievement) => {
-              const rarity = RARITY_COLORS[achievement.rarity] || RARITY_COLORS.common;
-              return (
-                <div 
-                  key={achievement.id} 
-                  className={`${styles['achievement-row']} ${achievement.unlocked ? styles['unlocked'] : styles['locked']}`}
-                  style={{ '--rarity-color': rarity.primary, '--rarity-glow': rarity.glow }}
-                >
-                  <div className={styles['achievement-icon']}>
-                    {achievement.icon}
-                  </div>
-                  <div className={styles['achievement-info']}>
-                    <span className={styles['achievement-name']}>{achievement.name}</span>
-                    <span className={styles['achievement-desc']}>{achievement.description}</span>
-                  </div>
-                  {achievement.unlocked && (
-                    <div className={styles['achievement-check']}>✓</div>
-                  )}
-                </div>
-              );
-            })}
+        <div className={styles['drawer-header']}>
+          <DrawerTitle>Achievements</DrawerTitle>
+          <div className={styles['drawer-progress']}>
+            {progress.unlocked}/{progress.total}
           </div>
         </div>
-      )}
+
+        <div className={styles['progress-bar']}>
+          <div 
+            className={styles['progress-fill']} 
+            style={{ width: `${progress.percent}%` }}
+          />
+        </div>
+
+        <ScrollList maxHeight={280} gap={6}>
+          {achievements.map((achievement) => {
+            const rarity = RARITY_COLORS[achievement.rarity] || RARITY_COLORS.common;
+            return (
+              <div 
+                key={achievement.id} 
+                className={`${styles['achievement-row']} ${achievement.unlocked ? styles['unlocked'] : styles['locked']}`}
+                style={{ '--rarity-color': rarity.primary, '--rarity-glow': rarity.glow }}
+              >
+                <div className={styles['achievement-icon']}>
+                  {achievement.icon}
+                </div>
+                <div className={styles['achievement-info']}>
+                  <span className={styles['achievement-name']}>{achievement.name}</span>
+                  <span className={styles['achievement-desc']}>{achievement.description}</span>
+                </div>
+                {achievement.unlocked && (
+                  <div className={styles['achievement-check']}>✓</div>
+                )}
+              </div>
+            );
+          })}
+        </ScrollList>
+      </Drawer>
     </>
   );
 }

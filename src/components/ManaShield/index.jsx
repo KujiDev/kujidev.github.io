@@ -2,48 +2,10 @@ import { useRef, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { usePlayerState } from '@/hooks/usePlayerState'
+import { createFresnelAuraMaterial } from '@/materials/fresnelAura'
 
 // Blue/cyan mana shield color
 const SHIELD_COLOR = '#77bbff'
-
-// Vertex shader - same as ShieldEffect aura
-const vertexShader = `
-  varying vec3 vNormal;
-  varying vec3 vViewPosition;
-  
-  void main() {
-    vNormal = normalize(normalMatrix * normal);
-    vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-    vViewPosition = -mvPosition.xyz;
-    gl_Position = projectionMatrix * mvPosition;
-  }
-`
-
-// Fragment shader - enhanced aura effect
-const fragmentShader = `
-  uniform float uTime;
-  uniform float uOpacity;
-  uniform vec3 uColor;
-  
-  varying vec3 vNormal;
-  varying vec3 vViewPosition;
-  
-  void main() {
-    vec3 viewDir = normalize(vViewPosition);
-    float fresnel = pow(1.0 - abs(dot(viewDir, normalize(vNormal))), 3.0);
-    
-    // Add some energy variation
-    float pulse = sin(uTime * 5.0) * 0.12 + 0.88;
-    float wave = sin(vNormal.y * 3.0 + uTime * 6.0) * 0.08 + 0.92;
-    
-    float alpha = fresnel * uOpacity * pulse * wave * 0.5;
-    
-    // Slight color shift based on fresnel
-    vec3 color = uColor + vec3(0.1, 0.15, 0.25) * fresnel;
-    
-    gl_FragColor = vec4(color, alpha);
-  }
-`
 
 export default function ManaShield({ position = [0, 0, 0] }) {
   const groupRef = useRef()
@@ -59,24 +21,18 @@ export default function ManaShield({ position = [0, 0, 0] }) {
     return new THREE.SphereGeometry(2.0, 32, 32)
   }, [])
   
-  // Create shader material - exactly like ShieldEffect aura but blue
+  // Create shader material using shared factory
   const shaderMaterial = useMemo(() => {
-    return new THREE.ShaderMaterial({
-      vertexShader,
-      fragmentShader,
-      uniforms: {
-        uTime: { value: 0 },
-        uOpacity: { value: 0 },
-        uColor: { value: new THREE.Color(SHIELD_COLOR) },
-      },
-      transparent: true,
-      side: THREE.BackSide,
-      depthWrite: false,
-      blending: THREE.AdditiveBlending,
+    return createFresnelAuraMaterial({
+      color: SHIELD_COLOR,
+      pulseSpeed: 5.0,
+      waveFreq: 3.0,
+      waveSpeed: 6.0,
+      colorShift: '0.1, 0.15, 0.25'
     })
   }, [])
   
-  // Animate - same as ShieldEffect aura
+  // Animate
   useFrame((_, delta) => {
     if (!materialRef.current || !meshRef.current) return
     

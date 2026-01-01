@@ -1,5 +1,5 @@
-import { useState, useMemo, useRef, useEffect } from 'react';
-import { createPortal } from 'react-dom';
+import { useState, useMemo, useRef } from 'react';
+import { MenuButton, Drawer, DrawerTitle, ScrollList } from '@/ui';
 import styles from './styles.module.css';
 import { ACTIONS, ELEMENTS } from '@/config/actions';
 
@@ -102,17 +102,6 @@ export default function SpellBook() {
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
   const buttonRef = useRef(null);
-  const [portalContainer] = useState(() => {
-    const div = document.createElement('div');
-    div.id = 'spellbook-portal';
-    return div;
-  });
-  
-  // Add/remove portal container from body
-  useEffect(() => {
-    document.body.appendChild(portalContainer);
-    return () => document.body.removeChild(portalContainer);
-  }, [portalContainer]);
   
   const allActions = Object.values(ACTIONS);
   
@@ -126,54 +115,45 @@ export default function SpellBook() {
 
   return (
     <>
-      <button 
+      <MenuButton 
         ref={buttonRef}
-        className={`${styles['menu-button']} ${isOpen ? styles['active'] : ''}`}
+        icon={<BookIcon />}
+        isOpen={isOpen}
         onClick={() => setIsOpen(!isOpen)}
-        aria-label="Toggle spell book"
-      >
-        <BookIcon />
-      </button>
+        label="Toggle spell book"
+      />
 
-      {isOpen && createPortal(
-        <div 
-          className={styles['spellbook-drawer']}
-          style={{
-            position: 'fixed',
-            bottom: buttonRef.current 
-              ? window.innerHeight - buttonRef.current.getBoundingClientRect().top + 8 
-              : 100,
-            left: '50%',
-            transform: 'translateX(-50%)',
-          }}
-        >
-          <div className={styles['drawer-title']}>Spell Book</div>
-          
-          <div className={styles['tab-bar']}>
-            {TABS.map(tab => (
-              <button
-                key={tab.id}
-                className={`${styles['tab']} ${activeTab === tab.id ? styles['tab-active'] : ''}`}
-                style={{ '--tab-color': tab.color }}
-                onClick={() => setActiveTab(tab.id)}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-          
-          <div className={styles['spell-list']}>
-            {filteredActions.length === 0 ? (
-              <div className={styles['empty-state']}>No spells in this category</div>
-            ) : (
-              filteredActions.map(action => (
-                <SpellCard key={action.id} action={action} />
-              ))
-            )}
-          </div>
-        </div>,
-        portalContainer
-      )}
+      <Drawer 
+        isOpen={isOpen} 
+        anchorRef={buttonRef} 
+        width={380}
+        portalId="spellbook-portal"
+      >
+        <DrawerTitle>Spell Book</DrawerTitle>
+        
+        <div className={styles['tab-bar']}>
+          {TABS.map(tab => (
+            <button
+              key={tab.id}
+              className={`${styles['tab']} ${activeTab === tab.id ? styles['tab-active'] : ''}`}
+              style={{ '--tab-color': tab.color }}
+              onClick={() => setActiveTab(tab.id)}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+        
+        <ScrollList maxHeight={320} gap={8}>
+          {filteredActions.length === 0 ? (
+            <div className={styles['empty-state']}>No spells in this category</div>
+          ) : (
+            filteredActions.map(action => (
+              <SpellCard key={action.id} action={action} />
+            ))
+          )}
+        </ScrollList>
+      </Drawer>
     </>
   );
 }
