@@ -21,11 +21,10 @@ import TrainingDummyModel from "@/components/TrainingDummyModel";
 import PixieOrbit from "@/components/PixieOrbit";
 
 import { KeyMapProvider, useKeyMap } from "@/hooks/useKeyMap";
-import { PixiesProvider } from "@/hooks/usePixies";
-import { PlayerStateProvider, usePlayerState } from "@/hooks/usePlayerState";
+import { usePlayerState, useSlotMap } from "@/hooks/useGame";
 import { InputProvider, KeyboardSync, useActionButton } from "@/hooks/useInput";
 import { AchievementProvider, useAchievements } from "@/hooks/useAchievements";
-import { SlotMapProvider, useSlotMap, SKILL_SLOTS, MOUSE_SLOTS, CONSUMABLE_SLOTS, PIXIE_SLOTS } from "@/hooks/useSlotMap";
+import { SKILL_SLOTS, MOUSE_SLOTS, CONSUMABLE_SLOTS, PIXIE_SLOTS } from "@/config/slots";
 import { DragDropProvider } from "@/hooks/useDragDrop";
 import { getActionById, getElementForAction } from "@/config/actions";
 
@@ -345,11 +344,8 @@ export default function App() {
   return (
     <TargetProvider>
     <KeyMapProvider>
-    <SlotMapProvider>
     <DragDropProvider>
-    <PixiesProvider>
       <AchievementProvider>
-      <PlayerStateProvider>
         <GameControls>
           <LoadingScreen />
           <AchievementToast />
@@ -366,11 +362,8 @@ export default function App() {
             </Canvas>
           </div>
         </GameControls>
-      </PlayerStateProvider>
       </AchievementProvider>
-    </PixiesProvider>
     </DragDropProvider>
-    </SlotMapProvider>
     </KeyMapProvider>
     </TargetProvider>
   );

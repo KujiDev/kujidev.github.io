@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { usePlayerState } from "@/hooks/usePlayerState";
+import { usePlayerState } from "@/hooks/useGame";
 import styles from "./styles.module.css";
 
 const formatRegen = (val) => (val >= 0 ? `+${val}` : val.toString());

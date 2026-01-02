@@ -2,7 +2,8 @@ import { useState, useRef } from 'react';
 import { MenuButton, Drawer, DrawerTitle, ScrollList, SvgIcon } from '@/ui';
 import styles from './styles.module.css';
 import { useKeyMap } from '@/hooks/useKeyMap';
-import { useSlotMap, SKILL_SLOTS, MOUSE_SLOTS, CONSUMABLE_SLOTS } from '@/hooks/useSlotMap';
+import { useSlotMap } from '@/hooks/useGame';
+import { SKILL_SLOTS, MOUSE_SLOTS, CONSUMABLE_SLOTS } from '@/config/slots';
 import gearIcon from '@/assets/icons/gear.svg?raw';
 
 // Only show slots that have keybindings (exclude pixie slots)

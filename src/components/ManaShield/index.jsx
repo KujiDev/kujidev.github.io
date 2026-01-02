@@ -1,7 +1,7 @@
 import { useRef, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
-import { usePlayerState } from '@/hooks/usePlayerState'
+import { usePlayerState } from '@/hooks/useGame'
 import { createFresnelAuraMaterial } from '@/materials/fresnelAura'
 import { ELEMENTS } from '@/config/actions'
 

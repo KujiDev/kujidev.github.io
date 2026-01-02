@@ -1,7 +1,7 @@
 import { useState, useRef, memo, forwardRef } from 'react';
 import Connector from '@/components/Connector';
 import { useDropTarget, useDragDrop } from '@/hooks/useDragDrop';
-import { getSlotType } from '@/hooks/useSlotMap';
+import { getSlotType } from '@/config/slots';
 import styles from "./styles.module.css";
 
 export const Slot = memo(forwardRef(function Slot({ 

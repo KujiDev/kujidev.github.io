@@ -1,6 +1,6 @@
-import { usePlayerState } from "@/hooks/usePlayerState";
-import { PIXIES } from "@/hooks/usePixies";
-import { useSlotMap, PIXIE_SLOTS } from "@/hooks/useSlotMap";
+import { usePlayerState, useSlotMap } from "@/hooks/useGame";
+import { PIXIES } from "@/config/pixies";
+import { PIXIE_SLOTS } from "@/config/slots";
 import { useState, useEffect, memo, useMemo } from "react";
 import styles from "./styles.module.css";
 import arcaneRushIcon from '@/assets/icons/arcane-rush.svg';

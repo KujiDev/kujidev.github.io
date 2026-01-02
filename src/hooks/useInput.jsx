@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useCallback, useMemo, useEffect, useRef } from "react";
 import { useKeyboardControls } from "@react-three/drei";
-import { usePlayerState } from "@/hooks/usePlayerState";
+import { usePlayerState } from "@/hooks/useGame";
 
 const InputContext = createContext(null);
 

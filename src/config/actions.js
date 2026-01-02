@@ -1,11 +1,30 @@
 /**
- * Single source of truth for all player actions.
- * This file defines the mapping between:
- * - Input names (for KeyboardControls)
- * - FSM actions (for state transitions)
- * - UI display (labels, icons)
- * - Element types (for visual effects)
+ * =============================================================================
+ * ACTION SYSTEM - SINGLE SOURCE OF TRUTH
+ * =============================================================================
+ * 
+ * Every player action is defined here. This includes:
+ * - Skills (cast/channel abilities)
+ * - Attacks (basic/special attacks)
+ * - Consumables (potions, food)
+ * 
+ * Actions define WHAT happens. The game store handles HOW it happens.
+ * Components only render - they never define gameplay logic.
+ * 
+ * Action Flow:
+ * 1. Input triggers action ID (keyboard/mouse/UI)
+ * 2. Store validates action (cost check, state transition)
+ * 3. Store applies costs and starts state transition
+ * 4. Animation plays
+ * 5. On completion, store applies effects (buffs, mana gain)
  */
+
+import { ELEMENTS } from './elements';
+import { FSM_ACTIONS } from './stats';
+
+// =============================================================================
+// ICON IMPORTS
+// =============================================================================
 
 import iceShardIcon from '@/assets/icons/ice-shard.svg';
 import meteorIcon from '@/assets/icons/meteor.svg';
@@ -16,226 +35,280 @@ import arcaneBlastIcon from '@/assets/icons/arcane-blast.svg';
 import healthPotionIcon from '@/assets/icons/health-potion.svg';
 import foodIcon from '@/assets/icons/food.svg';
 
-/**
- * Element color palette - unified across UI and 3D
- * Each element has:
- * - primary: Main color for UI elements, casting circles
- * - secondary: Lighter accent for highlights, trails
- * - glow: Emissive color for 3D materials (staff glow, particles)
- * - dark: Deep shadow tone for UI depth
- */
-export const ELEMENTS = {
-  ice: {
-    id: 'ice',
-    name: 'Ice',
-    primary: '#5ba4d0',    // Cool cyan-blue
-    secondary: '#8ed3f7',  // Light ice highlight
-    glow: '#5ba4d0',
-    dark: '#1a3a4a',
-  },
-  fire: {
-    id: 'fire',
-    name: 'Fire',
-    primary: '#e85a30',    // Warm orange-red
-    secondary: '#ffa040',  // Hot yellow-orange highlight
-    glow: '#ff6b35',
-    dark: '#4a1a10',
-  },
-  arcane: {
-    id: 'arcane',
-    name: 'Arcane',
-    primary: '#9070c0',    // Rich purple - matches icon colors
-    secondary: '#c0a8e8',  // Light lavender highlight
-    glow: '#bb77ff',       // Matches ShieldEffect aura
-    dark: '#2a1a3a',
-  },
-  mana: {
-    id: 'mana',
-    name: 'Mana',
-    primary: '#4080ff',    // Deep blue
-    secondary: '#80c0ff',  // Bright sky blue
-    glow: '#60a0ff',
-    dark: '#0d1a3a',
-  },
-  healing: {
-    id: 'healing',
-    name: 'Healing',
-    primary: '#e85050',    // Warm red
-    secondary: '#ff8080',  // Soft pink highlight
-    glow: '#ff6b6b',
-    dark: '#3a1010',
-  },
+// =============================================================================
+// ACTION TYPE CATEGORIES
+// =============================================================================
+
+export const ACTION_TYPES = {
+  CAST: 'Cast',           // Spell with cast time
+  ATTACK: 'Attack',       // Basic attack
+  CHANNEL: 'Channel',     // Channeled ability (mana drain)
+  BUFF: 'Buff',           // Self-buff ability
+  CONSUMABLE: 'Consumable', // Instant use item
 };
 
+// =============================================================================
+// ACTION REGISTRY
+// =============================================================================
+
+/**
+ * Master action registry.
+ * 
+ * Each action has:
+ * - id: Unique identifier (used everywhere)
+ * - label: Display name
+ * - description: Tooltip text
+ * - type: Category (Cast, Attack, Channel, Buff, Consumable)
+ * - element: Visual element type (ice, fire, arcane, etc.)
+ * - fsmAction: State machine action to trigger
+ * - icon: SVG icon
+ * 
+ * Costs (optional):
+ * - manaCost: Upfront mana cost
+ * - healthCost: Upfront health cost
+ * - manaPerSecond: Continuous mana drain (channels)
+ * 
+ * Effects (optional):
+ * - manaGain: Mana restored on hit
+ * - buff: Buff to apply on completion
+ * 
+ * UI (optional):
+ * - defaultKey: Default keybinding
+ * - displayKey: Key label for UI
+ */
 export const ACTIONS = {
-  SKILL_1: {
+  // =========================================================================
+  // SKILLS (Slot 1-4)
+  // =========================================================================
+  
+  skill_1: {
     id: 'skill_1',
     label: 'Ice Shard',
     description: 'Hurl a freezing shard of ice at your target, dealing frost damage.',
-    type: 'Cast',
+    type: ACTION_TYPES.ATTACK,
     element: 'ice',
-    defaultKey: 'KeyQ',
-    fsmAction: 'ATTACK',
-    displayKey: 'Q',
+    fsmAction: FSM_ACTIONS.ATTACK,
     icon: iceShardIcon,
     manaCost: 15,
+    defaultKey: 'KeyQ',
+    displayKey: 'Q',
   },
-  SKILL_2: {
-    id: 'skill_2', 
+  
+  skill_2: {
+    id: 'skill_2',
     label: 'Meteor',
     description: 'Conjure a blazing meteor from the sky, crashing down with explosive fire damage.',
-    type: 'Cast',
+    type: ACTION_TYPES.CAST,
     element: 'fire',
-    defaultKey: 'KeyW',
-    fsmAction: 'CAST',
-    displayKey: 'W',
+    fsmAction: FSM_ACTIONS.CAST,
     icon: meteorIcon,
     manaCost: 35,
+    defaultKey: 'KeyW',
+    displayKey: 'W',
   },
-  SKILL_3: {
+  
+  skill_3: {
     id: 'skill_3',
     label: 'Arcane Rush',
     description: 'Channel arcane power to dash forward at high speed. Drains mana while active.',
-    type: 'Channel',
+    type: ACTION_TYPES.CHANNEL,
     element: 'arcane',
-    defaultKey: 'KeyE',
-    fsmAction: 'MOVE',
-    displayKey: 'E',
+    fsmAction: FSM_ACTIONS.MOVE,
     icon: arcaneRushIcon,
-    manaCost: 0, // No upfront cost
-    manaPerSecond: 15, // Drains mana while active
+    manaCost: 0,           // No upfront cost
+    manaPerSecond: 15,     // Drains mana while active
+    defaultKey: 'KeyE',
+    displayKey: 'E',
   },
-  SKILL_4: {
+  
+  skill_4: {
     id: 'skill_4',
     label: 'Mana Body',
     description: 'Sacrifice your life force to infuse your body with pure mana, greatly increasing mana regeneration.',
-    type: 'Buff',
+    type: ACTION_TYPES.BUFF,
     element: 'mana',
-    defaultKey: 'KeyR',
-    fsmAction: 'CAST',
-    displayKey: 'R',
+    fsmAction: FSM_ACTIONS.CAST,
     icon: manaBodyIcon,
-    healthCost: 25, // Costs health instead of mana
     manaCost: 0,
+    healthCost: 25,        // Costs health instead of mana
+    defaultKey: 'KeyR',
+    displayKey: 'R',
     buff: {
       id: 'mana_body',
       name: 'Mana Body',
       icon: manaBodyIcon,
-      duration: 30, // seconds
-      manaRegenBonus: 10, // Additional mana per second
+      duration: 30,
+      manaRegenBonus: 10,
     },
   },
-  // Left-click ability - basic attack on target
-  PRIMARY_ATTACK: {
+  
+  // =========================================================================
+  // MOUSE ATTACKS
+  // =========================================================================
+  
+  primary_attack: {
     id: 'primary_attack',
     label: 'Arcane Bolt',
     description: 'Launch a bolt of arcane energy at your target, restoring mana on hit.',
-    type: 'Attack',
+    type: ACTION_TYPES.ATTACK,
     element: 'arcane',
-    defaultKey: 'MouseLeft',
-    fsmAction: 'ATTACK',
-    displayKey: 'LMB',
+    fsmAction: FSM_ACTIONS.ATTACK,
     icon: arcaneBoltIcon,
-    manaGain: 8,
+    manaCost: 0,
+    manaGain: 8,           // Restores mana on hit
+    defaultKey: 'MouseLeft',
+    displayKey: 'LMB',
   },
-  // Right-click ability - stronger attack on target
-  SECONDARY_ATTACK: {
+  
+  secondary_attack: {
     id: 'secondary_attack',
     label: 'Arcane Blast',
     description: 'Channel a powerful blast of arcane energy at your target.',
-    type: 'Cast',
+    type: ACTION_TYPES.CAST,
     element: 'arcane',
-    defaultKey: 'MouseRight',
-    fsmAction: 'CAST',
-    displayKey: 'RMB',
+    fsmAction: FSM_ACTIONS.CAST,
     icon: arcaneBlastIcon,
     manaCost: 20,
+    defaultKey: 'MouseRight',
+    displayKey: 'RMB',
   },
-  // Consumable - health potion
-  POTION: {
+  
+  // =========================================================================
+  // CONSUMABLES
+  // =========================================================================
+  
+  potion: {
     id: 'potion',
     label: 'Health Potion',
     description: 'Drink a restorative potion that heals you over time.',
-    type: 'Consumable',
+    type: ACTION_TYPES.CONSUMABLE,
     element: 'healing',
-    defaultKey: 'KeyD',
-    fsmAction: 'INSTANT', // Instant use, no cast time
-    displayKey: 'D',
+    fsmAction: FSM_ACTIONS.INSTANT,
     icon: healthPotionIcon,
     manaCost: 0,
+    defaultKey: 'KeyD',
+    displayKey: 'D',
     buff: {
       id: 'health_potion',
       name: 'Regeneration',
       icon: healthPotionIcon,
-      duration: 10, // seconds
-      healthRegenBonus: 8, // Additional health per second
+      duration: 10,
+      healthRegenBonus: 8,
     },
   },
-  // Consumable - food
-  FOOD: {
+  
+  food: {
     id: 'food',
     label: 'Mana Biscuit',
     description: 'Eat an enchanted biscuit that restores mana over time.',
-    type: 'Consumable',
+    type: ACTION_TYPES.CONSUMABLE,
     element: 'mana',
-    defaultKey: 'KeyF',
-    fsmAction: 'INSTANT',
-    displayKey: 'F',
+    fsmAction: FSM_ACTIONS.INSTANT,
     icon: foodIcon,
     manaCost: 0,
+    defaultKey: 'KeyF',
+    displayKey: 'F',
     buff: {
       id: 'food_buff',
       name: 'Mana Infused',
       icon: foodIcon,
-      duration: 15, // seconds
-      manaRegenBonus: 5, // Additional mana per second
+      duration: 15,
+      manaRegenBonus: 5,
     },
   },
 };
 
-export const getElementForAction = (actionId) => {
-  const action = Object.values(ACTIONS).find(a => a.id === actionId);
-  if (!action?.element) return null;
-  return ELEMENTS[action.element] || null;
-};
+// =============================================================================
+// ACTION LOOKUP (O(1) access)
+// =============================================================================
 
-export const getFsmAction = (inputId) => {
-  const action = Object.values(ACTIONS).find(a => a.id === inputId);
-  return action?.fsmAction || null;
-};
-
-export const getActionById = (inputId) => 
-  Object.values(ACTIONS).find(a => a.id === inputId);
+// Pre-built lookup tables for hot-path access
+const ACTION_BY_ID = new Map(Object.values(ACTIONS).map(a => [a.id, a]));
+const FSM_BY_ID = new Map(Object.values(ACTIONS).map(a => [a.id, a.fsmAction]));
+const ELEMENT_BY_ID = new Map(Object.values(ACTIONS).map(a => [a.id, a.element ? ELEMENTS[a.element] : null]));
 
 /**
- * Get the drag type for an action - determines which slots it can be dropped into
- * 'skill' can go into skill/mouse slots, 'consumable' can go into consumable slots
- * 'pixie' can go into pixie slots
+ * Get action by ID - O(1)
  */
-export const getDragType = (action) => {
-  if (!action) return null;
-  // Respect explicit dragType if set
-  if (action.dragType) return action.dragType;
-  return action.type === 'Consumable' ? 'consumable' : 'skill';
-};
+export const getActionById = (actionId) => ACTION_BY_ID.get(actionId) || null;
 
 /**
- * Get all spell actions (non-consumables)
+ * Get FSM action type for an action ID - O(1)
  */
-export const getSpells = () => 
-  Object.values(ACTIONS).filter(a => a.type !== 'Consumable');
+export const getFsmAction = (actionId) => FSM_BY_ID.get(actionId) || null;
+
+/**
+ * Get element data for an action - O(1)
+ */
+export const getElementForAction = (actionId) => ELEMENT_BY_ID.get(actionId) || null;
+
+// =============================================================================
+// ACTION FILTERS
+// =============================================================================
+
+/**
+ * Get all skill actions (non-consumables)
+ */
+export const getSkills = () => 
+  Object.values(ACTIONS).filter(a => a.type !== ACTION_TYPES.CONSUMABLE);
+
+export const getSpells = getSkills;
 
 /**
  * Get all consumable actions
  */
 export const getConsumables = () => 
-  Object.values(ACTIONS).filter(a => a.type === 'Consumable');
+  Object.values(ACTIONS).filter(a => a.type === ACTION_TYPES.CONSUMABLE);
 
 /**
- * Get consumables by sub-type (based on id pattern or buff type)
+ * Get the drag type for an action - determines which slots it can be dropped into
  */
-export const getPotions = () => 
-  Object.values(ACTIONS).filter(a => a.type === 'Consumable' && a.id.includes('potion'));
+export const getDragType = (action) => {
+  if (!action) return null;
+  if (action.dragType) return action.dragType;
+  return action.type === ACTION_TYPES.CONSUMABLE ? 'consumable' : 'skill';
+};
 
-export const getFood = () => 
-  Object.values(ACTIONS).filter(a => a.type === 'Consumable' && a.id.includes('food'));
+// =============================================================================
+// ACTION VALIDATION
+// =============================================================================
+
+/**
+ * Check if player can afford an action's costs
+ * 
+ * @param {object} action - Action config
+ * @param {number} currentMana - Current mana
+ * @param {number} currentHealth - Current health
+ * @returns {boolean}
+ */
+export const canAffordAction = (action, currentMana, currentHealth) => {
+  if (!action) return false;
+  
+  const manaCost = action.manaCost ?? 0;
+  const healthCost = action.healthCost ?? 0;
+  const manaPerSecond = action.manaPerSecond ?? 0;
+  
+  // For channel abilities, need at least 1 mana to start
+  const requiredMana = manaCost > 0 ? manaCost : manaPerSecond > 0 ? 1 : 0;
+  
+  const hasEnoughMana = currentMana >= requiredMana;
+  const hasEnoughHealth = healthCost > 0 ? currentHealth > healthCost : true;
+  
+  return hasEnoughMana && hasEnoughHealth;
+};
+
+/**
+ * Check if an action is a channel (has mana drain)
+ */
+export const isChannelAction = (action) => (action?.manaPerSecond ?? 0) > 0;
+
+/**
+ * Check if an action can recast (attack/cast types only)
+ */
+export const canRecastAction = (action) => {
+  const fsmAction = action?.fsmAction;
+  return fsmAction === FSM_ACTIONS.CAST || fsmAction === FSM_ACTIONS.ATTACK;
+};
+
+// Re-export ELEMENTS for convenience
+export { ELEMENTS } from './elements';

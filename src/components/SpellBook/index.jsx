@@ -1,7 +1,7 @@
 import { useState, useMemo, useRef } from 'react';
 import { MenuButton, Drawer, DrawerTitle, ScrollList, SvgIcon } from '@/ui';
 import { useDraggable } from '@/hooks/useDragDrop';
-import { useSlotMap } from '@/hooks/useSlotMap';
+import { useSlotMap } from '@/hooks/useGame';
 import styles from './styles.module.css';
 import { getSpells, ELEMENTS } from '@/config/actions';
 import bookIcon from '@/assets/icons/book.svg?raw';

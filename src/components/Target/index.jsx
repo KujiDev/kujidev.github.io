@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef, createContext, useContext, useCallback, useMemo } from 'react'
-import { usePlayerState } from '@/hooks/usePlayerState'
-import { useSlotMap } from '@/hooks/useSlotMap'
+import { usePlayerState, useSlotMap } from '@/hooks/useGame'
 
 const TargetContext = createContext(null)
 

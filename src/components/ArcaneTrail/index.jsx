@@ -2,7 +2,7 @@ import { useRef, useMemo, useState, useEffect } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { useGLTF } from '@react-three/drei'
 import { SkeletonUtils } from 'three-stdlib'
-import { usePlayerState } from '@/hooks/usePlayerState'
+import { usePlayerState } from '@/hooks/useGame'
 import { ELEMENTS } from '@/config/actions'
 import * as THREE from 'three'
 

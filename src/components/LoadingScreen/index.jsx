@@ -1,9 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useProgress } from '@react-three/drei';
-import { useKeyMap } from '../../hooks/useKeyMap';
-import { useSlotMap } from '../../hooks/useSlotMap';
-import { useAchievements } from '../../hooks/useAchievements';
-import { usePixies } from '../../hooks/usePixies';
+import { useKeyMap } from '@/hooks/useKeyMap';
+import { useSlotMap, usePixies } from '@/hooks/useGame';
+import { useAchievements } from '@/hooks/useAchievements';
 import styles from './styles.module.css';
 
 const MIN_DISPLAY_TIME = 1000; // Minimum 1 second display

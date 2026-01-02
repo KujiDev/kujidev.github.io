@@ -1,8 +1,9 @@
 import { useState, useRef, useMemo, memo } from 'react';
 import { MenuButton, Drawer, DrawerTitle, ScrollList, SvgIcon } from '@/ui';
 import { useDraggable, useDropTarget, useDragDrop } from '@/hooks/useDragDrop';
-import { useSlotMap, PIXIE_SLOTS } from '@/hooks/useSlotMap';
-import { usePixies, PIXIES } from '@/hooks/usePixies';
+import { useSlotMap, usePixies } from '@/hooks/useGame';
+import { PIXIE_SLOTS } from '@/config/slots';
+import { PIXIES } from '@/config/pixies';
 import styles from './styles.module.css';
 import pixieIcon from '@/assets/icons/pixie.svg?raw';
 

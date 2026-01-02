@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useState, useMemo, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import { useSlotMap, getSlotType } from "./useSlotMap";
+import { useSlotMap } from "@/hooks/useGame";
+import { getSlotType } from "@/config/slots";
 import { getDragType } from "@/config/actions";
 
 const DragDropContext = createContext(null);

@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
-import { usePlayerState } from '@/hooks/usePlayerState';
+import { usePlayerState } from '@/hooks/useGame';
 import { getActionById, ELEMENTS } from '@/config/actions';
 import styles from './styles.module.css';
 

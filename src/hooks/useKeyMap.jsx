@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useState, useMemo } from "react";
-import { ALL_SLOTS } from "./useSlotMap";
+import { ALL_SLOTS } from "@/config/slots";
 
 const STORAGE_KEY = 'player_keymap';
 
