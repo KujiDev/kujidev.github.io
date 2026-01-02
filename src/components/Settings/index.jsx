@@ -2,8 +2,11 @@ import { useState, useRef } from 'react';
 import { MenuButton, Drawer, DrawerTitle, ScrollList, SvgIcon } from '@/ui';
 import styles from './styles.module.css';
 import { useKeyMap } from '@/hooks/useKeyMap';
-import { useSlotMap, ALL_SLOTS } from '@/hooks/useSlotMap';
+import { useSlotMap, SKILL_SLOTS, MOUSE_SLOTS, CONSUMABLE_SLOTS } from '@/hooks/useSlotMap';
 import gearIcon from '@/assets/icons/gear.svg?raw';
+
+// Only show slots that have keybindings (exclude pixie slots)
+const KEYBINDABLE_SLOTS = [...SKILL_SLOTS, ...MOUSE_SLOTS, ...CONSUMABLE_SLOTS];
 
 // Friendly labels for slots
 const SLOT_LABELS = {
@@ -44,7 +47,7 @@ export default function Settings() {
                 <DrawerTitle>Key Bindings</DrawerTitle>
 
                 <ScrollList maxHeight={320} gap={6}>
-                    {ALL_SLOTS.map((slot) => {
+                    {KEYBINDABLE_SLOTS.map((slot) => {
                         const action = getActionObjectForSlot(slot.id);
                         return (
                             <div key={slot.id} className={styles['keybind-row']}>
