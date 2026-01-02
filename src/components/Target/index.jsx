@@ -44,7 +44,7 @@ export default function Target({
   children 
 }) {
   const { setTarget, lockedTargetId, lockTarget } = useTarget() || {}
-  const { handleInput } = usePlayerState()
+  const { handleInput, mouseButtonActionsRef } = usePlayerState()
   const targetId = useRef(`${name}-${type}`).current
   const isHovered = useRef(false)
   const isLocked = lockedTargetId === targetId
@@ -87,39 +87,48 @@ export default function Target({
   }, [isLocked, setTarget])
   
   // Left click - lock and use LMB slot action (held down = recast)
+  // Right click - also handled here to set mouseButtonActionsRef BEFORE mouseup fires
   const handlePointerDown = useCallback((e) => {
-    if (e.button !== 0) return
     e.stopPropagation()
     
-    if (!isLocked) lockAndSetTarget()
-    if (lmbAction) handleInput?.(lmbAction, true) // Allow recast on hold
-  }, [isLocked, lockAndSetTarget, handleInput, lmbAction])
+    // Left mouse button
+    if (e.button === 0) {
+      if (!isLocked) lockAndSetTarget()
+      if (lmbAction) {
+        if (mouseButtonActionsRef) mouseButtonActionsRef.current[0] = lmbAction
+        handleInput?.(lmbAction, true)
+      }
+    }
+    
+    // Right mouse button - set the action here so mouseup can clear it
+    if (e.button === 2) {
+      if (!isLocked) lockAndSetTarget()
+      if (rmbAction) {
+        if (mouseButtonActionsRef) mouseButtonActionsRef.current[2] = rmbAction
+        handleInput?.(rmbAction, true)
+      }
+    }
+  }, [isLocked, lockAndSetTarget, handleInput, lmbAction, rmbAction, mouseButtonActionsRef])
   
   const handlePointerUp = useCallback((e) => {
-    if (e.button !== 0) return
     e.stopPropagation()
-    if (lmbAction) handleInput?.(lmbAction, false)
-  }, [handleInput, lmbAction])
+    // Left mouse button
+    if (e.button === 0 && lmbAction) {
+      handleInput?.(lmbAction, false)
+      if (mouseButtonActionsRef) mouseButtonActionsRef.current[0] = null
+    }
+    // Right mouse button
+    if (e.button === 2 && rmbAction) {
+      handleInput?.(rmbAction, false)
+      if (mouseButtonActionsRef) mouseButtonActionsRef.current[2] = null
+    }
+  }, [handleInput, lmbAction, rmbAction, mouseButtonActionsRef])
   
-  // Right click - lock and use RMB slot action (held down = recast)
+  // Right click context menu - just prevent default, action handled in pointerdown
   const handleContextMenu = useCallback((e) => {
     e.stopPropagation()
     e.nativeEvent?.preventDefault?.()
-    
-    if (!isLocked) lockAndSetTarget()
-    if (rmbAction) handleInput?.(rmbAction, true) // Allow recast on hold
-  }, [isLocked, lockAndSetTarget, handleInput, rmbAction])
-  
-  // Track right mouse release globally
-  useEffect(() => {
-    const onMouseUp = (e) => {
-      if (e.button === 2 && rmbAction) {
-        handleInput?.(rmbAction, false)
-      }
-    }
-    window.addEventListener('mouseup', onMouseUp)
-    return () => window.removeEventListener('mouseup', onMouseUp)
-  }, [handleInput, rmbAction])
+  }, [])
   
   return (
     <group

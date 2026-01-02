@@ -136,9 +136,6 @@ export const Slot = memo(forwardRef(function Slot({
                         {tooltip.buff?.manaRegenBonus > 0 && (
                             <span className={styles["tooltip-mana-gain"]}>Mana/sec: +{tooltip.buff.manaRegenBonus}</span>
                         )}
-                        {tooltip.requiresTarget && (
-                            <span className={styles["tooltip-target"]}>Requires Target</span>
-                        )}
                     </div>
                 </div>
             )}

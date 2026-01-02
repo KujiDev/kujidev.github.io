@@ -465,17 +465,17 @@ export function PlayerStateProvider({ children }) {
     handleInputRef.current = handleInput;
   }, [handleInput]);
 
+  // Track which action was triggered by which mouse button
+  const mouseButtonActionsRef = useRef({ 0: null, 2: null }); // LMB=0, RMB=2
+
   // Global mouseup listener to ensure mouse button releases are always captured
-  // This is a fallback in case the Target component's listener doesn't fire
+  // This properly clears the actual action that was triggered by that mouse button
   useEffect(() => {
     const onGlobalMouseUp = (e) => {
-      // Right mouse button
-      if (e.button === 2) {
-        heldInputsRef.current.delete('secondary_attack');
-      }
-      // Left mouse button
-      if (e.button === 0) {
-        heldInputsRef.current.delete('primary_attack');
+      const action = mouseButtonActionsRef.current[e.button];
+      if (action) {
+        heldInputsRef.current.delete(action);
+        mouseButtonActionsRef.current[e.button] = null;
       }
     };
     
@@ -541,7 +541,7 @@ export function PlayerStateProvider({ children }) {
   // Get current animation name
   const animation = STATE_ANIMATIONS[state.current] || STATE_ANIMATIONS[STATES.IDLE];
 
-  // Calculate regen info for tooltips - recalculates when buffs or activeAction change
+  // Calculate regen info for tooltips - recalculates when buffs, pixieBuffs, or activeAction change
   const regenInfo = useMemo(() => {
     const now = Date.now();
     
@@ -554,6 +554,10 @@ export function PlayerStateProvider({ children }) {
         if (buff.healthRegenBonus) healthBuffBonus += buff.healthRegenBonus;
       }
     }
+    
+    // Add pixie passive buffs
+    manaBuffBonus += pixieBuffs?.manaRegen || 0;
+    healthBuffBonus += pixieBuffs?.healthRegen || 0;
     
     // Calculate drain from activeAction
     let manaDrain = 0;
@@ -577,7 +581,7 @@ export function PlayerStateProvider({ children }) {
         net: HEALTH_REGEN_RATE + healthBuffBonus,
       },
     };
-  }, [buffs, state.activeAction]);
+  }, [buffs, state.activeAction, pixieBuffs]);
 
   const value = useMemo(() => ({
     state: state.current,
@@ -604,6 +608,7 @@ export function PlayerStateProvider({ children }) {
     is,
     can,
     STATES,
+    mouseButtonActionsRef,
   }), [state, animation, castProgress, setCastProgress, syncCastProgressUI, mana, health, buffs, regenInfo, handleInput, dispatchAction, tryRecast, subscribe, is, can, effectiveMaxMana, effectiveMaxHealth]);
 
   return (

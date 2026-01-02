@@ -133,6 +133,14 @@ export function AchievementProvider({ children }) {
     return { unlocked: unlockedCount, total, percent: Math.round((unlockedCount / total) * 100) };
   }, [unlocked]);
 
+  const resetToDefaults = useCallback(() => {
+    const empty = new Set();
+    setUnlocked(empty);
+    saveUnlocked(empty);
+    setToastQueue([]);
+    setCurrentToast(null);
+  }, []);
+
   const value = {
     unlock,
     isUnlocked,
@@ -140,6 +148,7 @@ export function AchievementProvider({ children }) {
     getProgress,
     currentToast,
     dismissToast,
+    resetToDefaults,
   };
 
   return (

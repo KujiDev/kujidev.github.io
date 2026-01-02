@@ -152,6 +152,13 @@ export function PixiesProvider({ children }) {
       .filter(Boolean);
   }, [collected, equipped]);
 
+  // Reset to initial state
+  const resetToDefaults = useCallback(() => {
+    const defaultCollected = ['verdant', 'azure', 'violet', 'crimson'];
+    setCollected(defaultCollected);
+    savePixieState(defaultCollected);
+  }, []);
+
   const value = useMemo(() => ({
     collected,
     equipped,
@@ -159,9 +166,10 @@ export function PixiesProvider({ children }) {
     equippedPixies,
     unequippedPixies,
     collectPixie,
+    resetToDefaults,
     MAX_EQUIPPED,
     PIXIES,
-  }), [collected, equipped, activeBuffs, equippedPixies, unequippedPixies, collectPixie]);
+  }), [collected, equipped, activeBuffs, equippedPixies, unequippedPixies, collectPixie, resetToDefaults]);
 
   return (
     <PixiesContext.Provider value={value}>

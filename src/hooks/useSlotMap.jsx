@@ -2,8 +2,6 @@ import { createContext, useCallback, useContext, useState, useMemo } from "react
 import { ACTIONS } from "@/config/actions";
 
 const STORAGE_KEY = 'player_slotmap';
-const VERSION_KEY = 'player_slotmap_version';
-const CURRENT_VERSION = 2;
 
 /**
  * Define skill bar slots - these are UI positions, not skills
@@ -52,7 +50,6 @@ const getDefaultSlotMap = () =>
 const saveSlotMap = (slotMap) => {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(slotMap));
-    localStorage.setItem(VERSION_KEY, String(CURRENT_VERSION));
   } catch (e) {
     console.warn('Failed to save slotmap:', e);
   }
@@ -62,14 +59,7 @@ const loadSlotMap = () => {
   const defaults = getDefaultSlotMap();
   
   try {
-    const savedVersion = parseInt(localStorage.getItem(VERSION_KEY) || '0', 10);
     const saved = localStorage.getItem(STORAGE_KEY);
-    
-    if (savedVersion !== CURRENT_VERSION) {
-      console.log(`SlotMap version changed (${savedVersion} -> ${CURRENT_VERSION}), resetting to defaults`);
-      saveSlotMap(defaults);
-      return defaults;
-    }
     
     if (saved) {
       const parsed = JSON.parse(saved);

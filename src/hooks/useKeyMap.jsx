@@ -2,8 +2,6 @@ import { createContext, useCallback, useContext, useState, useMemo } from "react
 import { ALL_SLOTS } from "./useSlotMap";
 
 const STORAGE_KEY = 'player_keymap';
-const VERSION_KEY = 'player_keymap_version';
-const CURRENT_VERSION = 3; // Bump: now using slots instead of action IDs
 
 const MOUSE_BUTTONS = {
   0: 'MouseLeft',
@@ -41,7 +39,6 @@ const getDefaultKeyMap = () =>
 const saveKeyMap = (keyMap) => {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(keyMap));
-    localStorage.setItem(VERSION_KEY, String(CURRENT_VERSION));
   } catch (e) {
     console.warn('Failed to save keymap:', e);
   }
@@ -51,15 +48,7 @@ const loadKeyMap = () => {
   const defaults = getDefaultKeyMap();
   
   try {
-    const savedVersion = parseInt(localStorage.getItem(VERSION_KEY) || '0', 10);
     const saved = localStorage.getItem(STORAGE_KEY);
-    
-    // If version changed, reset to defaults (new/changed keybindings)
-    if (savedVersion !== CURRENT_VERSION) {
-      console.log(`Keymap version changed (${savedVersion} -> ${CURRENT_VERSION}), resetting to defaults`);
-      saveKeyMap(defaults);
-      return defaults;
-    }
     
     if (saved) {
       const parsed = JSON.parse(saved);

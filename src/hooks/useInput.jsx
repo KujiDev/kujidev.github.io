@@ -54,7 +54,7 @@ export function InputProvider({ children }) {
 export function KeyboardSync() {
   const { syncKeyboardState } = useInput();
   
-  // Subscribe to slot-based keyboard state
+  // Subscribe to slot-based keyboard state (mouse buttons handled separately in Target component)
   const slot1 = useKeyboardControls((state) => state.slot_1);
   const slot2 = useKeyboardControls((state) => state.slot_2);
   const slot3 = useKeyboardControls((state) => state.slot_3);

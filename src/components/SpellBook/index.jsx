@@ -96,9 +96,6 @@ function SpellCard({ action }) {
             )}
           </>
         )}
-        {action.requiresTarget && (
-          <span className={styles['stat-target']}>Requires Target</span>
-        )}
       </div>
     </div>
   );

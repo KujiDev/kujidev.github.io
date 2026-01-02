@@ -79,7 +79,7 @@ const InputToStateSync = () => {
   const { handleInput } = usePlayerState();
   const { getActionForSlot } = useSlotMap();
   
-  // Subscribe to slot-based keyboard controls
+  // Subscribe to slot-based keyboard controls (mouse buttons handled separately in Target component)
   const slot1 = useKeyboardControls((state) => state.slot_1);
   const slot2 = useKeyboardControls((state) => state.slot_2);
   const slot3 = useKeyboardControls((state) => state.slot_3);
@@ -134,13 +134,11 @@ const buildTooltip = (action) => {
     manaPerSecond: action.manaPerSecond,
     healthCost: action.healthCost,
     buff: action.buff,
-    requiresTarget: action.requiresTarget,
   };
 };
 
 const useCanAffordAction = (action) => {
   const { mana, health } = usePlayerState();
-  const { target } = useTarget() || {};
   
   if (!action) return false;
   
@@ -151,9 +149,8 @@ const useCanAffordAction = (action) => {
   const requiredMana = manaCost > 0 ? manaCost : manaPerSecond > 0 ? 1 : 0;
   const hasEnoughMana = mana >= requiredMana;
   const hasEnoughHealth = healthCost > 0 ? health > healthCost : true;
-  const hasTarget = !action.requiresTarget || target !== null;
   
-  return hasEnoughMana && hasEnoughHealth && hasTarget;
+  return hasEnoughMana && hasEnoughHealth;
 };
 
 /**

@@ -137,7 +137,6 @@ export const ACTIONS = {
     displayKey: 'LMB',
     icon: arcaneBoltIcon,
     manaGain: 8,
-    requiresTarget: true,
   },
   // Right-click ability - stronger attack on target
   SECONDARY_ATTACK: {
@@ -151,7 +150,6 @@ export const ACTIONS = {
     displayKey: 'RMB',
     icon: arcaneBlastIcon,
     manaCost: 20,
-    requiresTarget: true,
   },
   // Consumable - health potion
   POTION: {
