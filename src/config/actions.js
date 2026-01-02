@@ -212,9 +212,12 @@ export const getActionById = (inputId) =>
 /**
  * Get the drag type for an action - determines which slots it can be dropped into
  * 'skill' can go into skill/mouse slots, 'consumable' can go into consumable slots
+ * 'pixie' can go into pixie slots
  */
 export const getDragType = (action) => {
   if (!action) return null;
+  // Respect explicit dragType if set
+  if (action.dragType) return action.dragType;
   return action.type === 'Consumable' ? 'consumable' : 'skill';
 };
 

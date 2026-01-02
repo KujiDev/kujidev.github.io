@@ -1,5 +1,6 @@
 import { createContext, useContext, useReducer, useCallback, useMemo, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { getFsmAction, getActionById } from "@/config/actions";
+import { usePixies } from "@/hooks/usePixies";
 
 // Helper to check if we should keep activeAction during a transition
 const shouldKeepActiveAction = (actionType, activeActionId) => {
@@ -167,6 +168,9 @@ export function PlayerStateProvider({ children }) {
   const heldInputsRef = useRef(new Set());
   const clickTriggeredRef = useRef(false);
   const handleInputRef = useRef(null);
+  
+  // Get pixie buffs (passive bonuses from equipped pixies)
+  const { activeBuffs: pixieBuffs } = usePixies();
 
   // Throttled setter - only updates React state every 50ms to reduce re-renders
   // 3D components read castProgressRef directly in useFrame
@@ -210,8 +214,10 @@ export function PlayerStateProvider({ children }) {
         bonus += buff.manaRegenBonus;
       }
     }
+    // Add pixie mana regen bonus
+    bonus += pixieBuffs?.manaRegen || 0;
     return bonus;
-  }, []);
+  }, [pixieBuffs?.manaRegen]);
 
   const getBuffHealthRegenBonus = useCallback(() => {
     let bonus = 0;
@@ -221,8 +227,14 @@ export function PlayerStateProvider({ children }) {
         bonus += buff.healthRegenBonus;
       }
     }
+    // Add pixie health regen bonus
+    bonus += pixieBuffs?.healthRegen || 0;
     return bonus;
-  }, []);
+  }, [pixieBuffs?.healthRegen]);
+  
+  // Calculate effective max health/mana including pixie bonuses
+  const effectiveMaxMana = MAX_MANA + (pixieBuffs?.maxMana || 0);
+  const effectiveMaxHealth = MAX_HEALTH + (pixieBuffs?.maxHealth || 0);
 
   const getManaDrainRate = useCallback(() => {
     const activeAction = activeActionRef.current;
@@ -256,7 +268,7 @@ export function PlayerStateProvider({ children }) {
           }
         }
         
-        newMana = Math.max(0, Math.min(MAX_MANA, newMana));
+        newMana = Math.max(0, Math.min(effectiveMaxMana, newMana));
         manaRef.current = newMana;
         
         return newMana;
@@ -266,7 +278,7 @@ export function PlayerStateProvider({ children }) {
       setHealth(current => {
         const totalRegen = HEALTH_REGEN_RATE + getBuffHealthRegenBonus();
         let newHealth = current + (totalRegen * tickSeconds);
-        newHealth = Math.max(0, Math.min(MAX_HEALTH, newHealth));
+        newHealth = Math.max(0, Math.min(effectiveMaxHealth, newHealth));
         healthRef.current = newHealth;
         return newHealth;
       });
@@ -283,7 +295,7 @@ export function PlayerStateProvider({ children }) {
     }, REGEN_INTERVAL);
     
     return () => clearInterval(interval);
-  }, [getBuffManaRegenBonus, getBuffHealthRegenBonus]);
+  }, [getBuffManaRegenBonus, getBuffHealthRegenBonus, effectiveMaxMana, effectiveMaxHealth]);
 
   // Stop movement if mana runs out during a manaPerSecond ability
   useEffect(() => {
@@ -580,9 +592,9 @@ export function PlayerStateProvider({ children }) {
     setCastProgress,
     syncCastProgressUI,
     mana,
-    maxMana: MAX_MANA,
+    maxMana: effectiveMaxMana,
     health,
-    maxHealth: MAX_HEALTH,
+    maxHealth: effectiveMaxHealth,
     buffs,
     regenInfo,
     handleInput,
@@ -592,7 +604,7 @@ export function PlayerStateProvider({ children }) {
     is,
     can,
     STATES,
-  }), [state, animation, castProgress, setCastProgress, syncCastProgressUI, mana, health, buffs, regenInfo, handleInput, dispatchAction, tryRecast, subscribe, is, can]);
+  }), [state, animation, castProgress, setCastProgress, syncCastProgressUI, mana, health, buffs, regenInfo, handleInput, dispatchAction, tryRecast, subscribe, is, can, effectiveMaxMana, effectiveMaxHealth]);
 
   return (
     <PlayerStateContext.Provider value={value}>

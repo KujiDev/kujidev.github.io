@@ -1,4 +1,4 @@
-/* Consumables-specific styles - shared styles in @/ui/shared.module.css */
+/* Pixies styles - matches SpellBook pattern exactly */
 
 /* Tab Bar */
 .tab-bar {
@@ -45,18 +45,8 @@
     inset 0 1px 0 rgba(255,220,160,0.1);
 }
 
-/* Hint text */
-.hint {
-  text-align: center;
-  font-size: var(--font-xs);
-  color: #6a5a48;
-  margin: 0;
-  padding: 4px 0;
-  font-style: italic;
-}
-
-/* Consumable Card */
-.consumable-card {
+/* Pixie Card - matches spell-card */
+.pixie-card {
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -77,7 +67,7 @@
   transition: all 0.15s ease;
 }
 
-.consumable-card:hover {
+.pixie-card:hover {
   border-color: rgba(140,100,50,0.6);
   box-shadow:
     inset 0 1px 0 rgba(255,220,160,0.08),
@@ -85,21 +75,21 @@
     0 0 12px rgba(255,180,80,0.15);
 }
 
-.consumable-card:active {
+.pixie-card:active {
   cursor: grabbing;
 }
 
-.consumable-card.dragging {
+.pixie-card.dragging {
   opacity: 0.5;
 }
 
-.consumable-card.assigned {
+.pixie-card.assigned {
   border-color: rgba(180,140,60,0.5);
   background: 
     linear-gradient(180deg, rgba(45,35,20,0.9) 0%, rgba(25,18,10,0.95) 100%);
 }
 
-.consumable-header {
+.pixie-header {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -109,22 +99,23 @@
   color: #5a4a38;
   font-size: 14px;
   letter-spacing: -2px;
-  margin-left: auto;
   opacity: 0.6;
   transition: opacity 0.15s ease;
+  margin-left: auto;
 }
 
-.consumable-card:hover .drag-hint {
+.pixie-card:hover .drag-hint {
   opacity: 1;
   color: #8a7a60;
 }
 
-.consumable-icon {
+.pixie-icon {
   width: 36px;
   height: 36px;
-  padding: 6px;
+  padding: 0;
   border-radius: 6px;
   flex-shrink: 0;
+  overflow: hidden;
   
   background: 
     linear-gradient(180deg, rgba(30,22,12,0.9) 0%, rgba(15,10,5,0.95) 100%);
@@ -137,34 +128,45 @@
     0 0 8px color-mix(in srgb, var(--element-color) 20%, transparent);
 }
 
-.consumable-icon img {
+.pixie-icon img {
   width: 100%;
   height: 100%;
-  object-fit: contain;
-  filter: drop-shadow(0 0 3px var(--element-color));
+  object-fit: cover;
 }
 
-.consumable-info {
+.pixie-info {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 4px;
   min-width: 0;
+  flex: 1;
 }
 
-.consumable-name {
+.pixie-name {
   font-size: var(--font-base);
   font-weight: var(--weight-semibold);
   color: #e8d6a8;
   letter-spacing: 0.4px;
 }
 
-.consumable-badges {
+.pixie-badges {
   display: flex;
   gap: 6px;
   flex-wrap: wrap;
 }
 
-.consumable-type {
+.pixie-element {
+  font-size: var(--font-xs);
+  font-weight: var(--weight-medium);
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--element-color) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--element-color) 40%, transparent);
+  color: var(--element-color);
+  letter-spacing: 0.3px;
+}
+
+.pixie-type {
   font-size: var(--font-xs);
   font-weight: var(--weight-normal);
   padding: 1px 6px;
@@ -175,7 +177,7 @@
   letter-spacing: 0.3px;
 }
 
-.consumable-assigned {
+.pixie-assigned {
   font-size: var(--font-xs);
   font-weight: var(--weight-medium);
   padding: 1px 6px;
@@ -186,7 +188,7 @@
   letter-spacing: 0.3px;
 }
 
-.consumable-desc {
+.pixie-desc {
   font-size: var(--font-sm);
   font-weight: var(--weight-normal);
   color: #8a7a60;
@@ -194,7 +196,7 @@
   margin: 2px 0;
 }
 
-.consumable-stats {
+.pixie-stats {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
@@ -203,7 +205,7 @@
   border-top: 1px solid rgba(100,80,50,0.2);
 }
 
-.consumable-stats > span {
+.pixie-stats > span {
   font-size: var(--font-xs);
   font-weight: var(--weight-medium);
   display: flex;
@@ -212,19 +214,18 @@
 
 .stat-label {
   color: #6a5a48;
-  margin-right: 2px;
+  font-weight: var(--weight-normal);
 }
 
 .stat-buff {
-  color: #b8a878;
+  /* Color set inline based on pixie type */
+  display: flex;
+  gap: 4px;
 }
 
-.stat-heal {
-  color: #88cc88;
-}
-
-.stat-mana-gain {
-  color: #88b8ff;
+.stat-passive {
+  color: #c4a060;
+  font-style: italic;
 }
 
 .empty-state {
@@ -233,4 +234,124 @@
   color: #6a5a48;
   font-size: var(--font-sm);
   font-style: italic;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .tab {
+    padding: 4px 8px;
+    font-size: 9px;
+  }
+  
+  .pixie-card {
+    padding: 8px 10px;
+  }
+  
+  .pixie-icon {
+    width: 30px;
+    height: 30px;
+  }
+  
+  .pixie-name {
+    font-size: var(--font-sm);
+  }
+  
+  .pixie-desc {
+    font-size: var(--font-xs);
+  }
+  
+  .pixie-stats {
+    gap: 6px;
+  }
+  
+  .pixie-stats > span {
+    font-size: 9px;
+  }
+}
+
+/* Equipment Section */
+.equipment-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  margin-bottom: 8px;
+  border-radius: 8px;
+  
+  background: 
+    linear-gradient(180deg, rgba(30,22,12,0.8) 0%, rgba(15,10,5,0.9) 100%);
+  border: 1px solid rgba(80,60,30,0.3);
+}
+
+.equipment-label {
+  font-size: var(--font-xs);
+  font-weight: var(--weight-semibold);
+  color: #8a7a60;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.equipment-slots {
+  display: flex;
+  gap: 10px;
+}
+
+.pixie-slot {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  touch-action: none;
+  
+  background: 
+    linear-gradient(180deg, rgba(30,22,12,0.9) 0%, rgba(15,10,5,0.95) 100%);
+  border: 2px dashed rgba(80,60,30,0.4);
+  
+  box-shadow:
+    inset 0 2px 4px rgba(0,0,0,0.5);
+  
+  transition: all 0.15s ease;
+}
+
+.pixie-slot:hover {
+  border-color: rgba(140,100,50,0.6);
+}
+
+.pixie-slot.slot-hover {
+  border-color: #c0a060;
+  border-style: solid;
+  box-shadow:
+    0 0 12px rgba(255,180,80,0.3),
+    inset 0 2px 4px rgba(0,0,0,0.5);
+}
+
+.pixie-slot.slot-filled {
+  border-style: solid;
+  border-color: color-mix(in srgb, var(--element-color) 50%, #4a3520);
+  cursor: grab;
+  
+  box-shadow:
+    0 0 8px color-mix(in srgb, var(--element-color) 20%, transparent),
+    inset 0 2px 4px rgba(0,0,0,0.5);
+}
+
+.pixie-slot.slot-filled:active {
+  cursor: grabbing;
+}
+
+.pixie-slot img {
+  width: 36px;
+  height: 36px;
+  pointer-events: none;
+}
+
+.slot-number {
+  font-size: var(--font-sm);
+  color: #5a4a38;
+  font-weight: var(--weight-semibold);
 }

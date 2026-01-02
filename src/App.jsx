@@ -18,8 +18,10 @@ import Meteor from "@/components/Meteor";
 import LoadingScreen from "@/components/LoadingScreen";
 import Town from "@/components/Town";
 import TrainingDummyModel from "@/components/TrainingDummyModel";
+import PixieOrbit from "@/components/PixieOrbit";
 
 import { KeyMapProvider, useKeyMap } from "@/hooks/useKeyMap";
+import { PixiesProvider } from "@/hooks/usePixies";
 import { PlayerStateProvider, usePlayerState } from "@/hooks/usePlayerState";
 import { InputProvider, KeyboardSync, useActionButton } from "@/hooks/useInput";
 import { AchievementProvider, useAchievements } from "@/hooks/useAchievements";
@@ -284,6 +286,7 @@ const Scene = () => {
 
       <PlayerTarget>
         <Wizard position={[0, 0, 0]} />
+        <PixieOrbit />
       </PlayerTarget>
 
       {/* Test enemy target */}
@@ -327,6 +330,7 @@ export default function App() {
     <KeyMapProvider>
     <SlotMapProvider>
     <DragDropProvider>
+    <PixiesProvider>
       <AchievementProvider>
       <PlayerStateProvider>
         <GameControls>
@@ -347,6 +351,7 @@ export default function App() {
         </GameControls>
       </PlayerStateProvider>
       </AchievementProvider>
+    </PixiesProvider>
     </DragDropProvider>
     </SlotMapProvider>
     </KeyMapProvider>

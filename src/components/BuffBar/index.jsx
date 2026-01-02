@@ -1,4 +1,6 @@
 import { usePlayerState } from "@/hooks/usePlayerState";
+import { PIXIES } from "@/hooks/usePixies";
+import { useSlotMap, PIXIE_SLOTS } from "@/hooks/useSlotMap";
 import { useState, useEffect, memo, useMemo } from "react";
 import styles from "./styles.module.css";
 import arcaneRushIcon from '@/assets/icons/arcane-rush.svg';
@@ -105,13 +107,66 @@ const ActiveBuffIcon = memo(function ActiveBuffIcon({ id, name, icon }) {
   );
 });
 
+// Buff type display info for pixies
+const PIXIE_BUFF_INFO = {
+  healthRegen: { label: 'Health Regen', suffix: '/sec' },
+  manaRegen: { label: 'Mana Regen', suffix: '/sec' },
+  maxHealth: { label: 'Max Health', suffix: '' },
+  maxMana: { label: 'Max Mana', suffix: '' },
+};
+
+const PixieBuffIcon = memo(function PixieBuffIcon({ pixie }) {
+  const [showTooltip, setShowTooltip] = useState(false);
+  const buffInfo = PIXIE_BUFF_INFO[pixie.buff.type];
+  
+  return (
+    <div 
+      className={styles["buff-wrapper"]}
+      onMouseEnter={() => setShowTooltip(true)}
+      onMouseLeave={() => setShowTooltip(false)}
+    >
+      <div 
+        className={`${styles["buff-icon"]} ${styles["buff-passive"]}`}
+        style={{ '--pixie-color': pixie.color }}
+      >
+        <img src={pixie.icon} alt={pixie.name} className={styles["buff-image"]} />
+      </div>
+      
+      {showTooltip && (
+        <div className={styles.tooltip}>
+          <div className={styles["tooltip-header"]}>
+            <span className={styles["tooltip-name"]}>{pixie.name}</span>
+            <span className={`${styles["tooltip-type"]} ${styles["tooltip-type-passive"]}`}>Passive</span>
+          </div>
+          <p className={styles["tooltip-desc"]}>{pixie.description}</p>
+          <p className={styles["tooltip-effect"]} style={{ color: pixie.color }}>
+            +{pixie.buff.value} {buffInfo.label}{buffInfo.suffix}
+          </p>
+          <div className={styles["tooltip-connector"]} />
+        </div>
+      )}
+    </div>
+  );
+});
+
 export default function BuffBar() {
   const { buffs, state, activeAction, STATES } = usePlayerState();
+  const { slotMap } = useSlotMap();
   const [now, setNow] = useState(Date.now());
   
   const isArcaneRushActive = state === STATES.MOVING && activeAction === 'skill_3';
   
+  // Get equipped pixies from slot map - use slotMap directly for stable reference
+  const equippedPixies = useMemo(() => {
+    return PIXIE_SLOTS
+      .map(slot => slotMap?.[slot.id])
+      .filter(Boolean)
+      .map(id => PIXIES[id])
+      .filter(Boolean);
+  }, [slotMap]);
+  
   const hasTimedBuffs = buffs && buffs.length > 0;
+  const hasPixieBuffs = equippedPixies && equippedPixies.length > 0;
   
   // Only run timer interval when there are timed buffs to update
   useEffect(() => {
@@ -124,12 +179,18 @@ export default function BuffBar() {
     return () => clearInterval(interval);
   }, [hasTimedBuffs]);
   
-  const hasBuffs = hasTimedBuffs || isArcaneRushActive;
+  const hasBuffs = hasTimedBuffs || isArcaneRushActive || hasPixieBuffs;
   
   if (!hasBuffs) return null;
   
   return (
     <div className={styles["buff-bar"]}>
+      {/* Passive pixie buffs */}
+      {equippedPixies.map(pixie => (
+        <PixieBuffIcon key={pixie.id} pixie={pixie} />
+      ))}
+      
+      {/* Active ability buff */}
       {isArcaneRushActive && (
         <ActiveBuffIcon 
           id="arcane_rush"
@@ -138,6 +199,7 @@ export default function BuffBar() {
         />
       )}
       
+      {/* Timed buffs */}
       {buffs.map(buff => (
         <BuffIcon key={buff.id} buff={buff} now={now} />
       ))}

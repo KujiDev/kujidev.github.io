@@ -3,7 +3,7 @@ import { ACTIONS } from "@/config/actions";
 
 const STORAGE_KEY = 'player_slotmap';
 const VERSION_KEY = 'player_slotmap_version';
-const CURRENT_VERSION = 1;
+const CURRENT_VERSION = 2;
 
 /**
  * Define skill bar slots - these are UI positions, not skills
@@ -27,7 +27,13 @@ export const CONSUMABLE_SLOTS = [
   { id: 'slot_consumable_2', defaultAction: 'food', position: 7, slotType: 'consumable' },
 ];
 
-export const ALL_SLOTS = [...SKILL_SLOTS, ...MOUSE_SLOTS, ...CONSUMABLE_SLOTS];
+export const PIXIE_SLOTS = [
+  { id: 'slot_pixie_1', defaultAction: null, position: 8, slotType: 'pixie' },
+  { id: 'slot_pixie_2', defaultAction: null, position: 9, slotType: 'pixie' },
+  { id: 'slot_pixie_3', defaultAction: null, position: 10, slotType: 'pixie' },
+];
+
+export const ALL_SLOTS = [...SKILL_SLOTS, ...MOUSE_SLOTS, ...CONSUMABLE_SLOTS, ...PIXIE_SLOTS];
 
 /**
  * Get the slot type for a given slot ID

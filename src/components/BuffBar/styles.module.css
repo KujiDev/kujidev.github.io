@@ -274,3 +274,54 @@
   text-align: right;
   font-style: italic;
 }
+
+/* === Passive Pixie Buff Styles === */
+
+.buff-passive {
+  border-color: var(--pixie-color);
+  box-shadow:
+    0 0 0.5rem color-mix(in srgb, var(--pixie-color) 50%, transparent),
+    var(--shadow-inset);
+  background: radial-gradient(
+    circle at center,
+    color-mix(in srgb, var(--pixie-color) 20%, #1a1a1a) 0%,
+    #1a1a1a 70%
+  );
+}
+
+.pixie-orb {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--pixie-color);
+  transform: translate(-50%, -50%);
+  box-shadow:
+    0 0 6px var(--pixie-color),
+    0 0 12px color-mix(in srgb, var(--pixie-color) 60%, transparent);
+  animation: pixiePulse 2s ease-in-out infinite;
+}
+
+@keyframes pixiePulse {
+  0%, 100% {
+    transform: translate(-50%, -50%) scale(1);
+    box-shadow:
+      0 0 6px var(--pixie-color),
+      0 0 12px color-mix(in srgb, var(--pixie-color) 60%, transparent);
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.15);
+    box-shadow:
+      0 0 10px var(--pixie-color),
+      0 0 20px color-mix(in srgb, var(--pixie-color) 80%, transparent);
+  }
+}
+
+/* Passive buff type badge (green) */
+.tooltip-type-passive {
+  color: #80c080;
+  background: rgba(100, 180, 100, 0.15);
+  border: 1px solid rgba(100, 180, 100, 0.3);
+}
