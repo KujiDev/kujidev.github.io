@@ -17,6 +17,20 @@ export const ACHIEVEMENTS = {
     icon: '🧪',
     rarity: 'common',
   },
+  first_pixie: {
+    id: 'first_pixie',
+    name: 'Fairy Friend',
+    description: 'Equip your first pixie companion',
+    icon: '🧚',
+    rarity: 'uncommon',
+  },
+  pixie_trio: {
+    id: 'pixie_trio',
+    name: 'Pixie Parade',
+    description: 'Equip three pixies at once',
+    icon: '✨',
+    rarity: 'rare',
+  },
 };
 
 export const RARITY_COLORS = {

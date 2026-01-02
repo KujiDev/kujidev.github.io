@@ -25,7 +25,7 @@ import { PixiesProvider } from "@/hooks/usePixies";
 import { PlayerStateProvider, usePlayerState } from "@/hooks/usePlayerState";
 import { InputProvider, KeyboardSync, useActionButton } from "@/hooks/useInput";
 import { AchievementProvider, useAchievements } from "@/hooks/useAchievements";
-import { SlotMapProvider, useSlotMap, SKILL_SLOTS, MOUSE_SLOTS, CONSUMABLE_SLOTS } from "@/hooks/useSlotMap";
+import { SlotMapProvider, useSlotMap, SKILL_SLOTS, MOUSE_SLOTS, CONSUMABLE_SLOTS, PIXIE_SLOTS } from "@/hooks/useSlotMap";
 import { DragDropProvider } from "@/hooks/useDragDrop";
 import { getActionById, getElementForAction } from "@/config/actions";
 
@@ -33,8 +33,11 @@ import { getActionById, getElementForAction } from "@/config/actions";
 const AchievementTracker = () => {
   const { state, activeAction, buffs } = usePlayerState();
   const { unlock } = useAchievements();
+  const { slotMap } = useSlotMap();
   const hasTrackedCast = useRef(false);
   const trackedPotionBuff = useRef(false);
+  const trackedFirstPixie = useRef(false);
+  const trackedPixieTrio = useRef(false);
 
   useEffect(() => {
     if (!hasTrackedCast.current && (state === 'casting' || state === 'attacking') && activeAction) {
@@ -51,6 +54,23 @@ const AchievementTracker = () => {
       trackedPotionBuff.current = true;
     }
   }, [buffs, unlock]);
+
+  // Track pixie achievements
+  useEffect(() => {
+    const equippedPixies = PIXIE_SLOTS
+      .map(slot => slotMap?.[slot.id])
+      .filter(Boolean);
+    
+    if (!trackedFirstPixie.current && equippedPixies.length >= 1) {
+      unlock('first_pixie');
+      trackedFirstPixie.current = true;
+    }
+    
+    if (!trackedPixieTrio.current && equippedPixies.length >= 3) {
+      unlock('pixie_trio');
+      trackedPixieTrio.current = true;
+    }
+  }, [slotMap, unlock]);
 
   return null;
 };

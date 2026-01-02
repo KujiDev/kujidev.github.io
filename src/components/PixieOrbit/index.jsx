@@ -5,26 +5,37 @@ import { PIXIES } from '@/hooks/usePixies';
 import { useSlotMap, PIXIE_SLOTS } from '@/hooks/useSlotMap';
 
 /**
- * Single Pixie - a glowing fairy-like orb inspired by Zelda's Navi
- * Orbits around a point with gentle bobbing motion
+ * Fixed positions for pixies - Lineage 2 cubic style
+ * They hover behind and above the character in an arc formation
+ */
+const PIXIE_POSITIONS = [
+  { x: 0, y: 3.2, z: -0.8 },       // Center back, highest
+  { x: -0.6, y: 3.0, z: -0.6 },    // Left shoulder
+  { x: 0.6, y: 3.0, z: -0.6 },     // Right shoulder
+];
+
+/**
+ * Single Pixie - a glowing cubic-like orb inspired by Lineage 2 cubics
+ * Hovers at a fixed position with gentle bobbing motion
  */
 const Pixie = memo(function Pixie({ pixieData, index, totalCount }) {
   const groupRef = useRef();
   const coreRef = useRef();
   const innerGlowRef = useRef();
   const outerGlowRef = useRef();
-  const wingsRef = useRef();
   
-  // Random offsets for organic movement
+  // Get fixed position based on index
+  const basePosition = PIXIE_POSITIONS[index] || PIXIE_POSITIONS[0];
+  
+  // Random offsets for organic movement (but small since position is fixed)
   const offsets = useMemo(() => ({
-    phase: (index / totalCount) * Math.PI * 2, // Evenly distribute around orbit
-    bobSpeed: 2 + Math.random() * 0.5,
-    bobAmount: 0.08 + Math.random() * 0.04,
-    wobbleSpeed: 3 + Math.random(),
-    orbitSpeed: 0.4 + Math.random() * 0.1,
-    orbitRadius: 0.8 + index * 0.15,
-    orbitHeight: 1.8 + Math.random() * 0.3,
-  }), [index, totalCount]);
+    phase: index * 1.2, // Phase offset for desync
+    bobSpeed: 1.5 + Math.random() * 0.3,
+    bobAmount: 0.03 + Math.random() * 0.02,
+    swaySpeed: 0.8 + Math.random() * 0.2,
+    swayAmount: 0.02,
+    rotateSpeed: 0.5 + Math.random() * 0.2,
+  }), [index]);
   
   // Base colors
   const baseColor = useMemo(() => new THREE.Color(pixieData.color), [pixieData.color]);
@@ -32,23 +43,23 @@ const Pixie = memo(function Pixie({ pixieData, index, totalCount }) {
   
   useFrame((state) => {
     const t = state.clock.elapsedTime;
-    const { phase, bobSpeed, bobAmount, wobbleSpeed, orbitSpeed, orbitRadius, orbitHeight } = offsets;
+    const { phase, bobSpeed, bobAmount, swaySpeed, swayAmount, rotateSpeed } = offsets;
     
     if (groupRef.current) {
-      // Orbit around center
-      const orbitAngle = t * orbitSpeed + phase;
-      const x = Math.cos(orbitAngle) * orbitRadius;
-      const z = Math.sin(orbitAngle) * orbitRadius;
-      
-      // Bobbing motion
+      // Subtle bobbing and swaying at fixed position
       const bob = Math.sin(t * bobSpeed + phase) * bobAmount;
-      const y = orbitHeight + bob;
+      const swayX = Math.sin(t * swaySpeed + phase) * swayAmount;
+      const swayZ = Math.cos(t * swaySpeed * 0.7 + phase) * swayAmount;
       
-      groupRef.current.position.set(x, y, z);
+      groupRef.current.position.set(
+        basePosition.x + swayX,
+        basePosition.y + bob,
+        basePosition.z + swayZ
+      );
       
-      // Slight wobble rotation
-      groupRef.current.rotation.x = Math.sin(t * wobbleSpeed) * 0.1;
-      groupRef.current.rotation.z = Math.cos(t * wobbleSpeed * 0.7) * 0.1;
+      // Gentle rotation
+      groupRef.current.rotation.y = t * rotateSpeed;
+      groupRef.current.rotation.x = Math.sin(t * 0.5 + phase) * 0.05;
     }
     
     // Pulsing glow intensity
@@ -59,95 +70,61 @@ const Pixie = memo(function Pixie({ pixieData, index, totalCount }) {
     }
     if (innerGlowRef.current) {
       innerGlowRef.current.material.color.copy(glowColor).multiplyScalar(pulse * 1.5);
-      innerGlowRef.current.scale.setScalar(1 + Math.sin(t * 5 + phase) * 0.1);
+      innerGlowRef.current.scale.setScalar(1 + Math.sin(t * 5 + phase) * 0.08);
     }
     if (outerGlowRef.current) {
-      outerGlowRef.current.material.opacity = 0.15 + Math.sin(t * 3 + phase) * 0.05;
-      outerGlowRef.current.scale.setScalar(1 + Math.sin(t * 2 + phase) * 0.15);
-    }
-    
-    // Wing flutter
-    if (wingsRef.current) {
-      const flutter = Math.sin(t * 20 + phase) * 0.3;
-      wingsRef.current.children[0].rotation.z = 0.3 + flutter;
-      wingsRef.current.children[1].rotation.z = -0.3 - flutter;
+      outerGlowRef.current.material.opacity = 0.12 + Math.sin(t * 3 + phase) * 0.04;
+      outerGlowRef.current.scale.setScalar(1 + Math.sin(t * 2 + phase) * 0.1);
     }
   });
   
   return (
     <group ref={groupRef}>
-      {/* Core - bright center */}
+      {/* Core - bright center (cubic style - slightly larger) */}
       <mesh ref={coreRef}>
-        <sphereGeometry args={[0.04, 8, 8]} />
+        <sphereGeometry args={[0.05, 8, 8]} />
         <meshBasicMaterial color={pixieData.color} toneMapped={false} />
       </mesh>
       
       {/* Inner glow */}
       <mesh ref={innerGlowRef}>
-        <sphereGeometry args={[0.07, 8, 8]} />
+        <sphereGeometry args={[0.09, 8, 8]} />
         <meshBasicMaterial 
           color={pixieData.glowColor} 
           transparent 
-          opacity={0.6} 
+          opacity={0.5} 
           toneMapped={false}
         />
       </mesh>
       
       {/* Outer glow / aura */}
       <mesh ref={outerGlowRef}>
-        <sphereGeometry args={[0.15, 8, 8]} />
+        <sphereGeometry args={[0.18, 8, 8]} />
         <meshBasicMaterial 
           color={pixieData.color} 
           transparent 
-          opacity={0.15} 
+          opacity={0.12} 
           toneMapped={false}
         />
       </mesh>
       
-      {/* Wings - simple transparent planes */}
-      <group ref={wingsRef} position={[0, 0, 0]}>
-        {/* Left wing */}
-        <mesh position={[-0.05, 0.02, 0]} rotation={[0, 0.5, 0.3]}>
-          <planeGeometry args={[0.08, 0.12]} />
-          <meshBasicMaterial 
-            color={pixieData.color} 
-            transparent 
-            opacity={0.4} 
-            side={THREE.DoubleSide}
-            toneMapped={false}
-          />
-        </mesh>
-        {/* Right wing */}
-        <mesh position={[0.05, 0.02, 0]} rotation={[0, -0.5, -0.3]}>
-          <planeGeometry args={[0.08, 0.12]} />
-          <meshBasicMaterial 
-            color={pixieData.color} 
-            transparent 
-            opacity={0.4} 
-            side={THREE.DoubleSide}
-            toneMapped={false}
-          />
-        </mesh>
-      </group>
-      
-      {/* Sparkle particles trail - static positions that fade */}
-      {[...Array(4)].map((_, i) => {
-        const angle = (i / 4) * Math.PI * 2;
-        const dist = 0.1 + i * 0.02;
+      {/* Inner sparkle ring - subtle rotating particles */}
+      {[...Array(3)].map((_, i) => {
+        const angle = (i / 3) * Math.PI * 2;
         return (
           <mesh 
             key={i} 
             position={[
-              Math.cos(angle) * dist,
-              -0.05 - i * 0.03,
-              Math.sin(angle) * dist
+              Math.cos(angle) * 0.08,
+              0,
+              Math.sin(angle) * 0.08
             ]}
           >
-            <sphereGeometry args={[0.01 - i * 0.002, 4, 4]} />
+            <sphereGeometry args={[0.012, 4, 4]} />
             <meshBasicMaterial 
               color={pixieData.color} 
               transparent 
-              opacity={0.5 - i * 0.1}
+              opacity={0.6}
               toneMapped={false}
             />
           </mesh>
