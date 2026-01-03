@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useState, useMemo, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useSlotMap } from "@/hooks/useGame";
-import { getSlotType } from "@/config/slots";
+import { getSlotType, isDropCompatible } from "@/config/slots";
 import { getDragType } from "@/config/actions";
 
 const DragDropContext = createContext(null);
@@ -55,7 +55,7 @@ export function DragDropProvider({ children }) {
   const [dragging, setDragging] = useState(null);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [dropTargets, setDropTargets] = useState(new Map());
-  const { assignToSlot, swapSlots } = useSlotMap();
+  const { assignToSlot, swapSlots, clearSlot } = useSlotMap();
   
   /**
    * Start dragging an action
@@ -64,7 +64,6 @@ export function DragDropProvider({ children }) {
    * @param {string} [sourceSlot] - Optional slot ID if dragging from a slot
    */
   const startDrag = useCallback((action, startPos, sourceSlot = null) => {
-    console.log('[DragDrop] startDrag', { action, startPos, sourceSlot });
     setDragging({ ...action, sourceSlot });
     setPosition(startPos);
   }, []);
@@ -82,8 +81,6 @@ export function DragDropProvider({ children }) {
   const endDrag = useCallback((endPos) => {
     if (!dragging) return;
     
-    console.log('[DragDrop] endDrag', { endPos, dragging, dropTargetsCount: dropTargets.size });
-    
     // Find drop target at position
     let targetSlot = null;
     dropTargets.forEach((rect, slotId) => {
@@ -97,36 +94,28 @@ export function DragDropProvider({ children }) {
       }
     });
     
-    console.log('[DragDrop] targetSlot:', targetSlot);
-    
     if (targetSlot) {
-      const targetSlotType = getSlotType(targetSlot);
-      const dragType = dragging.dragType;
-      
-      console.log('[DragDrop] types:', { dragType, targetSlotType, isCompatible: dragType === targetSlotType });
-      
-      // Validate type compatibility
-      const isCompatible = dragType === targetSlotType;
+      // Validate type compatibility using centralized function
+      const isCompatible = isDropCompatible(dragging.dragType, targetSlot);
       
       if (isCompatible) {
         // If dragging from a slot to another slot, swap them
         if (dragging.sourceSlot && dragging.sourceSlot !== targetSlot) {
-          console.log('[DragDrop] swapping slots:', dragging.sourceSlot, targetSlot);
           swapSlots(dragging.sourceSlot, targetSlot);
         } else if (!dragging.sourceSlot) {
-          // Dragging from SpellBook/Consumables panel to slot
-          console.log('[DragDrop] assigning to slot:', targetSlot, dragging.id);
+          // Dragging from SpellBook/Consumables/Pixies panel to slot
           assignToSlot(targetSlot, dragging.id);
         }
         // If dropped on same slot, do nothing
-      } else {
-        console.log('[DragDrop] REJECTED - incompatible types');
       }
       // If not compatible, drop is rejected silently
+    } else if (dragging.sourceSlot) {
+      // Dropped outside any valid target while dragging from a slot = unequip
+      clearSlot(dragging.sourceSlot);
     }
     
     setDragging(null);
-  }, [dragging, dropTargets, assignToSlot, swapSlots]);
+  }, [dragging, dropTargets, assignToSlot, swapSlots, clearSlot]);
   
   /**
    * Cancel drag
@@ -139,7 +128,6 @@ export function DragDropProvider({ children }) {
    * Register a drop target (slot)
    */
   const registerDropTarget = useCallback((slotId, rect) => {
-    console.log('[DragDrop] registerDropTarget', slotId);
     setDropTargets(prev => {
       const next = new Map(prev);
       next.set(slotId, rect);
@@ -159,10 +147,16 @@ export function DragDropProvider({ children }) {
   }, []);
   
   /**
-   * Check if a slot is being hovered during drag
+   * Check if a slot is being hovered during drag AND is a valid drop target.
+   * This is used for visual highlighting - only highlights compatible slots.
    */
   const isSlotHovered = useCallback((slotId) => {
     if (!dragging) return false;
+    
+    // First check type compatibility - never highlight incompatible slots
+    if (!isDropCompatible(dragging.dragType, slotId)) return false;
+    
+    // Then check position
     const rect = dropTargets.get(slotId);
     if (!rect) return false;
     return (

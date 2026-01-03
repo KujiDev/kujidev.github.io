@@ -42,7 +42,7 @@ export const CONSUMABLE_SLOTS = [
 ];
 
 export const PIXIE_SLOTS = [
-  { id: 'slot_pixie_1', defaultAction: 'azure', position: 8, slotType: SLOT_TYPES.PIXIE },
+  { id: 'slot_pixie_1', defaultAction: null, position: 8, slotType: SLOT_TYPES.PIXIE },
   { id: 'slot_pixie_2', defaultAction: null, position: 9, slotType: SLOT_TYPES.PIXIE },
   { id: 'slot_pixie_3', defaultAction: null, position: 10, slotType: SLOT_TYPES.PIXIE },
 ];
@@ -78,6 +78,21 @@ export const getSlotById = (slotId) =>
 export const getSlotType = (slotId) => {
   const slot = getSlotById(slotId);
   return slot?.slotType || null;
+};
+
+/**
+ * Check if a drag type is compatible with a slot.
+ * This is the SINGLE SOURCE OF TRUTH for drag/drop compatibility.
+ * 
+ * Rules:
+ * - Skills can go into skill slots (1-4) and mouse slots (LMB/RMB)
+ * - Consumables can go into consumable slots
+ * - Pixies can go into pixie slots only
+ */
+export const isDropCompatible = (dragType, slotId) => {
+  const slotType = getSlotType(slotId);
+  if (!dragType || !slotType) return false;
+  return dragType === slotType;
 };
 
 /**

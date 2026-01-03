@@ -51,12 +51,11 @@
     "slot_lmb": "arcane_bolt",
     "slot_rmb": "arcane_blast",
     "slot_consumable_1": "health_potion",
-    "slot_consumable_2": "mana_biscuit",
-    "slot_pixie_1": "azure"
+    "slot_consumable_2": "mana_biscuit"
   },
   
   "allowedPixies": null,
-  "defaultPixies": ["azure"],
+  "defaultPixies": [],
   "collectablePixies": ["verdant", "azure", "violet", "crimson"],
   
   "stateAnimations": {
