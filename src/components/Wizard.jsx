@@ -14,7 +14,7 @@ import ShieldEffect from '@/components/ShieldEffect'
 import ManaShield from '@/components/ManaShield'
 import ArcaneTrail from '@/components/ArcaneTrail'
 import HealingParticles from '@/components/HealingParticles'
-import { getElementForAction, ELEMENTS } from '@/config/actions'
+import { getElementForAction, getActionById, ELEMENTS } from '@/config/actions'
 import * as THREE from 'three'
 
 const GLOW_MATERIALS = {}
@@ -64,7 +64,12 @@ export function Model(props) {
     })
   }, [clone])
 
-  const isArcaneRush = state === STATES.MOVING && activeAction === 'skill_3'
+  const isArcaneRush = useMemo(() => {
+    if (state !== STATES.MOVING || !activeAction) return false
+    const action = getActionById(activeAction)
+    // Channel abilities with movement effect (has manaPerSecond and triggers MOVE state)
+    return action?.manaPerSecond > 0
+  }, [state, activeAction, STATES])
   
   useEffect(() => {
     if (isArcaneRush) {

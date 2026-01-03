@@ -64,6 +64,7 @@ export function DragDropProvider({ children }) {
    * @param {string} [sourceSlot] - Optional slot ID if dragging from a slot
    */
   const startDrag = useCallback((action, startPos, sourceSlot = null) => {
+    console.log('[DragDrop] startDrag', { action, startPos, sourceSlot });
     setDragging({ ...action, sourceSlot });
     setPosition(startPos);
   }, []);
@@ -81,6 +82,8 @@ export function DragDropProvider({ children }) {
   const endDrag = useCallback((endPos) => {
     if (!dragging) return;
     
+    console.log('[DragDrop] endDrag', { endPos, dragging, dropTargetsCount: dropTargets.size });
+    
     // Find drop target at position
     let targetSlot = null;
     dropTargets.forEach((rect, slotId) => {
@@ -94,9 +97,13 @@ export function DragDropProvider({ children }) {
       }
     });
     
+    console.log('[DragDrop] targetSlot:', targetSlot);
+    
     if (targetSlot) {
       const targetSlotType = getSlotType(targetSlot);
       const dragType = dragging.dragType;
+      
+      console.log('[DragDrop] types:', { dragType, targetSlotType, isCompatible: dragType === targetSlotType });
       
       // Validate type compatibility
       const isCompatible = dragType === targetSlotType;
@@ -104,12 +111,16 @@ export function DragDropProvider({ children }) {
       if (isCompatible) {
         // If dragging from a slot to another slot, swap them
         if (dragging.sourceSlot && dragging.sourceSlot !== targetSlot) {
+          console.log('[DragDrop] swapping slots:', dragging.sourceSlot, targetSlot);
           swapSlots(dragging.sourceSlot, targetSlot);
         } else if (!dragging.sourceSlot) {
           // Dragging from SpellBook/Consumables panel to slot
+          console.log('[DragDrop] assigning to slot:', targetSlot, dragging.id);
           assignToSlot(targetSlot, dragging.id);
         }
         // If dropped on same slot, do nothing
+      } else {
+        console.log('[DragDrop] REJECTED - incompatible types');
       }
       // If not compatible, drop is rejected silently
     }
@@ -128,6 +139,7 @@ export function DragDropProvider({ children }) {
    * Register a drop target (slot)
    */
   const registerDropTarget = useCallback((slotId, rect) => {
+    console.log('[DragDrop] registerDropTarget', slotId);
     setDropTargets(prev => {
       const next = new Map(prev);
       next.set(slotId, rect);

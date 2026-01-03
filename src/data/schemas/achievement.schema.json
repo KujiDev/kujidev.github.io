@@ -1,0 +1,114 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "achievement.schema.json",
+  "title": "ARPG Achievement Definition",
+  "description": "Schema for defining achievements with data-driven conditions",
+  "type": "object",
+  "required": ["id", "name", "description", "condition"],
+  
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z_]+$",
+      "description": "Unique identifier"
+    },
+    "name": {
+      "type": "string",
+      "description": "Display name"
+    },
+    "description": {
+      "type": "string",
+      "description": "How to unlock this achievement"
+    },
+    
+    "icon": {
+      "type": "string",
+      "description": "Emoji or icon path"
+    },
+    
+    "rarity": {
+      "type": "string",
+      "enum": ["common", "uncommon", "rare", "epic", "legendary"],
+      "description": "Affects visual styling"
+    },
+    
+    "condition": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["event", "counter", "threshold", "collection", "composite"],
+          "description": "How the condition is evaluated"
+        },
+        "event": {
+          "type": "string",
+          "description": "Event ID that triggers check (for type=event)"
+        },
+        "stat": {
+          "type": "string",
+          "description": "Stat to check (for type=threshold)"
+        },
+        "target": {
+          "type": "number",
+          "description": "Target value (for counter/threshold)"
+        },
+        "items": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Required items (for type=collection)"
+        },
+        "all": {
+          "type": "array",
+          "items": { "$ref": "#/properties/condition" },
+          "description": "All conditions must be met (for type=composite)"
+        },
+        "any": {
+          "type": "array",
+          "items": { "$ref": "#/properties/condition" },
+          "description": "Any condition must be met (for type=composite)"
+        }
+      },
+      "required": ["type"]
+    },
+    
+    "progress": {
+      "type": "object",
+      "properties": {
+        "trackable": { "type": "boolean" },
+        "showInUI": { "type": "boolean" },
+        "format": { "type": "string" }
+      },
+      "description": "Progress tracking settings"
+    },
+    
+    "rewards": {
+      "type": "object",
+      "properties": {
+        "experience": { "type": "number" },
+        "currency": { "type": "number" },
+        "items": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "title": { "type": "string" },
+        "cosmetic": { "type": "string" }
+      }
+    },
+    
+    "hidden": {
+      "type": "boolean",
+      "description": "Hidden until unlocked"
+    },
+    
+    "prerequisites": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Achievement IDs that must be unlocked first"
+    },
+    
+    "tags": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  }
+}

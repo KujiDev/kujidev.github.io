@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 import { usePlayerState } from '@/hooks/useGame';
 import { getActionById, ELEMENTS } from '@/config/actions';
 import styles from './styles.module.css';
@@ -55,11 +55,17 @@ function ShatterOverlay({ actionId, progress }) {
     );
 }
 
+/**
+ * Shatter animation state - consolidated to avoid multiple useState calls.
+ * null = no shatter active, object = shatter in progress
+ */
+const INITIAL_SHATTER_STATE = null;
+
 export default function CastingBar() {
     const { state, activeAction, castProgress, interruptCounter, interruptedAction, interruptedProgress, STATES } = usePlayerState();
-    const [showShatter, setShowShatter] = useState(false);
-    const [shatterProgress, setShatterProgress] = useState(0);
-    const [shatterActionId, setShatterActionId] = useState(null);
+    
+    // Consolidated shatter state: { actionId, progress } or null
+    const [shatter, setShatter] = useState(INITIAL_SHATTER_STATE);
     const lastInterruptCountRef = useRef(0);
     
     // Only show when casting or attacking (not idle/moving)
@@ -69,30 +75,31 @@ export default function CastingBar() {
     useEffect(() => {
         if (interruptCounter > lastInterruptCountRef.current && interruptedAction) {
             lastInterruptCountRef.current = interruptCounter;
-            setShatterActionId(interruptedAction);
-            setShatterProgress(interruptedProgress);
-            setShowShatter(true);
+            setShatter({ actionId: interruptedAction, progress: interruptedProgress });
             
             // Hide shatter after animation
             const timer = setTimeout(() => {
-                setShowShatter(false);
-                setShatterActionId(null);
+                setShatter(INITIAL_SHATTER_STATE);
             }, 400);
             
             return () => clearTimeout(timer);
         }
     }, [interruptCounter, interruptedAction, interruptedProgress]);
     
-    const action = isActive && activeAction ? getActionById(activeAction) : null;
-    const element = getElementColors(action);
+    // Derive action and element for current casting
+    const action = useMemo(() => 
+        isActive && activeAction ? getActionById(activeAction) : null, 
+        [isActive, activeAction]
+    );
+    const element = useMemo(() => getElementColors(action), [action]);
     const progress = castProgress ?? 0;
     const percentage = Math.round(progress * 100);
     
     return (
         <div className={styles['casting-bar-container']}>
             {/* Shatter overlay - shows above the new casting bar */}
-            {showShatter && shatterActionId && (
-                <ShatterOverlay actionId={shatterActionId} progress={shatterProgress} />
+            {shatter && (
+                <ShatterOverlay actionId={shatter.actionId} progress={shatter.progress} />
             )}
             
             {/* Normal casting bar */}

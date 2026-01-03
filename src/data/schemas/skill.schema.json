@@ -1,0 +1,171 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "skill.schema.json",
+  "title": "ARPG Skill Definition",
+  "description": "Schema for defining active skills, spells, and abilities",
+  "type": "object",
+  "required": ["id", "label", "type", "animation"],
+  
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z_]+$",
+      "description": "Unique identifier"
+    },
+    "label": {
+      "type": "string",
+      "description": "Display name"
+    },
+    "description": {
+      "type": "string",
+      "description": "Tooltip text"
+    },
+    
+    "type": {
+      "type": "string",
+      "enum": ["cast", "attack", "channel", "buff", "consumable"],
+      "description": "Skill category affecting behavior"
+    },
+    
+    "element": {
+      "type": "string",
+      "description": "Element ID for visuals and damage type"
+    },
+    
+    "animation": {
+      "type": "string",
+      "description": "Semantic animation key (from ANIM enum)"
+    },
+    
+    "castTime": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Cast time in seconds (for type=cast)"
+    },
+    
+    "cooldown": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Cooldown in seconds"
+    },
+    
+    "costs": {
+      "type": "object",
+      "properties": {
+        "mana": { "type": "number", "minimum": 0 },
+        "health": { "type": "number", "minimum": 0 },
+        "manaPerSecond": { "type": "number", "minimum": 0 },
+        "healthPerSecond": { "type": "number", "minimum": 0 }
+      },
+      "description": "Resource costs to use the skill"
+    },
+    
+    "effects": {
+      "type": "object",
+      "properties": {
+        "damage": {
+          "type": "object",
+          "properties": {
+            "base": { "type": "number" },
+            "element": { "type": "string" },
+            "aoe": { "type": "boolean" },
+            "radius": { "type": "number" }
+          }
+        },
+        "healing": {
+          "type": "object",
+          "properties": {
+            "base": { "type": "number" },
+            "isPercent": { "type": "boolean" }
+          }
+        },
+        "manaGain": { "type": "number" },
+        "buff": {
+          "type": "object",
+          "properties": {
+            "id": { "type": "string" },
+            "duration": { "type": "number" },
+            "stacks": { "type": "integer" }
+          }
+        },
+        "debuff": {
+          "type": "object",
+          "properties": {
+            "id": { "type": "string" },
+            "duration": { "type": "number" },
+            "stacks": { "type": "integer" }
+          }
+        },
+        "movement": {
+          "type": "object",
+          "properties": {
+            "speedMultiplier": { "type": "number" },
+            "dash": { "type": "boolean" },
+            "distance": { "type": "number" }
+          }
+        }
+      },
+      "description": "Effects when skill completes"
+    },
+    
+    "scaling": {
+      "type": "object",
+      "properties": {
+        "graphId": { "type": "string" },
+        "statModifiers": {
+          "type": "object",
+          "additionalProperties": { "type": "number" }
+        }
+      },
+      "description": "References to scaling graphs or stat modifiers"
+    },
+    
+    "restrictions": {
+      "type": "object",
+      "properties": {
+        "classes": {
+          "type": ["array", "null"],
+          "items": { "type": "string" }
+        },
+        "minLevel": { "type": "integer", "minimum": 1 },
+        "requiredBuff": { "type": "string" },
+        "requiredWeapon": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    
+    "ui": {
+      "type": "object",
+      "properties": {
+        "icon": { "type": "string", "description": "Icon asset path (resolved at runtime)" },
+        "defaultKey": { "type": "string" },
+        "slotType": { "type": "string", "enum": ["skill", "consumable"] }
+      }
+    },
+    
+    "vfx": {
+      "type": "object",
+      "properties": {
+        "castEffect": { "type": "string" },
+        "projectile": { "type": "string" },
+        "impactEffect": { "type": "string" }
+      }
+    },
+    
+    "sfx": {
+      "type": "object",
+      "properties": {
+        "cast": { "type": "string" },
+        "impact": { "type": "string" }
+      }
+    },
+    
+    "tags": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Classification tags (aoe, single_target, projectile, etc.)"
+    }
+  }
+}

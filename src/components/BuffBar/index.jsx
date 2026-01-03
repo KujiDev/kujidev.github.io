@@ -1,6 +1,7 @@
 import { usePlayerState, useSlotMap } from "@/hooks/useGame";
-import { PIXIES } from "@/config/pixies";
+import { PIXIES } from "@/config/entities/pixies";
 import { PIXIE_SLOTS } from "@/config/slots";
+import { isActionForSkill } from "@/config/actions";
 import { useState, useEffect, memo, useMemo } from "react";
 import styles from "./styles.module.css";
 import arcaneRushIcon from '@/assets/icons/arcane-rush.svg';
@@ -154,7 +155,7 @@ export default function BuffBar() {
   const { slotMap } = useSlotMap();
   const [now, setNow] = useState(Date.now());
   
-  const isArcaneRushActive = state === STATES.MOVING && activeAction === 'skill_3';
+  const isArcaneRushActive = state === STATES.MOVING && isActionForSkill(activeAction, 'arcane_rush');
   
   // Get equipped pixies from slot map - use slotMap directly for stable reference
   const equippedPixies = useMemo(() => {

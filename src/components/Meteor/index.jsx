@@ -2,7 +2,7 @@ import { useRef, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { usePlayerState } from '@/hooks/useGame'
-import { ELEMENTS } from '@/config/actions'
+import { ELEMENTS, isActionForSkill } from '@/config/actions'
 
 // Fire colors from unified element palette
 const FIRE_COLOR = new THREE.Color(ELEMENTS.fire.primary)
@@ -279,7 +279,7 @@ export default function Meteor({ targetPosition = [0, 0, 5] }) {
   const impactLightRef = useRef()
   const timeRef = useRef(0)
   
-  const isCasting = (state === STATES.CASTING || state === STATES.ATTACKING) && activeAction === 'skill_2'
+  const isCasting = (state === STATES.CASTING || state === STATES.ATTACKING) && isActionForSkill(activeAction, 'meteor')
   
   // Create materials
   const meteorMaterial = useMemo(() => new THREE.ShaderMaterial({

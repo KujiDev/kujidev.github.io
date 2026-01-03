@@ -1,0 +1,154 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "graph.schema.json",
+  "title": "ARPG Graph Definition",
+  "description": "Schema for defining computation/effect graphs used in skills, scaling, and conditional logic",
+  "type": "object",
+  "required": ["id", "type", "nodes", "edges"],
+  
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z_]+$",
+      "description": "Unique identifier"
+    },
+    "name": {
+      "type": "string",
+      "description": "Human-readable name"
+    },
+    "description": {
+      "type": "string"
+    },
+    
+    "type": {
+      "type": "string",
+      "enum": ["skill_tree", "stat_scaling", "effect_pipeline", "condition", "modifier"],
+      "description": "Graph category"
+    },
+    
+    "nodes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "type"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Node identifier (unique within graph)"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "input",
+              "output",
+              "constant",
+              "stat_read",
+              "stat_write",
+              "math",
+              "condition",
+              "branch",
+              "event_listener",
+              "effect",
+              "modifier",
+              "delay",
+              "random",
+              "clamp",
+              "lerp"
+            ],
+            "description": "Node type determines behavior"
+          },
+          "params": {
+            "type": "object",
+            "description": "Type-specific parameters",
+            "properties": {
+              "value": { "type": ["number", "string", "boolean"] },
+              "stat": { "type": "string" },
+              "operation": { 
+                "type": "string", 
+                "enum": ["add", "subtract", "multiply", "divide", "power", "min", "max", "abs", "floor", "ceil", "round"]
+              },
+              "comparison": {
+                "type": "string",
+                "enum": ["eq", "neq", "gt", "gte", "lt", "lte", "and", "or", "not"]
+              },
+              "event": { "type": "string" },
+              "effect": { "type": "string" },
+              "min": { "type": "number" },
+              "max": { "type": "number" },
+              "duration": { "type": "number" },
+              "chance": { "type": "number", "minimum": 0, "maximum": 1 }
+            }
+          },
+          "position": {
+            "type": "object",
+            "properties": {
+              "x": { "type": "number" },
+              "y": { "type": "number" }
+            },
+            "description": "Visual position for editor"
+          }
+        }
+      }
+    },
+    
+    "edges": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["from", "to"],
+        "properties": {
+          "from": {
+            "type": "string",
+            "description": "Source node ID"
+          },
+          "fromPort": {
+            "type": "string",
+            "description": "Output port name (default: 'out')"
+          },
+          "to": {
+            "type": "string",
+            "description": "Target node ID"
+          },
+          "toPort": {
+            "type": "string",
+            "description": "Input port name (default: 'in')"
+          }
+        }
+      }
+    },
+    
+    "inputs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "type": { "type": "string", "enum": ["number", "boolean", "string", "entity"] },
+          "default": { "type": ["number", "boolean", "string", "null"] }
+        }
+      },
+      "description": "External inputs to the graph"
+    },
+    
+    "outputs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "type": { "type": "string", "enum": ["number", "boolean", "string", "effect"] }
+        }
+      },
+      "description": "Outputs from the graph"
+    },
+    
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "author": { "type": "string" },
+        "version": { "type": "string" },
+        "tags": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  }
+}

@@ -4,45 +4,43 @@ import { usePlayerState } from "@/hooks/useGame";
 
 const InputContext = createContext(null);
 
+/**
+ * Input Provider - tracks SLOT press states, not action IDs.
+ * 
+ * Each slot has its own independent pressed state.
+ * This prevents the bug where clicking one slot highlights all slots
+ * that share the same action.
+ */
 export function InputProvider({ children }) {
-  const [activeInputs, setActiveInputs] = useState({});
-  
-  const [uiPresses, setUiPresses] = useState({});
+  // Track which SLOTS are pressed (not actions)
+  const [activeSlots, setActiveSlots] = useState({});
 
-  const pressAction = useCallback((actionId) => {
-    setActiveInputs(prev => ({ ...prev, [actionId]: true }));
-    setUiPresses(prev => ({ ...prev, [actionId]: true }));
+  const pressSlot = useCallback((slotId) => {
+    setActiveSlots(prev => ({ ...prev, [slotId]: true }));
   }, []);
 
-  const releaseAction = useCallback((actionId) => {
-    setActiveInputs(prev => ({ ...prev, [actionId]: false }));
-    setUiPresses(prev => ({ ...prev, [actionId]: false }));
+  const releaseSlot = useCallback((slotId) => {
+    setActiveSlots(prev => ({ ...prev, [slotId]: false }));
   }, []);
 
-  const isActive = useCallback((actionId) => {
-    return !!activeInputs[actionId];
-  }, [activeInputs]);
+  const isSlotActive = useCallback((slotId) => {
+    return !!activeSlots[slotId];
+  }, [activeSlots]);
 
-  const isUiTriggered = useCallback((actionId) => {
-    return !!uiPresses[actionId];
-  }, [uiPresses]);
-
-  const syncKeyboardState = useCallback((actionId, isPressed) => {
-    setActiveInputs(prev => {
-      // Don't override UI presses with keyboard state
-      if (prev[actionId] === isPressed) return prev;
-      return { ...prev, [actionId]: isPressed };
+  const syncKeyboardState = useCallback((slotId, isPressed) => {
+    setActiveSlots(prev => {
+      if (prev[slotId] === isPressed) return prev;
+      return { ...prev, [slotId]: isPressed };
     });
   }, []);
 
   const value = useMemo(() => ({
-    activeInputs,
-    pressAction,
-    releaseAction,
-    isActive,
-    isUiTriggered,
+    activeSlots,
+    pressSlot,
+    releaseSlot,
+    isSlotActive,
     syncKeyboardState,
-  }), [activeInputs, pressAction, releaseAction, isActive, isUiTriggered, syncKeyboardState]);
+  }), [activeSlots, pressSlot, releaseSlot, isSlotActive, syncKeyboardState]);
 
   return (
     <InputContext.Provider value={value}>
@@ -80,33 +78,52 @@ export function useInput() {
   return context;
 }
 
-export function useActionButton(actionId, slotId = null) {
-  const { isActive, pressAction, releaseAction } = useInput();
+/**
+ * Hook for action button UI components.
+ * 
+ * CRITICAL: This hook tracks by SLOT ID, not action ID.
+ * - `slotId` determines highlighting (which button looks pressed)
+ * - `actionId` determines what action executes
+ * 
+ * This separation ensures that if multiple slots have the same action,
+ * only the pressed slot highlights.
+ */
+export function useActionButton(actionId, slotId) {
+  const { isSlotActive, pressSlot, releaseSlot } = useInput();
   const { handleInput } = usePlayerState();
-  // Use slotId for keyboard state if provided, otherwise fall back to actionId
-  const keyboardStateKey = slotId || actionId;
-  const keyboardState = useKeyboardControls((state) => state[keyboardStateKey]);
+  
+  // slotId is REQUIRED for proper highlighting
+  if (!slotId) {
+    console.warn('useActionButton: slotId is required for proper highlighting');
+  }
+  
+  // Listen for keyboard state on THIS slot
+  const keyboardState = useKeyboardControls((state) => state[slotId]);
   
   // Track if currently in a touch interaction to prevent mouse events from double-firing
   const isTouchingRef = useRef(false);
   const pressedRef = useRef(false);
-  const active = isActive(actionId) || keyboardState;
+  
+  // Active state is based on SLOT, not action
+  const active = isSlotActive(slotId) || keyboardState;
 
+  // Press visual feedback is decoupled from action execution
+  // Slot shows "pressed" even without a skill assigned
   const doPress = useCallback(() => {
     if (!pressedRef.current) {
       pressedRef.current = true;
-      pressAction(actionId);
-      handleInput(actionId, true);
+      pressSlot(slotId);
+      if (actionId) handleInput(actionId, true);
     }
-  }, [actionId, pressAction, handleInput]);
+  }, [actionId, slotId, pressSlot, handleInput]);
 
   const doRelease = useCallback(() => {
     if (pressedRef.current) {
       pressedRef.current = false;
-      releaseAction(actionId);
-      handleInput(actionId, false);
+      releaseSlot(slotId);
+      if (actionId) handleInput(actionId, false);
     }
-  }, [actionId, releaseAction, handleInput]);
+  }, [actionId, slotId, releaseSlot, handleInput]);
 
   const handlers = useMemo(() => ({
     // Mouse events - only fire if not in touch mode

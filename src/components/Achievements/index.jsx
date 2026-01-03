@@ -1,7 +1,8 @@
 import { useState, useRef } from 'react';
 import { MenuButton, Drawer, DrawerTitle, ScrollList, SvgIcon } from '@/ui';
 import styles from './styles.module.css';
-import { useAchievements, RARITY_COLORS } from '@/hooks/useAchievements';
+import { useAchievements } from '@/hooks/useGame';
+import { RARITY_COLORS } from '@/config/achievements';
 import trophyIcon from '@/assets/icons/trophy.svg?raw';
 
 export default function Achievements() {

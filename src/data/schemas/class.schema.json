@@ -1,0 +1,149 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "class.schema.json",
+  "title": "ARPG Class Definition",
+  "description": "Schema for defining playable character classes",
+  "type": "object",
+  "required": ["id", "name", "baseStats", "allowedSkills", "defaultLoadout", "stateAnimations"],
+  
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z_]+$",
+      "description": "Unique identifier for the class"
+    },
+    "name": {
+      "type": "string",
+      "description": "Display name"
+    },
+    "description": {
+      "type": "string",
+      "description": "Short description for UI"
+    },
+    
+    "model": {
+      "type": "object",
+      "properties": {
+        "path": { "type": "string" },
+        "scale": { "type": "number", "default": 1 },
+        "position": { "type": "array", "items": { "type": "number" }, "minItems": 3, "maxItems": 3 }
+      },
+      "required": ["path"]
+    },
+    
+    "ui": {
+      "type": "object",
+      "properties": {
+        "icon": { "type": ["string", "null"] },
+        "color": { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" },
+        "portrait": { "type": ["string", "null"] }
+      }
+    },
+    
+    "baseStats": {
+      "type": "object",
+      "properties": {
+        "maxHealth": { "type": "number", "minimum": 1 },
+        "maxMana": { "type": "number", "minimum": 0 },
+        "healthRegen": { "type": "number" },
+        "manaRegen": { "type": "number" },
+        "moveSpeed": { "type": "number", "minimum": 0 },
+        "armor": { "type": "number" },
+        "magicResist": { "type": "number" },
+        "spellPower": { "type": "number" },
+        "attackPower": { "type": "number" },
+        "critChance": { "type": "number", "minimum": 0, "maximum": 1 }
+      },
+      "required": ["maxHealth", "maxMana"]
+    },
+    
+    "allowedElements": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Element IDs this class can use"
+    },
+    "primaryElement": {
+      "type": "string",
+      "description": "Primary element for visuals/defaults"
+    },
+    
+    "allowedSkills": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Skill IDs this class can equip"
+    },
+    
+    "defaultLoadout": {
+      "type": "object",
+      "additionalProperties": { "type": ["string", "null"] },
+      "description": "Maps slot IDs to skill IDs"
+    },
+    
+    "allowedPixies": {
+      "type": ["array", "null"],
+      "items": { "type": "string" },
+      "description": "Pixie IDs allowed, null = all allowed"
+    },
+    "defaultPixies": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "collectablePixies": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    
+    "stateAnimations": {
+      "type": "object",
+      "properties": {
+        "idle": { "type": "string" },
+        "casting": { "type": "string" },
+        "attacking": { "type": "string" },
+        "moving": { "type": "string" },
+        "dead": { "type": "string" }
+      },
+      "required": ["idle", "moving"],
+      "description": "Maps FSM states to animation semantic keys"
+    },
+    
+    "animationOverrides": {
+      "type": "object",
+      "additionalProperties": { "type": "string" }
+    },
+    
+    "allowedWeapons": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "primaryWeapon": { "type": "string" },
+    "allowedArmor": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    
+    "audio": {
+      "type": "object",
+      "properties": {
+        "voiceSet": { "type": "string" },
+        "footsteps": { "type": "string" },
+        "castSounds": { "type": "object", "additionalProperties": { "type": "string" } }
+      }
+    },
+    
+    "lore": {
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "shortDesc": { "type": "string" },
+        "fullDesc": { "type": "string" },
+        "faction": { "type": "string" }
+      }
+    },
+    
+    "tags": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Classification tags (caster, melee, summoner, etc.)"
+    }
+  }
+}

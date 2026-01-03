@@ -1,0 +1,128 @@
+[
+  {
+    "$schema": "../schemas/animation.schema.json",
+    "modelId": "wizard",
+    "modelPath": "/models/Wizard-transformed.glb",
+    "clips": {
+      "IDLE": "Idle",
+      "RUN": "Run",
+      "WALK": "Walk",
+      "DEATH": "Death",
+      "CAST_PRIMARY": "Staff_Attack",
+      "CAST_SECONDARY": "Spell1",
+      "CAST_BUFF": "Spell1",
+      "CAST_CHANNEL": "Run",
+      "MELEE_LIGHT": "Staff_Attack",
+      "MELEE_HEAVY": "Staff_Attack",
+      "USE_ITEM": "Idle"
+    },
+    "blendDefaults": {
+      "crossfadeDuration": 0.2,
+      "fadeIn": 0.1,
+      "fadeOut": 0.1
+    }
+  },
+  {
+    "$schema": "../schemas/animation.schema.json",
+    "modelId": "cleric",
+    "modelPath": "/models/Cleric.glb",
+    "clips": {
+      "IDLE": "Idle",
+      "RUN": "Run",
+      "WALK": "Walk",
+      "DEATH": "Death",
+      "CAST_PRIMARY": "Cast",
+      "CAST_SECONDARY": "Heal",
+      "CAST_BUFF": "Buff",
+      "CAST_CHANNEL": "Channel",
+      "MELEE_LIGHT": "Mace_Attack",
+      "MELEE_HEAVY": "Mace_Heavy",
+      "BLOCK": "Shield_Block"
+    },
+    "blendDefaults": {
+      "crossfadeDuration": 0.2
+    }
+  },
+  {
+    "$schema": "../schemas/animation.schema.json",
+    "modelId": "monk",
+    "modelPath": "/models/Monk.glb",
+    "clips": {
+      "IDLE": "Idle",
+      "RUN": "Run",
+      "WALK": "Walk",
+      "DEATH": "Death",
+      "MELEE_LIGHT": "Punch_Light",
+      "MELEE_HEAVY": "Punch_Heavy",
+      "MELEE_COMBO_1": "Combo_1",
+      "MELEE_COMBO_2": "Combo_2",
+      "MELEE_COMBO_3": "Combo_3",
+      "CAST_BUFF": "Meditate",
+      "DODGE": "Dodge"
+    },
+    "blendDefaults": {
+      "crossfadeDuration": 0.15
+    }
+  },
+  {
+    "$schema": "../schemas/animation.schema.json",
+    "modelId": "ranger",
+    "modelPath": "/models/Ranger.glb",
+    "clips": {
+      "IDLE": "Idle",
+      "RUN": "Run",
+      "WALK": "Walk",
+      "DEATH": "Death",
+      "RANGED_ATTACK": "Bow_Fire",
+      "RANGED_AIMED": "Bow_Aimed",
+      "MELEE_LIGHT": "Dagger_Attack",
+      "CAST_BUFF": "Apply_Poison",
+      "DODGE": "Roll"
+    },
+    "blendDefaults": {
+      "crossfadeDuration": 0.2
+    }
+  },
+  {
+    "$schema": "../schemas/animation.schema.json",
+    "modelId": "rogue",
+    "modelPath": "/models/Rogue.glb",
+    "clips": {
+      "IDLE": "Idle",
+      "RUN": "Run",
+      "WALK": "Walk",
+      "DEATH": "Death",
+      "MELEE_LIGHT": "Dagger_Light",
+      "MELEE_HEAVY": "Dagger_Heavy",
+      "MELEE_COMBO_1": "Dagger_Combo_1",
+      "MELEE_COMBO_2": "Dagger_Combo_2",
+      "CAST_BUFF": "Stealth",
+      "DODGE": "Shadowstep"
+    },
+    "blendDefaults": {
+      "crossfadeDuration": 0.15
+    }
+  },
+  {
+    "$schema": "../schemas/animation.schema.json",
+    "modelId": "warrior",
+    "modelPath": "/models/Warrior.glb",
+    "clips": {
+      "IDLE": "Idle",
+      "RUN": "Run",
+      "WALK": "Walk",
+      "DEATH": "Death",
+      "MELEE_LIGHT": "Sword_Light",
+      "MELEE_HEAVY": "Sword_Heavy",
+      "MELEE_COMBO_1": "Sword_Combo_1",
+      "MELEE_COMBO_2": "Sword_Combo_2",
+      "MELEE_COMBO_3": "Sword_Combo_3",
+      "BLOCK": "Shield_Block",
+      "PARRY": "Parry",
+      "CAST_BUFF": "Battlecry"
+    },
+    "blendDefaults": {
+      "crossfadeDuration": 0.2
+    }
+  }
+]

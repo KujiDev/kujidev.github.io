@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import styles from './styles.module.css';
-import { useAchievements, RARITY_COLORS } from '@/hooks/useAchievements';
+import { useAchievements } from '@/hooks/useGame';
+import { RARITY_COLORS } from '@/config/achievements';
 
 export default function AchievementToast() {
   const { currentToast, dismissToast } = useAchievements();

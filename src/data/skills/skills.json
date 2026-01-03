@@ -1,0 +1,194 @@
+[
+  {
+    "$schema": "../schemas/skill.schema.json",
+    "id": "ice_shard",
+    "label": "Ice Shard",
+    "description": "Hurl a freezing shard of ice at your target, dealing frost damage.",
+    "type": "attack",
+    "element": "ice",
+    "animation": "CAST_PRIMARY",
+    "costs": {
+      "mana": 15
+    },
+    "effects": {
+      "damage": { "base": 25, "element": "ice" }
+    },
+    "restrictions": {
+      "classes": ["wizard"]
+    },
+    "ui": {
+      "icon": "ice-shard.svg",
+      "defaultKey": "KeyQ"
+    },
+    "tags": ["projectile", "single_target", "frost"]
+  },
+  {
+    "$schema": "../schemas/skill.schema.json",
+    "id": "meteor",
+    "label": "Meteor",
+    "description": "Conjure a blazing meteor from the sky, crashing down with explosive fire damage.",
+    "type": "cast",
+    "element": "fire",
+    "animation": "CAST_SECONDARY",
+    "castTime": 1.5,
+    "costs": {
+      "mana": 35
+    },
+    "effects": {
+      "damage": { "base": 80, "element": "fire", "aoe": true }
+    },
+    "restrictions": {
+      "classes": ["wizard"]
+    },
+    "ui": {
+      "icon": "meteor.svg",
+      "defaultKey": "KeyW"
+    },
+    "tags": ["aoe", "fire", "heavy_hitter"]
+  },
+  {
+    "$schema": "../schemas/skill.schema.json",
+    "id": "arcane_rush",
+    "label": "Arcane Rush",
+    "description": "Channel arcane power to dash forward at high speed. Drains mana while active.",
+    "type": "channel",
+    "element": "arcane",
+    "animation": "CAST_CHANNEL",
+    "costs": {
+      "manaPerSecond": 15
+    },
+    "effects": {
+      "movement": { "speedMultiplier": 2.5 }
+    },
+    "restrictions": {
+      "classes": ["wizard"]
+    },
+    "ui": {
+      "icon": "arcane-rush.svg",
+      "defaultKey": "KeyE"
+    },
+    "tags": ["movement", "channel", "escape"]
+  },
+  {
+    "$schema": "../schemas/skill.schema.json",
+    "id": "mana_body",
+    "label": "Mana Body",
+    "description": "Sacrifice your life force to infuse your body with pure mana, greatly increasing mana regeneration.",
+    "type": "buff",
+    "element": "mana",
+    "animation": "CAST_BUFF",
+    "costs": {
+      "health": 25
+    },
+    "effects": {
+      "buff": {
+        "id": "mana_body",
+        "duration": 30
+      }
+    },
+    "restrictions": {
+      "classes": ["wizard"]
+    },
+    "ui": {
+      "icon": "mana-body.svg",
+      "defaultKey": "KeyR"
+    },
+    "tags": ["self_buff", "mana", "sacrifice"]
+  },
+  {
+    "$schema": "../schemas/skill.schema.json",
+    "id": "arcane_bolt",
+    "label": "Arcane Bolt",
+    "description": "Launch a bolt of arcane energy at your target, restoring mana on hit.",
+    "type": "attack",
+    "element": "arcane",
+    "animation": "CAST_PRIMARY",
+    "costs": {},
+    "effects": {
+      "damage": { "base": 10, "element": "arcane" },
+      "manaGain": 8
+    },
+    "restrictions": {
+      "classes": ["wizard"]
+    },
+    "ui": {
+      "icon": "arcane-bolt.svg",
+      "defaultKey": "MouseLeft"
+    },
+    "tags": ["projectile", "single_target", "mana_restore", "basic_attack"]
+  },
+  {
+    "$schema": "../schemas/skill.schema.json",
+    "id": "arcane_blast",
+    "label": "Arcane Blast",
+    "description": "Channel a powerful blast of arcane energy at your target.",
+    "type": "cast",
+    "element": "arcane",
+    "animation": "CAST_SECONDARY",
+    "castTime": 1.0,
+    "costs": {
+      "mana": 20
+    },
+    "effects": {
+      "damage": { "base": 45, "element": "arcane" }
+    },
+    "restrictions": {
+      "classes": ["wizard"]
+    },
+    "ui": {
+      "icon": "arcane-blast.svg",
+      "defaultKey": "MouseRight"
+    },
+    "tags": ["projectile", "single_target", "arcane"]
+  },
+  {
+    "$schema": "../schemas/skill.schema.json",
+    "id": "health_potion",
+    "label": "Health Potion",
+    "description": "Drink a restorative potion that heals you over time.",
+    "type": "consumable",
+    "element": "healing",
+    "animation": "USE_ITEM",
+    "costs": {},
+    "effects": {
+      "buff": {
+        "id": "health_potion",
+        "duration": 10
+      }
+    },
+    "restrictions": {
+      "classes": null
+    },
+    "ui": {
+      "icon": "health-potion.svg",
+      "defaultKey": "KeyD",
+      "slotType": "consumable"
+    },
+    "tags": ["consumable", "healing", "potion"]
+  },
+  {
+    "$schema": "../schemas/skill.schema.json",
+    "id": "mana_biscuit",
+    "label": "Mana Biscuit",
+    "description": "Eat an enchanted biscuit that restores mana over time.",
+    "type": "consumable",
+    "element": "mana",
+    "animation": "USE_ITEM",
+    "costs": {},
+    "effects": {
+      "buff": {
+        "id": "food_buff",
+        "duration": 15
+      }
+    },
+    "restrictions": {
+      "classes": null
+    },
+    "ui": {
+      "icon": "food.svg",
+      "defaultKey": "KeyF",
+      "slotType": "consumable"
+    },
+    "tags": ["consumable", "mana", "food"]
+  }
+]

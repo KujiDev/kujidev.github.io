@@ -1,0 +1,236 @@
+[
+  {
+    "$schema": "../schemas/stat.schema.json",
+    "id": "max_health",
+    "name": "Maximum Health",
+    "description": "Total health pool before death",
+    "category": "resource",
+    "type": "flat",
+    "defaultValue": 100,
+    "minValue": 1,
+    "maxValue": null,
+    "precision": 0,
+    "dependencies": [],
+    "ui": {
+      "icon": "heart.svg",
+      "color": "#ff4444",
+      "format": "{value}",
+      "showInTooltip": true,
+      "showInCharacterSheet": true
+    },
+    "tags": ["core", "survivability"]
+  },
+  {
+    "$schema": "../schemas/stat.schema.json",
+    "id": "max_mana",
+    "name": "Maximum Mana",
+    "description": "Total mana pool for casting spells",
+    "category": "resource",
+    "type": "flat",
+    "defaultValue": 100,
+    "minValue": 0,
+    "maxValue": null,
+    "precision": 0,
+    "dependencies": [],
+    "ui": {
+      "icon": "mana.svg",
+      "color": "#4a9eff",
+      "format": "{value}",
+      "showInTooltip": true,
+      "showInCharacterSheet": true
+    },
+    "tags": ["core", "caster"]
+  },
+  {
+    "$schema": "../schemas/stat.schema.json",
+    "id": "health_regen",
+    "name": "Health Regeneration",
+    "description": "Health restored per second",
+    "category": "resource",
+    "type": "flat",
+    "defaultValue": 2,
+    "minValue": 0,
+    "maxValue": null,
+    "precision": 1,
+    "dependencies": [],
+    "ui": {
+      "icon": "regen.svg",
+      "color": "#55ff55",
+      "format": "+{value}/s",
+      "showInTooltip": true,
+      "showInCharacterSheet": true
+    },
+    "tags": ["survivability", "sustain"]
+  },
+  {
+    "$schema": "../schemas/stat.schema.json",
+    "id": "mana_regen",
+    "name": "Mana Regeneration",
+    "description": "Mana restored per second",
+    "category": "resource",
+    "type": "flat",
+    "defaultValue": 5,
+    "minValue": 0,
+    "maxValue": null,
+    "precision": 1,
+    "dependencies": [],
+    "ui": {
+      "icon": "mana-regen.svg",
+      "color": "#4a9eff",
+      "format": "+{value}/s",
+      "showInTooltip": true,
+      "showInCharacterSheet": true
+    },
+    "tags": ["caster", "sustain"]
+  },
+  {
+    "$schema": "../schemas/stat.schema.json",
+    "id": "move_speed",
+    "name": "Movement Speed",
+    "description": "Base movement speed multiplier",
+    "category": "utility",
+    "type": "multiplier",
+    "defaultValue": 1.0,
+    "minValue": 0.1,
+    "maxValue": 3.0,
+    "precision": 2,
+    "dependencies": [],
+    "ui": {
+      "icon": "boot.svg",
+      "color": "#88cc44",
+      "format": "{value}x",
+      "showInTooltip": true,
+      "showInCharacterSheet": true
+    },
+    "tags": ["utility", "mobility"]
+  },
+  {
+    "$schema": "../schemas/stat.schema.json",
+    "id": "armor",
+    "name": "Armor",
+    "description": "Physical damage reduction",
+    "category": "combat",
+    "type": "flat",
+    "defaultValue": 0,
+    "minValue": 0,
+    "maxValue": null,
+    "precision": 0,
+    "dependencies": [],
+    "ui": {
+      "icon": "shield.svg",
+      "color": "#888888",
+      "format": "{value}",
+      "showInTooltip": true,
+      "showInCharacterSheet": true
+    },
+    "tags": ["defense", "physical"]
+  },
+  {
+    "$schema": "../schemas/stat.schema.json",
+    "id": "magic_resist",
+    "name": "Magic Resistance",
+    "description": "Magical damage reduction",
+    "category": "combat",
+    "type": "flat",
+    "defaultValue": 0,
+    "minValue": 0,
+    "maxValue": null,
+    "precision": 0,
+    "dependencies": [],
+    "ui": {
+      "icon": "magic-shield.svg",
+      "color": "#aa55ff",
+      "format": "{value}",
+      "showInTooltip": true,
+      "showInCharacterSheet": true
+    },
+    "tags": ["defense", "magical"]
+  },
+  {
+    "$schema": "../schemas/stat.schema.json",
+    "id": "spell_power",
+    "name": "Spell Power",
+    "description": "Increases magical damage and healing",
+    "category": "combat",
+    "type": "flat",
+    "defaultValue": 0,
+    "minValue": 0,
+    "maxValue": null,
+    "precision": 0,
+    "dependencies": [],
+    "ui": {
+      "icon": "spell.svg",
+      "color": "#aa55ff",
+      "format": "{value}",
+      "showInTooltip": true,
+      "showInCharacterSheet": true
+    },
+    "tags": ["offense", "caster"]
+  },
+  {
+    "$schema": "../schemas/stat.schema.json",
+    "id": "attack_power",
+    "name": "Attack Power",
+    "description": "Increases physical damage",
+    "category": "combat",
+    "type": "flat",
+    "defaultValue": 0,
+    "minValue": 0,
+    "maxValue": null,
+    "precision": 0,
+    "dependencies": [],
+    "ui": {
+      "icon": "sword.svg",
+      "color": "#ff6600",
+      "format": "{value}",
+      "showInTooltip": true,
+      "showInCharacterSheet": true
+    },
+    "tags": ["offense", "physical"]
+  },
+  {
+    "$schema": "../schemas/stat.schema.json",
+    "id": "crit_chance",
+    "name": "Critical Strike Chance",
+    "description": "Chance to deal critical damage",
+    "category": "combat",
+    "type": "percent",
+    "defaultValue": 0.05,
+    "minValue": 0,
+    "maxValue": 1,
+    "precision": 1,
+    "dependencies": [],
+    "ui": {
+      "icon": "crit.svg",
+      "color": "#ffcc00",
+      "format": "{value}%",
+      "showInTooltip": true,
+      "showInCharacterSheet": true
+    },
+    "tags": ["offense", "critical"]
+  },
+  {
+    "$schema": "../schemas/stat.schema.json",
+    "id": "damage_reduction",
+    "name": "Damage Reduction",
+    "description": "Percentage of physical damage mitigated",
+    "category": "derived",
+    "type": "percent",
+    "defaultValue": 0,
+    "minValue": 0,
+    "maxValue": 0.9,
+    "precision": 1,
+    "dependencies": ["armor"],
+    "formula": {
+      "expression": "armor / (armor + 100)"
+    },
+    "ui": {
+      "icon": "shield.svg",
+      "color": "#888888",
+      "format": "{value}%",
+      "showInTooltip": true,
+      "showInCharacterSheet": true
+    },
+    "tags": ["defense", "derived"]
+  }
+]

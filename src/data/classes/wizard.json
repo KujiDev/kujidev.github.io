@@ -1,0 +1,94 @@
+{
+  "$schema": "../schemas/class.schema.json",
+  "id": "wizard",
+  "name": "Wizard",
+  "description": "A master of arcane arts who commands devastating elemental magic.",
+  
+  "model": {
+    "path": "/models/Wizard-transformed.glb",
+    "scale": 1,
+    "position": [0, 0, 0]
+  },
+  
+  "ui": {
+    "icon": null,
+    "color": "#9070c0",
+    "portrait": null
+  },
+  
+  "baseStats": {
+    "maxHealth": 100,
+    "maxMana": 100,
+    "healthRegen": 2,
+    "manaRegen": 5,
+    "moveSpeed": 1.0,
+    "armor": 0,
+    "magicResist": 10,
+    "spellPower": 15,
+    "attackPower": 5,
+    "critChance": 0.05
+  },
+  
+  "allowedElements": ["ice", "fire", "arcane", "mana"],
+  "primaryElement": "arcane",
+  
+  "allowedSkills": [
+    "ice_shard",
+    "meteor",
+    "arcane_rush",
+    "mana_body",
+    "arcane_bolt",
+    "arcane_blast",
+    "health_potion",
+    "mana_biscuit"
+  ],
+  
+  "defaultLoadout": {
+    "slot_1": "ice_shard",
+    "slot_2": "meteor",
+    "slot_3": "arcane_rush",
+    "slot_4": "mana_body",
+    "slot_lmb": "arcane_bolt",
+    "slot_rmb": "arcane_blast",
+    "slot_consumable_1": "health_potion",
+    "slot_consumable_2": "mana_biscuit",
+    "slot_pixie_1": "azure"
+  },
+  
+  "allowedPixies": null,
+  "defaultPixies": ["azure"],
+  "collectablePixies": ["verdant", "azure", "violet", "crimson"],
+  
+  "stateAnimations": {
+    "idle": "IDLE",
+    "casting": "CAST_SECONDARY",
+    "attacking": "CAST_PRIMARY",
+    "moving": "RUN",
+    "dead": "DEATH"
+  },
+  
+  "animationOverrides": {},
+  
+  "allowedWeapons": ["staff", "wand", "orb"],
+  "primaryWeapon": "staff",
+  "allowedArmor": ["cloth"],
+  
+  "audio": {
+    "voiceSet": "wizard_male_01",
+    "footsteps": "cloth_light",
+    "castSounds": {
+      "ice": "ice_cast_01",
+      "fire": "fire_cast_01",
+      "arcane": "arcane_cast_01"
+    }
+  },
+  
+  "lore": {
+    "title": "The Wizard",
+    "shortDesc": "Master of arcane devastation",
+    "fullDesc": "Wizards are scholars of the arcane arts, having devoted their lives to understanding and wielding magical forces. They command devastating elemental spells that can decimate groups of enemies from afar. While physically fragile, their mastery of mana allows them to unleash a relentless barrage of magical attacks.",
+    "faction": "Academy of Arcane Arts"
+  },
+  
+  "tags": ["caster", "ranged", "elemental", "glass_cannon"]
+}

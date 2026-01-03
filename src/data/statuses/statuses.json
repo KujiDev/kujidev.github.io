@@ -1,0 +1,71 @@
+[
+  {
+    "$schema": "../schemas/status.schema.json",
+    "id": "mana_body",
+    "name": "Mana Body",
+    "description": "Your body is infused with pure mana, greatly increasing mana regeneration.",
+    "type": "buff",
+    "category": "stat_modifier",
+    "duration": 30,
+    "stacking": {
+      "rule": "refresh",
+      "maxStacks": 1
+    },
+    "effects": {
+      "manaRegen": 10
+    },
+    "visual": {
+      "icon": "mana-body.svg",
+      "color": "#4a9eff",
+      "particleEffect": "mana_aura"
+    },
+    "tags": ["magic", "mana", "self_cast"],
+    "dispellable": true
+  },
+  {
+    "$schema": "../schemas/status.schema.json",
+    "id": "health_potion",
+    "name": "Regeneration",
+    "description": "A restorative elixir is healing you over time.",
+    "type": "buff",
+    "category": "hot",
+    "duration": 10,
+    "stacking": {
+      "rule": "refresh",
+      "maxStacks": 1
+    },
+    "effects": {
+      "healthRegen": 8
+    },
+    "visual": {
+      "icon": "health-potion.svg",
+      "color": "#55ff55",
+      "particleEffect": "heal_glow"
+    },
+    "tags": ["healing", "potion", "consumable"],
+    "dispellable": false
+  },
+  {
+    "$schema": "../schemas/status.schema.json",
+    "id": "food_buff",
+    "name": "Mana Infused",
+    "description": "The enchanted food is restoring your mana over time.",
+    "type": "buff",
+    "category": "stat_modifier",
+    "duration": 15,
+    "stacking": {
+      "rule": "refresh",
+      "maxStacks": 1
+    },
+    "effects": {
+      "manaRegen": 5
+    },
+    "visual": {
+      "icon": "food.svg",
+      "color": "#4a9eff",
+      "particleEffect": "mana_sparkle"
+    },
+    "tags": ["mana", "food", "consumable"],
+    "dispellable": false
+  }
+]

@@ -1,0 +1,82 @@
+[
+  {
+    "$schema": "../schemas/pixie.schema.json",
+    "id": "verdant",
+    "name": "Verdant Sprite",
+    "description": "A gentle forest spirit that mends wounds over time.",
+    "element": "nature",
+    "buff": {
+      "type": "healthRegen",
+      "value": 3
+    },
+    "visual": {
+      "color": "#40ff80",
+      "glowColor": "#20ff60",
+      "icon": "pixie-verdant.svg"
+    },
+    "restrictions": {
+      "classes": null
+    },
+    "tags": ["nature", "healing", "passive"]
+  },
+  {
+    "$schema": "../schemas/pixie.schema.json",
+    "id": "azure",
+    "name": "Azure Wisp",
+    "description": "A mystical wisp that restores magical energy.",
+    "element": "mana",
+    "buff": {
+      "type": "manaRegen",
+      "value": 4
+    },
+    "visual": {
+      "color": "#40a0ff",
+      "glowColor": "#2080ff",
+      "icon": "pixie-azure.svg"
+    },
+    "restrictions": {
+      "classes": null
+    },
+    "tags": ["mana", "arcane", "passive"]
+  },
+  {
+    "$schema": "../schemas/pixie.schema.json",
+    "id": "violet",
+    "name": "Violet Shimmer",
+    "description": "An arcane spirit that expands your mana pool.",
+    "element": "arcane",
+    "buff": {
+      "type": "maxMana",
+      "value": 25
+    },
+    "visual": {
+      "color": "#a040ff",
+      "glowColor": "#8020ff",
+      "icon": "pixie-violet.svg"
+    },
+    "restrictions": {
+      "classes": null
+    },
+    "tags": ["arcane", "mana", "passive"]
+  },
+  {
+    "$schema": "../schemas/pixie.schema.json",
+    "id": "crimson",
+    "name": "Crimson Ember",
+    "description": "A fiery sprite that bolsters your vitality.",
+    "element": "fire",
+    "buff": {
+      "type": "maxHealth",
+      "value": 25
+    },
+    "visual": {
+      "color": "#ff6040",
+      "glowColor": "#ff4020",
+      "icon": "pixie-crimson.svg"
+    },
+    "restrictions": {
+      "classes": null
+    },
+    "tags": ["fire", "vitality", "passive"]
+  }
+]

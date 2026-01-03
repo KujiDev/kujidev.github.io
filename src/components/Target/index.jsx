@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, createContext, useContext, useCallback, useMemo } from 'react'
-import { usePlayerState, useSlotMap } from '@/hooks/useGame'
+import { usePlayerState } from '@/hooks/useGame'
+import { useInput } from '@/hooks/useInput'
 
 const TargetContext = createContext(null)
 
@@ -43,7 +44,8 @@ export default function Target({
   children 
 }) {
   const { setTarget, lockedTargetId, lockTarget } = useTarget() || {}
-  const { handleInput, mouseButtonActionsRef } = usePlayerState()
+  const { handleSlotInput } = usePlayerState()
+  const { pressSlot, releaseSlot } = useInput()
   const targetId = useRef(`${name}-${type}`).current
   const isHovered = useRef(false)
   const isLocked = lockedTargetId === targetId
@@ -59,11 +61,6 @@ export default function Target({
       setTarget(targetData)
     }
   }, [targetData, isLocked, setTarget])
-  
-  // Get actions from slot map - with fallback
-  const slotMap = useSlotMap()
-  const lmbAction = slotMap?.getActionForSlot?.('slot_lmb') ?? 'primary_attack'
-  const rmbAction = slotMap?.getActionForSlot?.('slot_rmb') ?? 'secondary_attack'
   
   // Lock target and set data
   const lockAndSetTarget = useCallback(() => {
@@ -85,43 +82,39 @@ export default function Target({
     if (!isLocked) setTarget?.(null)
   }, [isLocked, setTarget])
   
-  // Left click - lock and use LMB slot action (held down = recast)
-  // Right click - also handled here to set mouseButtonActionsRef BEFORE mouseup fires
+  // Target emits slot-based intents only - game store resolves actions
+  // Visual feedback (pressSlot) is decoupled from action execution
   const handlePointerDown = useCallback((e) => {
     e.stopPropagation()
     
     // Left mouse button
     if (e.button === 0) {
       if (!isLocked) lockAndSetTarget()
-      if (lmbAction) {
-        if (mouseButtonActionsRef) mouseButtonActionsRef.current[0] = lmbAction
-        handleInput?.(lmbAction, true)
-      }
+      pressSlot('slot_lmb')
+      handleSlotInput?.('slot_lmb', true)
     }
     
-    // Right mouse button - set the action here so mouseup can clear it
+    // Right mouse button
     if (e.button === 2) {
       if (!isLocked) lockAndSetTarget()
-      if (rmbAction) {
-        if (mouseButtonActionsRef) mouseButtonActionsRef.current[2] = rmbAction
-        handleInput?.(rmbAction, true)
-      }
+      pressSlot('slot_rmb')
+      handleSlotInput?.('slot_rmb', true)
     }
-  }, [isLocked, lockAndSetTarget, handleInput, lmbAction, rmbAction, mouseButtonActionsRef])
+  }, [isLocked, lockAndSetTarget, handleSlotInput, pressSlot])
   
   const handlePointerUp = useCallback((e) => {
     e.stopPropagation()
     // Left mouse button
-    if (e.button === 0 && lmbAction) {
-      handleInput?.(lmbAction, false)
-      if (mouseButtonActionsRef) mouseButtonActionsRef.current[0] = null
+    if (e.button === 0) {
+      releaseSlot('slot_lmb')
+      handleSlotInput?.('slot_lmb', false)
     }
     // Right mouse button
-    if (e.button === 2 && rmbAction) {
-      handleInput?.(rmbAction, false)
-      if (mouseButtonActionsRef) mouseButtonActionsRef.current[2] = null
+    if (e.button === 2) {
+      releaseSlot('slot_rmb')
+      handleSlotInput?.('slot_rmb', false)
     }
-  }, [handleInput, lmbAction, rmbAction, mouseButtonActionsRef])
+  }, [handleSlotInput, releaseSlot])
   
   // Right click context menu - just prevent default, action handled in pointerdown
   const handleContextMenu = useCallback((e) => {

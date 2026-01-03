@@ -12,7 +12,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { useGameStore } from '@/stores/gameStore';
 import { PLAYER_STATES, STATE_ANIMATIONS } from '@/config/stats';
 import { getActionById } from '@/config/actions';
-import { PIXIES, calculatePixieBuffs } from '@/config/pixies';
+import { PIXIES, calculatePixieBuffs } from '@/config/entities/pixies';
 import { PIXIE_SLOTS, SKILL_SLOTS, MOUSE_SLOTS, CONSUMABLE_SLOTS, ALL_SLOTS } from '@/config/slots';
 
 // =============================================================================
@@ -41,6 +41,7 @@ export function usePlayerState() {
   
   // Get stable action references
   const handleInput = useGameStore(s => s.handleInput);
+  const handleSlotInput = useGameStore(s => s.handleSlotInput);
   const transition = useGameStore(s => s.transition);
   const tryRecast = useGameStore(s => s.tryRecast);
   const setCastProgress = useGameStore(s => s.setCastProgress);
@@ -128,6 +129,7 @@ export function usePlayerState() {
     
     // Actions
     handleInput,
+    handleSlotInput,
     dispatchAction,
     tryRecast,
     subscribe,
@@ -279,6 +281,57 @@ export function useStateEffect(targetState, onEnter, onLeave) {
     
     return unsubscribe;
   }, [targetState]);
+}
+
+// =============================================================================
+// useAchievements - Achievement tracking hook
+// =============================================================================
+
+/**
+ * Hook to access and track achievements.
+ */
+export function useAchievements() {
+  const unlockedAchievements = useGameStore(s => s.unlockedAchievements);
+  const currentToast = useGameStore(s => s.currentAchievementToast);
+  const toastQueue = useGameStore(s => s.achievementToastQueue);
+  
+  const unlock = useGameStore(s => s.unlockAchievement);
+  const isUnlocked = useGameStore(s => s.isAchievementUnlocked);
+  const getAllAchievements = useGameStore(s => s.getAllAchievements);
+  const getProgress = useGameStore(s => s.getAchievementProgress);
+  const dismissToast = useGameStore(s => s.dismissAchievementToast);
+  const showNextToast = useGameStore(s => s.showNextAchievementToast);
+  const resetToDefaults = useGameStore(s => s.resetAchievements);
+  
+  // Auto-advance toast queue
+  useEffect(() => {
+    if (!currentToast && toastQueue.length > 0) {
+      const timer = setTimeout(() => {
+        showNextToast();
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [currentToast, toastQueue, showNextToast]);
+  
+  // Auto-dismiss current toast after delay
+  useEffect(() => {
+    if (currentToast) {
+      const timer = setTimeout(() => {
+        dismissToast();
+      }, 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [currentToast, dismissToast]);
+  
+  return {
+    unlock,
+    isUnlocked,
+    getAllAchievements,
+    getProgress,
+    currentToast,
+    dismissToast,
+    resetToDefaults,
+  };
 }
 
 // =============================================================================

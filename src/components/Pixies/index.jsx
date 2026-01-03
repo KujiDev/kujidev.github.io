@@ -3,7 +3,7 @@ import { MenuButton, Drawer, DrawerTitle, ScrollList, SvgIcon } from '@/ui';
 import { useDraggable, useDropTarget, useDragDrop } from '@/hooks/useDragDrop';
 import { useSlotMap, usePixies } from '@/hooks/useGame';
 import { PIXIE_SLOTS } from '@/config/slots';
-import { PIXIES } from '@/config/pixies';
+import { PIXIES } from '@/config/entities/pixies';
 import styles from './styles.module.css';
 import pixieIcon from '@/assets/icons/pixie.svg?raw';
 

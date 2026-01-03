@@ -25,24 +25,24 @@ export const SLOT_TYPES = {
 // =============================================================================
 
 export const SKILL_SLOTS = [
-  { id: 'slot_1', defaultAction: 'skill_1', position: 0, slotType: SLOT_TYPES.SKILL },
-  { id: 'slot_2', defaultAction: 'skill_2', position: 1, slotType: SLOT_TYPES.SKILL },
-  { id: 'slot_3', defaultAction: 'skill_3', position: 2, slotType: SLOT_TYPES.SKILL },
-  { id: 'slot_4', defaultAction: 'skill_4', position: 3, slotType: SLOT_TYPES.SKILL },
+  { id: 'slot_1', defaultAction: null, position: 0, slotType: SLOT_TYPES.SKILL },
+  { id: 'slot_2', defaultAction: null, position: 1, slotType: SLOT_TYPES.SKILL },
+  { id: 'slot_3', defaultAction: null, position: 2, slotType: SLOT_TYPES.SKILL },
+  { id: 'slot_4', defaultAction: null, position: 3, slotType: SLOT_TYPES.SKILL },
 ];
 
 export const MOUSE_SLOTS = [
-  { id: 'slot_lmb', defaultAction: 'primary_attack', position: 4, slotType: SLOT_TYPES.SKILL },
-  { id: 'slot_rmb', defaultAction: 'secondary_attack', position: 5, slotType: SLOT_TYPES.SKILL },
+  { id: 'slot_lmb', defaultAction: null, position: 4, slotType: SLOT_TYPES.SKILL },
+  { id: 'slot_rmb', defaultAction: null, position: 5, slotType: SLOT_TYPES.SKILL },
 ];
 
 export const CONSUMABLE_SLOTS = [
-  { id: 'slot_consumable_1', defaultAction: 'potion', position: 6, slotType: SLOT_TYPES.CONSUMABLE },
-  { id: 'slot_consumable_2', defaultAction: 'food', position: 7, slotType: SLOT_TYPES.CONSUMABLE },
+  { id: 'slot_consumable_1', defaultAction: null, position: 6, slotType: SLOT_TYPES.CONSUMABLE },
+  { id: 'slot_consumable_2', defaultAction: null, position: 7, slotType: SLOT_TYPES.CONSUMABLE },
 ];
 
 export const PIXIE_SLOTS = [
-  { id: 'slot_pixie_1', defaultAction: 'verdant', position: 8, slotType: SLOT_TYPES.PIXIE },
+  { id: 'slot_pixie_1', defaultAction: 'azure', position: 8, slotType: SLOT_TYPES.PIXIE },
   { id: 'slot_pixie_2', defaultAction: null, position: 9, slotType: SLOT_TYPES.PIXIE },
   { id: 'slot_pixie_3', defaultAction: null, position: 10, slotType: SLOT_TYPES.PIXIE },
 ];

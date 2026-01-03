@@ -1,0 +1,79 @@
+[
+  {
+    "$schema": "../schemas/achievement.schema.json",
+    "id": "first_cast",
+    "name": "Apprentice Mage",
+    "description": "Cast your first spell",
+    "icon": "✨",
+    "rarity": "common",
+    "condition": {
+      "type": "event",
+      "event": "skill_cast"
+    },
+    "progress": {
+      "trackable": false,
+      "showInUI": true
+    },
+    "hidden": false,
+    "tags": ["tutorial", "combat"]
+  },
+  {
+    "$schema": "../schemas/achievement.schema.json",
+    "id": "potion_master",
+    "name": "Potion Master",
+    "description": "Use a health potion to restore your vitality",
+    "icon": "🧪",
+    "rarity": "common",
+    "condition": {
+      "type": "event",
+      "event": "consumable_used"
+    },
+    "progress": {
+      "trackable": false,
+      "showInUI": true
+    },
+    "hidden": false,
+    "tags": ["tutorial", "consumable"]
+  },
+  {
+    "$schema": "../schemas/achievement.schema.json",
+    "id": "first_pixie",
+    "name": "Fairy Friend",
+    "description": "Equip your first pixie companion",
+    "icon": "🧚",
+    "rarity": "uncommon",
+    "condition": {
+      "type": "threshold",
+      "stat": "equipped_pixies",
+      "target": 1
+    },
+    "progress": {
+      "trackable": true,
+      "showInUI": true,
+      "format": "{current}/{target} pixies equipped"
+    },
+    "hidden": false,
+    "tags": ["companion", "pixie"]
+  },
+  {
+    "$schema": "../schemas/achievement.schema.json",
+    "id": "pixie_trio",
+    "name": "Pixie Parade",
+    "description": "Equip three pixies at once",
+    "icon": "✨",
+    "rarity": "rare",
+    "condition": {
+      "type": "threshold",
+      "stat": "equipped_pixies",
+      "target": 3
+    },
+    "progress": {
+      "trackable": true,
+      "showInUI": true,
+      "format": "{current}/3 pixies equipped"
+    },
+    "prerequisites": ["first_pixie"],
+    "hidden": false,
+    "tags": ["companion", "pixie", "collection"]
+  }
+]

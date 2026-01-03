@@ -1,0 +1,166 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "status.schema.json",
+  "title": "ARPG Status Effect Definition",
+  "description": "Schema for defining buffs and debuffs",
+  "type": "object",
+  "required": ["id", "name", "type", "effects"],
+  
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z_]+$",
+      "description": "Unique identifier"
+    },
+    "name": {
+      "type": "string",
+      "description": "Display name"
+    },
+    "description": {
+      "type": "string",
+      "description": "Tooltip text"
+    },
+    
+    "type": {
+      "type": "string",
+      "enum": ["buff", "debuff"],
+      "description": "Whether this is beneficial or harmful"
+    },
+    
+    "category": {
+      "type": "string",
+      "enum": ["stat_modifier", "dot", "hot", "cc", "aura", "unique"],
+      "description": "Effect category for stacking/interaction rules"
+    },
+    
+    "duration": {
+      "type": ["number", "null"],
+      "minimum": 0,
+      "description": "Duration in seconds. null = permanent"
+    },
+    
+    "tickInterval": {
+      "type": "number",
+      "minimum": 0,
+      "description": "For DoT/HoT, how often to apply tick damage"
+    },
+    
+    "stacking": {
+      "type": "object",
+      "properties": {
+        "rule": {
+          "type": "string",
+          "enum": ["refresh", "stack", "none", "extend"],
+          "description": "How multiple applications interact"
+        },
+        "maxStacks": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "stackBehavior": {
+          "type": "string",
+          "enum": ["multiply", "add"],
+          "description": "How stacks affect effect values"
+        }
+      }
+    },
+    
+    "effects": {
+      "type": "object",
+      "properties": {
+        "healthRegen": { "type": "number" },
+        "manaRegen": { "type": "number" },
+        "maxHealth": { "type": "number" },
+        "maxMana": { "type": "number" },
+        "moveSpeed": { "type": "number" },
+        "armor": { "type": "number" },
+        "magicResist": { "type": "number" },
+        "spellPower": { "type": "number" },
+        "attackPower": { "type": "number" },
+        "critChance": { "type": "number" },
+        "damagePerTick": { "type": "number" },
+        "healingPerTick": { "type": "number" },
+        "stun": { "type": "boolean" },
+        "silence": { "type": "boolean" },
+        "root": { "type": "boolean" },
+        "slow": { "type": "number" },
+        "invulnerable": { "type": "boolean" }
+      },
+      "description": "Stat modifications or special effects"
+    },
+    
+    "scaling": {
+      "type": "object",
+      "properties": {
+        "graphId": { "type": "string" },
+        "statScaling": {
+          "type": "object",
+          "additionalProperties": { "type": "number" }
+        }
+      }
+    },
+    
+    "visual": {
+      "type": "object",
+      "properties": {
+        "icon": { "type": "string" },
+        "color": { "type": "string" },
+        "particleEffect": { "type": "string" },
+        "screenEffect": { "type": "string" }
+      }
+    },
+    
+    "source": {
+      "type": "object",
+      "properties": {
+        "trackCaster": { "type": "boolean" },
+        "allowOverwrite": { "type": "boolean" }
+      },
+      "description": "Attribution settings for analytics and scaling"
+    },
+    
+    "onApply": {
+      "type": "object",
+      "properties": {
+        "graphId": { "type": "string" },
+        "effects": { "type": "array", "items": { "type": "string" } }
+      },
+      "description": "Effects to trigger when status is applied"
+    },
+    
+    "onExpire": {
+      "type": "object",
+      "properties": {
+        "graphId": { "type": "string" },
+        "effects": { "type": "array", "items": { "type": "string" } }
+      },
+      "description": "Effects to trigger when status expires"
+    },
+    
+    "onTick": {
+      "type": "object",
+      "properties": {
+        "graphId": { "type": "string" },
+        "effects": { "type": "array", "items": { "type": "string" } }
+      },
+      "description": "Effects to trigger each tick"
+    },
+    
+    "tags": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Classification tags (poison, magic, curse, etc.)"
+    },
+    
+    "dispellable": {
+      "type": "boolean",
+      "description": "Can this status be removed by dispel effects"
+    },
+    
+    "immunities": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Status IDs or tags that prevent this status"
+    }
+  }
+}

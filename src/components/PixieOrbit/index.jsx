@@ -1,7 +1,7 @@
 import { useRef, useMemo, memo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { PIXIES } from '@/config/pixies';
+import { PIXIES } from '@/config/entities/pixies';
 import { useSlotMap } from '@/hooks/useGame';
 import { PIXIE_SLOTS } from '@/config/slots';
 

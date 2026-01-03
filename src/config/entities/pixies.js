@@ -1,10 +1,12 @@
 /**
  * =============================================================================
- * PIXIE SYSTEM
+ * PIXIE SYSTEM - CANONICAL SOURCE
  * =============================================================================
  * 
  * Pixies are passive companions that provide stat buffs when equipped.
- * Similar to Lineage 2 Cubics or Zelda fairies.
+ * 
+ * This is the SINGLE SOURCE OF TRUTH for all pixie data.
+ * Do not define pixie data elsewhere.
  */
 
 import pixieVerdantIcon from '@/assets/icons/pixie-verdant.svg';
@@ -20,22 +22,21 @@ export const PIXIES = {
   verdant: {
     id: 'verdant',
     name: 'Verdant Sprite',
-    description: 'A gentle forest spirit that mends wounds over time',
+    description: 'A gentle forest spirit that mends wounds over time.',
     element: 'nature',
     color: '#40ff80',
     glowColor: '#20ff60',
     icon: pixieVerdantIcon,
     dragType: 'pixie',
-    // Passive buff applied while equipped
     buff: {
       type: 'healthRegen',
-      value: 3, // +3 HP/sec
+      value: 3,
     },
   },
   azure: {
     id: 'azure',
     name: 'Azure Wisp',
-    description: 'A mystical wisp that restores magical energy',
+    description: 'A mystical wisp that restores magical energy.',
     element: 'mana',
     color: '#40a0ff',
     glowColor: '#2080ff',
@@ -43,13 +44,13 @@ export const PIXIES = {
     dragType: 'pixie',
     buff: {
       type: 'manaRegen',
-      value: 4, // +4 MP/sec
+      value: 4,
     },
   },
   violet: {
     id: 'violet',
     name: 'Violet Shimmer',
-    description: 'An arcane spirit that expands your mana pool',
+    description: 'An arcane spirit that expands your mana pool.',
     element: 'arcane',
     color: '#a040ff',
     glowColor: '#8020ff',
@@ -57,13 +58,13 @@ export const PIXIES = {
     dragType: 'pixie',
     buff: {
       type: 'maxMana',
-      value: 25, // +25 Max MP
+      value: 25,
     },
   },
   crimson: {
     id: 'crimson',
     name: 'Crimson Ember',
-    description: 'A fiery sprite that bolsters your vitality',
+    description: 'A fiery sprite that bolsters your vitality.',
     element: 'fire',
     color: '#ff6040',
     glowColor: '#ff4020',
@@ -71,28 +72,33 @@ export const PIXIES = {
     dragType: 'pixie',
     buff: {
       type: 'maxHealth',
-      value: 25, // +25 Max HP
+      value: 25,
     },
   },
 };
 
 // =============================================================================
-// PIXIE CONSTANTS
+// CONSTANTS
 // =============================================================================
 
 export const MAX_EQUIPPED_PIXIES = 3;
-
-// Default collected pixies (for demo)
 export const DEFAULT_COLLECTED_PIXIES = ['verdant', 'azure', 'violet', 'crimson'];
 
 // =============================================================================
-// PIXIE HELPERS
+// LOOKUP HELPERS
 // =============================================================================
 
 /**
  * Get pixie by ID
  */
-export const getPixieById = (pixieId) => PIXIES[pixieId] || null;
+export const getPixieById = (pixieId) => {
+  const pixie = PIXIES[pixieId];
+  if (!pixie) {
+    console.error(`[Pixie] Unknown pixie ID: ${pixieId}`);
+    return null;
+  }
+  return pixie;
+};
 
 /**
  * Get all pixies as array
@@ -100,10 +106,16 @@ export const getPixieById = (pixieId) => PIXIES[pixieId] || null;
 export const getAllPixies = () => Object.values(PIXIES);
 
 /**
+ * Get pixie IDs
+ */
+export const getPixieIds = () => Object.keys(PIXIES);
+
+// =============================================================================
+// RUNTIME HELPERS
+// =============================================================================
+
+/**
  * Calculate total buffs from equipped pixies
- * 
- * @param {string[]} equippedIds - Array of equipped pixie IDs
- * @returns {object} Buff totals
  */
 export const calculatePixieBuffs = (equippedIds) => {
   const buffs = {

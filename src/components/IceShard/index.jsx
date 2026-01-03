@@ -2,7 +2,7 @@ import { useRef, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { usePlayerState } from '@/hooks/useGame'
-import { ELEMENTS } from '@/config/actions'
+import { ELEMENTS, isActionForSkill } from '@/config/actions'
 
 // Use unified ice element colors
 const ICE_COLOR = new THREE.Color(ELEMENTS.ice.primary)
@@ -263,7 +263,7 @@ export default function IceShard({ targetPosition = [0, 0, 5] }) {
   const impactLightRef = useRef()
   const timeRef = useRef(0)
   
-  const isCasting = (state === STATES.CASTING || state === STATES.ATTACKING) && activeAction === 'skill_1'
+  const isCasting = (state === STATES.CASTING || state === STATES.ATTACKING) && isActionForSkill(activeAction, 'ice_shard')
   
   // Create materials
   const crystalMaterial = useMemo(() => new THREE.ShaderMaterial({

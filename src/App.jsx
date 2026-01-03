@@ -21,12 +21,25 @@ import TrainingDummyModel from "@/components/TrainingDummyModel";
 import PixieOrbit from "@/components/PixieOrbit";
 
 import { KeyMapProvider, useKeyMap } from "@/hooks/useKeyMap";
-import { usePlayerState, useSlotMap } from "@/hooks/useGame";
-import { InputProvider, KeyboardSync, useActionButton } from "@/hooks/useInput";
-import { AchievementProvider, useAchievements } from "@/hooks/useAchievements";
+import { usePlayerState, useSlotMap, useAchievements } from "@/hooks/useGame";
+import { InputProvider, KeyboardSync, useInput } from "@/hooks/useInput";
+import { useSlotButton, useMouseSlotButton } from "@/hooks/useSlotButton";
 import { SKILL_SLOTS, MOUSE_SLOTS, CONSUMABLE_SLOTS, PIXIE_SLOTS } from "@/config/slots";
 import { DragDropProvider } from "@/hooks/useDragDrop";
-import { getActionById, getElementForAction } from "@/config/actions";
+import { getSkills, getConsumables } from "@/config/actions";
+
+// === DEVELOPMENT ICON VERIFICATION ===
+// Runs once at startup to ensure all actions have icons resolved
+if (import.meta.env.DEV) {
+  const allActions = [...getSkills(), ...getConsumables()];
+  const missingIcons = allActions.filter(a => !a.icon);
+  
+  if (missingIcons.length > 0) {
+    console.error('[ICON VERIFICATION FAILED] Actions missing icons:', 
+      missingIcons.map(a => a.id)
+    );
+  }
+}
 
 
 const AchievementTracker = () => {
@@ -37,15 +50,18 @@ const AchievementTracker = () => {
   const trackedPotionBuff = useRef(false);
   const trackedFirstPixie = useRef(false);
   const trackedPixieTrio = useRef(false);
+  
+  // Build set of skill action IDs from data
+  const skillActionIds = useMemo(() => new Set(getSkills().map(s => s.id)), []);
 
   useEffect(() => {
     if (!hasTrackedCast.current && (state === 'casting' || state === 'attacking') && activeAction) {
-      if (['skill_1', 'skill_2', 'skill_3', 'skill_4', 'primary_attack', 'secondary_attack'].includes(activeAction)) {
+      if (skillActionIds.has(activeAction)) {
         unlock('first_cast');
         hasTrackedCast.current = true;
       }
     }
-  }, [state, activeAction, unlock]);
+  }, [state, activeAction, unlock, skillActionIds]);
 
   useEffect(() => {
     if (!trackedPotionBuff.current && buffs.some(b => b.id === 'health_potion')) {
@@ -120,81 +136,43 @@ const InputToStateSync = () => {
   return null;
 };
 
-const buildTooltip = (action) => {
-  if (!action) return null;
-  const element = getElementForAction(action.id);
-  return {
-    name: action.label,
-    type: action.type,
-    element,
-    description: action.description,
-    manaCost: action.manaCost,
-    manaGain: action.manaGain,
-    manaPerSecond: action.manaPerSecond,
-    healthCost: action.healthCost,
-    buff: action.buff,
-  };
-};
-
-const useCanAffordAction = (action) => {
-  const { mana, health } = usePlayerState();
-  
-  if (!action) return false;
-  
-  const manaCost = action.manaCost ?? 0;
-  const healthCost = action.healthCost ?? 0;
-  const manaPerSecond = action.manaPerSecond ?? 0;
-  
-  const requiredMana = manaCost > 0 ? manaCost : manaPerSecond > 0 ? 1 : 0;
-  const hasEnoughMana = mana >= requiredMana;
-  const hasEnoughHealth = healthCost > 0 ? health > healthCost : true;
-  
-  return hasEnoughMana && hasEnoughHealth;
-};
-
 /**
  * Slot-based skill button - gets action from slotMap
+ * Uses the shared useSlotButton hook for DRY implementation.
  */
 const SlotButton = ({ slotId }) => {
-  const { getDisplayKey } = useKeyMap();
-  const { getActionObjectForSlot } = useSlotMap();
-  
-  const action = getActionObjectForSlot(slotId);
-  const { active, handlers } = useActionButton(action?.id, slotId);
-  const canAfford = useCanAffordAction(action);
+  const { actionId, keyBind, icon, active, disabled, tooltip, handlers } = useSlotButton(slotId);
   
   return (
     <Slot 
       slotId={slotId}
-      actionId={action?.id}
-      keyBind={getDisplayKey(slotId)} 
-      icon={action?.icon}
+      actionId={actionId}
+      keyBind={keyBind} 
+      icon={icon}
       active={active}
-      disabled={!action || !canAfford}
-      tooltip={buildTooltip(action)}
+      disabled={disabled}
+      tooltip={tooltip}
       {...handlers}
     />
   );
 };
 
 /**
- * Mouse slot button - display only, no click handlers (uses actual mouse)
+ * Mouse slot button - shows active state when mouse button is pressed on target
+ * Uses the shared useMouseSlotButton hook for DRY implementation.
  */
 const MouseSlotButton = ({ slotId }) => {
-  const { getDisplayKey } = useKeyMap();
-  const { getActionObjectForSlot } = useSlotMap();
-  
-  const action = getActionObjectForSlot(slotId);
-  const canAfford = useCanAffordAction(action);
+  const { actionId, keyBind, icon, active, disabled, tooltip } = useMouseSlotButton(slotId);
   
   return (
     <Slot 
       slotId={slotId}
-      actionId={action?.id}
-      keyBind={getDisplayKey(slotId)}
-      icon={action?.icon}
-      disabled={!action || !canAfford}
-      tooltip={buildTooltip(action)}
+      actionId={actionId}
+      keyBind={keyBind}
+      icon={icon}
+      active={active}
+      disabled={disabled}
+      tooltip={tooltip}
     />
   );
 };
@@ -345,7 +323,6 @@ export default function App() {
     <TargetProvider>
     <KeyMapProvider>
     <DragDropProvider>
-      <AchievementProvider>
         <GameControls>
           <LoadingScreen />
           <AchievementToast />
@@ -362,7 +339,6 @@ export default function App() {
             </Canvas>
           </div>
         </GameControls>
-      </AchievementProvider>
     </DragDropProvider>
     </KeyMapProvider>
     </TargetProvider>

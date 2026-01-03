@@ -1,0 +1,89 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "stat.schema.json",
+  "title": "ARPG Stat Definition",
+  "description": "Schema for defining stats, their dependencies, and scaling formulas",
+  "type": "object",
+  "required": ["id", "name", "category"],
+  
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z_]+$",
+      "description": "Unique identifier"
+    },
+    "name": {
+      "type": "string",
+      "description": "Display name"
+    },
+    "description": {
+      "type": "string"
+    },
+    
+    "category": {
+      "type": "string",
+      "enum": ["base", "derived", "resource", "combat", "utility"],
+      "description": "Stat classification"
+    },
+    
+    "type": {
+      "type": "string",
+      "enum": ["flat", "percent", "multiplier"],
+      "description": "How the stat value is interpreted"
+    },
+    
+    "defaultValue": {
+      "type": "number"
+    },
+    
+    "minValue": {
+      "type": ["number", "null"]
+    },
+    
+    "maxValue": {
+      "type": ["number", "null"]
+    },
+    
+    "precision": {
+      "type": "integer",
+      "description": "Decimal places for display"
+    },
+    
+    "dependencies": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Stat IDs this stat depends on for calculation"
+    },
+    
+    "formula": {
+      "type": "object",
+      "properties": {
+        "graphId": {
+          "type": "string",
+          "description": "Reference to a graph definition"
+        },
+        "expression": {
+          "type": "string",
+          "description": "Simple formula expression (e.g., 'base * (1 + percent/100)')"
+        }
+      },
+      "description": "How this stat is calculated from dependencies"
+    },
+    
+    "ui": {
+      "type": "object",
+      "properties": {
+        "icon": { "type": "string" },
+        "color": { "type": "string" },
+        "format": { "type": "string", "description": "Display format (e.g., '{value}%', '+{value}')" },
+        "showInTooltip": { "type": "boolean" },
+        "showInCharacterSheet": { "type": "boolean" }
+      }
+    },
+    
+    "tags": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  }
+}

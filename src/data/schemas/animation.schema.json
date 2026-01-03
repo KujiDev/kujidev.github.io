@@ -1,0 +1,80 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "animation.schema.json",
+  "title": "ARPG Animation Mapping",
+  "description": "Schema for mapping semantic animation intents to model-specific clips",
+  "type": "object",
+  "required": ["modelId", "clips"],
+  
+  "properties": {
+    "modelId": {
+      "type": "string",
+      "pattern": "^[a-z_]+$",
+      "description": "Model/class identifier this mapping applies to"
+    },
+    
+    "modelPath": {
+      "type": "string",
+      "description": "Path to the 3D model file"
+    },
+    
+    "clips": {
+      "type": "object",
+      "additionalProperties": {
+        "oneOf": [
+          { "type": "string" },
+          {
+            "type": "object",
+            "properties": {
+              "clip": { "type": "string" },
+              "loop": { "type": "boolean" },
+              "speed": { "type": "number" },
+              "blendTime": { "type": "number" },
+              "rootMotion": { "type": "boolean" }
+            },
+            "required": ["clip"]
+          }
+        ]
+      },
+      "description": "Maps semantic keys (IDLE, RUN, CAST_PRIMARY) to clip names or detailed config"
+    },
+    
+    "blendDefaults": {
+      "type": "object",
+      "properties": {
+        "crossfadeDuration": { "type": "number" },
+        "fadeIn": { "type": "number" },
+        "fadeOut": { "type": "number" }
+      }
+    },
+    
+    "layers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "weight": { "type": "number", "minimum": 0, "maximum": 1 },
+          "mask": { "type": "string", "description": "Bone mask name" }
+        }
+      },
+      "description": "Animation layers for additive/partial animations"
+    },
+    
+    "events": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "time": { "type": "number", "description": "Normalized time 0-1" },
+            "event": { "type": "string" },
+            "params": { "type": "object" }
+          }
+        }
+      },
+      "description": "Animation events (e.g., footsteps, hit frames)"
+    }
+  }
+}

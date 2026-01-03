@@ -1,0 +1,213 @@
+[
+  {
+    "$schema": "../schemas/graph.schema.json",
+    "id": "spell_damage_scaling",
+    "name": "Spell Damage Scaling",
+    "description": "Standard spell damage calculation with spell power scaling",
+    "type": "stat_scaling",
+    
+    "inputs": [
+      { "id": "base_damage", "type": "number", "default": 0 },
+      { "id": "spell_power", "type": "number", "default": 0 },
+      { "id": "crit_chance", "type": "number", "default": 0.05 },
+      { "id": "crit_multiplier", "type": "number", "default": 1.5 }
+    ],
+    
+    "outputs": [
+      { "id": "final_damage", "type": "number" },
+      { "id": "is_crit", "type": "boolean" }
+    ],
+    
+    "nodes": [
+      {
+        "id": "input_base",
+        "type": "input",
+        "params": { "inputId": "base_damage" },
+        "position": { "x": 0, "y": 0 }
+      },
+      {
+        "id": "input_sp",
+        "type": "input",
+        "params": { "inputId": "spell_power" },
+        "position": { "x": 0, "y": 100 }
+      },
+      {
+        "id": "sp_coefficient",
+        "type": "constant",
+        "params": { "value": 0.5 },
+        "position": { "x": 100, "y": 100 }
+      },
+      {
+        "id": "sp_bonus",
+        "type": "math",
+        "params": { "operation": "multiply" },
+        "position": { "x": 200, "y": 100 }
+      },
+      {
+        "id": "add_sp_bonus",
+        "type": "math",
+        "params": { "operation": "add" },
+        "position": { "x": 300, "y": 50 }
+      },
+      {
+        "id": "input_crit_chance",
+        "type": "input",
+        "params": { "inputId": "crit_chance" },
+        "position": { "x": 0, "y": 200 }
+      },
+      {
+        "id": "crit_roll",
+        "type": "random",
+        "params": { "min": 0, "max": 1 },
+        "position": { "x": 100, "y": 200 }
+      },
+      {
+        "id": "crit_check",
+        "type": "condition",
+        "params": { "comparison": "lt" },
+        "position": { "x": 200, "y": 200 }
+      },
+      {
+        "id": "input_crit_mult",
+        "type": "input",
+        "params": { "inputId": "crit_multiplier" },
+        "position": { "x": 300, "y": 250 }
+      },
+      {
+        "id": "no_crit_mult",
+        "type": "constant",
+        "params": { "value": 1.0 },
+        "position": { "x": 300, "y": 300 }
+      },
+      {
+        "id": "crit_branch",
+        "type": "branch",
+        "params": {},
+        "position": { "x": 400, "y": 200 }
+      },
+      {
+        "id": "apply_crit",
+        "type": "math",
+        "params": { "operation": "multiply" },
+        "position": { "x": 500, "y": 100 }
+      },
+      {
+        "id": "output_damage",
+        "type": "output",
+        "params": { "outputId": "final_damage" },
+        "position": { "x": 600, "y": 100 }
+      },
+      {
+        "id": "output_is_crit",
+        "type": "output",
+        "params": { "outputId": "is_crit" },
+        "position": { "x": 600, "y": 200 }
+      }
+    ],
+    
+    "edges": [
+      { "from": "input_sp", "to": "sp_bonus", "toPort": "a" },
+      { "from": "sp_coefficient", "to": "sp_bonus", "toPort": "b" },
+      { "from": "input_base", "to": "add_sp_bonus", "toPort": "a" },
+      { "from": "sp_bonus", "to": "add_sp_bonus", "toPort": "b" },
+      { "from": "crit_roll", "to": "crit_check", "toPort": "a" },
+      { "from": "input_crit_chance", "to": "crit_check", "toPort": "b" },
+      { "from": "crit_check", "to": "crit_branch", "toPort": "condition" },
+      { "from": "input_crit_mult", "to": "crit_branch", "toPort": "true" },
+      { "from": "no_crit_mult", "to": "crit_branch", "toPort": "false" },
+      { "from": "add_sp_bonus", "to": "apply_crit", "toPort": "a" },
+      { "from": "crit_branch", "to": "apply_crit", "toPort": "b" },
+      { "from": "apply_crit", "to": "output_damage" },
+      { "from": "crit_check", "to": "output_is_crit" }
+    ],
+    
+    "metadata": {
+      "author": "system",
+      "version": "1.0.0",
+      "tags": ["damage", "spell", "scaling"]
+    }
+  },
+  {
+    "$schema": "../schemas/graph.schema.json",
+    "id": "mana_cost_reduction",
+    "name": "Mana Cost Reduction",
+    "description": "Reduces mana costs based on intellect and gear",
+    "type": "modifier",
+    
+    "inputs": [
+      { "id": "base_cost", "type": "number", "default": 0 },
+      { "id": "cost_reduction_percent", "type": "number", "default": 0 }
+    ],
+    
+    "outputs": [
+      { "id": "final_cost", "type": "number" }
+    ],
+    
+    "nodes": [
+      {
+        "id": "input_cost",
+        "type": "input",
+        "params": { "inputId": "base_cost" },
+        "position": { "x": 0, "y": 0 }
+      },
+      {
+        "id": "input_reduction",
+        "type": "input",
+        "params": { "inputId": "cost_reduction_percent" },
+        "position": { "x": 0, "y": 100 }
+      },
+      {
+        "id": "one",
+        "type": "constant",
+        "params": { "value": 1 },
+        "position": { "x": 100, "y": 50 }
+      },
+      {
+        "id": "calc_multiplier",
+        "type": "math",
+        "params": { "operation": "subtract" },
+        "position": { "x": 200, "y": 75 }
+      },
+      {
+        "id": "apply_reduction",
+        "type": "math",
+        "params": { "operation": "multiply" },
+        "position": { "x": 300, "y": 50 }
+      },
+      {
+        "id": "min_cost",
+        "type": "constant",
+        "params": { "value": 1 },
+        "position": { "x": 300, "y": 150 }
+      },
+      {
+        "id": "clamp_min",
+        "type": "math",
+        "params": { "operation": "max" },
+        "position": { "x": 400, "y": 100 }
+      },
+      {
+        "id": "output_cost",
+        "type": "output",
+        "params": { "outputId": "final_cost" },
+        "position": { "x": 500, "y": 100 }
+      }
+    ],
+    
+    "edges": [
+      { "from": "one", "to": "calc_multiplier", "toPort": "a" },
+      { "from": "input_reduction", "to": "calc_multiplier", "toPort": "b" },
+      { "from": "input_cost", "to": "apply_reduction", "toPort": "a" },
+      { "from": "calc_multiplier", "to": "apply_reduction", "toPort": "b" },
+      { "from": "apply_reduction", "to": "clamp_min", "toPort": "a" },
+      { "from": "min_cost", "to": "clamp_min", "toPort": "b" },
+      { "from": "clamp_min", "to": "output_cost" }
+    ],
+    
+    "metadata": {
+      "author": "system",
+      "version": "1.0.0",
+      "tags": ["mana", "cost", "modifier"]
+    }
+  }
+]

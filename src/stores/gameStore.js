@@ -48,9 +48,10 @@ import {
   applyBuffToArray, 
   removeExpiredBuffs,
   calculateBuffTotals,
-} from '@/config/buffs';
-import { calculatePixieBuffs } from '@/config/pixies';
+} from '@/config/entities/buffs';
+import { calculatePixieBuffs, DEFAULT_COLLECTED_PIXIES } from '@/config/entities/pixies';
 import { PIXIE_SLOTS, getDefaultSlotMap } from '@/config/slots';
+import { ACHIEVEMENTS } from '@/config/achievements';
 
 // =============================================================================
 // STORAGE HELPERS
@@ -59,6 +60,7 @@ import { PIXIE_SLOTS, getDefaultSlotMap } from '@/config/slots';
 const STORAGE_KEYS = {
   SLOT_MAP: 'player_slotmap',
   PIXIES: 'player_pixies',
+  ACHIEVEMENTS: 'player_achievements',
 };
 
 const loadSlotMap = () => {
@@ -86,12 +88,12 @@ const loadPixies = () => {
   try {
     const saved = localStorage.getItem(STORAGE_KEYS.PIXIES);
     if (saved) {
-      return JSON.parse(saved).collected || ['verdant', 'azure', 'violet', 'crimson'];
+      return JSON.parse(saved).collected || DEFAULT_COLLECTED_PIXIES;
     }
   } catch (e) {
     console.warn('Failed to load pixies:', e);
   }
-  return ['verdant', 'azure', 'violet', 'crimson'];
+  return DEFAULT_COLLECTED_PIXIES;
 };
 
 const savePixies = (collected) => {
@@ -99,6 +101,26 @@ const savePixies = (collected) => {
     localStorage.setItem(STORAGE_KEYS.PIXIES, JSON.stringify({ collected }));
   } catch (e) {
     console.warn('Failed to save pixies:', e);
+  }
+};
+
+const loadAchievements = () => {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEYS.ACHIEVEMENTS);
+    if (saved) {
+      return new Set(JSON.parse(saved));
+    }
+  } catch (e) {
+    console.warn('Failed to load achievements:', e);
+  }
+  return new Set();
+};
+
+const saveAchievements = (unlocked) => {
+  try {
+    localStorage.setItem(STORAGE_KEYS.ACHIEVEMENTS, JSON.stringify([...unlocked]));
+  } catch (e) {
+    console.warn('Failed to save achievements:', e);
   }
 };
 
@@ -153,6 +175,14 @@ export const useGameStore = create(
     // =========================================================================
     
     collectedPixies: loadPixies(),
+    
+    // =========================================================================
+    // ACHIEVEMENTS
+    // =========================================================================
+    
+    unlockedAchievements: loadAchievements(),
+    achievementToastQueue: [],
+    currentAchievementToast: null,
     
     // =========================================================================
     // DERIVED STATE (computed on access)
@@ -321,6 +351,21 @@ export const useGameStore = create(
     // =========================================================================
     // INPUT HANDLING
     // =========================================================================
+    
+    /**
+     * Handle slot-based input (press/release).
+     * Resolves slot → action internally, allowing UI to emit intents only.
+     * 
+     * @param {string} slotId - The slot ID (e.g., 'slot_lmb', 'slot_1')
+     * @param {boolean} isPressed - Whether the input is pressed or released
+     * @param {boolean} isClick - Whether this was a click (vs held)
+     */
+    handleSlotInput: (slotId, isPressed, isClick = false) => {
+      const state = get();
+      const actionId = state.slotMap[slotId];
+      if (!actionId) return; // No action assigned to this slot
+      state.handleInput(actionId, isPressed, isClick);
+    },
     
     /**
      * Handle action input (press/release)
@@ -598,9 +643,96 @@ export const useGameStore = create(
     },
     
     resetPixies: () => {
-      const defaults = ['verdant', 'azure', 'violet', 'crimson'];
-      savePixies(defaults);
-      set({ collectedPixies: defaults });
+      savePixies(DEFAULT_COLLECTED_PIXIES);
+      set({ collectedPixies: DEFAULT_COLLECTED_PIXIES });
+    },
+    
+    // =========================================================================
+    // ACHIEVEMENT ACTIONS
+    // =========================================================================
+    
+    /**
+     * Check if an achievement is unlocked
+     */
+    isAchievementUnlocked: (achievementId) => {
+      return get().unlockedAchievements.has(achievementId);
+    },
+    
+    /**
+     * Unlock an achievement
+     */
+    unlockAchievement: (achievementId) => {
+      const { unlockedAchievements } = get();
+      if (unlockedAchievements.has(achievementId)) return false;
+      
+      const achievement = ACHIEVEMENTS[achievementId];
+      if (!achievement) return false;
+      
+      const updated = new Set(unlockedAchievements);
+      updated.add(achievementId);
+      saveAchievements(updated);
+      
+      set(state => ({
+        unlockedAchievements: updated,
+        achievementToastQueue: [...state.achievementToastQueue, achievement],
+      }));
+      
+      return true;
+    },
+    
+    /**
+     * Show next achievement toast from queue
+     */
+    showNextAchievementToast: () => {
+      const { achievementToastQueue, currentAchievementToast } = get();
+      if (currentAchievementToast || achievementToastQueue.length === 0) return;
+      
+      const [next, ...rest] = achievementToastQueue;
+      set({
+        currentAchievementToast: next,
+        achievementToastQueue: rest,
+      });
+    },
+    
+    /**
+     * Dismiss current achievement toast
+     */
+    dismissAchievementToast: () => {
+      set({ currentAchievementToast: null });
+    },
+    
+    /**
+     * Get all achievements with unlock status
+     */
+    getAllAchievements: () => {
+      const { unlockedAchievements } = get();
+      return Object.values(ACHIEVEMENTS).map(a => ({
+        ...a,
+        unlocked: unlockedAchievements.has(a.id),
+      }));
+    },
+    
+    /**
+     * Get achievement progress
+     */
+    getAchievementProgress: () => {
+      const { unlockedAchievements } = get();
+      const total = Object.keys(ACHIEVEMENTS).length;
+      const unlocked = unlockedAchievements.size;
+      return { unlocked, total, percent: Math.round((unlocked / total) * 100) };
+    },
+    
+    /**
+     * Reset achievements
+     */
+    resetAchievements: () => {
+      const empty = new Set();
+      saveAchievements(empty);
+      set({
+        unlockedAchievements: empty,
+        achievementToastQueue: [],
+        currentAchievementToast: null,
+      });
     },
     
     // =========================================================================
