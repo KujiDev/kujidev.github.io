@@ -1,0 +1,679 @@
+/**
+ * Character Creation Screen Styles
+ * R3F Campfire Scene with overlay UI
+ * Uses game's CSS variables for consistent styling
+ */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: #0d0d1a;
+  z-index: 9000;
+  animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* 3D Scene Container - full screen */
+.sceneContainer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Scene Loading Fallback */
+.sceneFallback {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, var(--bg-dark, rgba(18,12,6,0.95)) 0%, #0d0d1a 100%);
+  color: var(--color-muted, #a89878);
+  font-family: 'Philosopher', 'Palatino Linotype', Georgia, serif;
+  font-size: var(--font-base, 0.8125rem);
+  gap: 16px;
+}
+
+.fallbackSpinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--border-mid, #3d2a15);
+  border-top-color: var(--color-gold, #e8d6a8);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* UI Overlay - on top of 3D scene */
+.uiOverlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px;
+  pointer-events: none; /* Allow clicks to pass through to 3D scene */
+}
+
+.uiOverlay > * {
+  pointer-events: auto; /* But UI elements are clickable */
+}
+
+/* Header - uses drawer pattern */
+.header {
+  text-align: center;
+  padding: 0.875rem 1.5rem 1rem;
+  
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.375rem;
+  
+  background: linear-gradient(180deg, 
+    var(--bg-hover, rgba(45,32,18,0.95)) 0%, 
+    var(--bg-panel, rgba(25,18,10,0.9)) 50%,
+    var(--bg-dark, rgba(18,12,6,0.95)) 100%);
+  
+  border: 2px solid;
+  border-color: var(--border-highlight, #6b5530) var(--border-mid, #3d2a15) var(--border-dark, #2a1c0d) var(--border-light, #5a4525);
+  border-radius: 0.75rem;
+  
+  box-shadow: var(--shadow-lg, 0 8px 24px rgba(0,0,0,0.6)), inset 0 1px 3px rgba(0,0,0,0.5);
+  position: relative;
+}
+
+.header::before {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border-radius: 0.5rem;
+  border: 1px solid var(--highlight-subtle, rgba(255,220,160,0.08));
+  background: linear-gradient(180deg, rgba(255,220,160,0.02) 0%, transparent 20%);
+  pointer-events: none;
+}
+
+.title {
+  font-family: 'Philosopher', 'Palatino Linotype', Georgia, serif;
+  font-size: var(--font-md, 0.875rem);
+  font-weight: var(--weight-semibold, 600);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-gold, #e8d6a8);
+  margin: 0;
+  position: relative;
+  padding-bottom: 0.375rem;
+}
+
+.title::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: -0.5rem;
+  right: -0.5rem;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--highlight-strong, rgba(255,220,160,0.25)), transparent);
+}
+
+.subtitle {
+  font-size: var(--font-sm, 0.75rem);
+  color: var(--color-muted, #a89878);
+  margin: 0;
+}
+
+/* Selected Class Panel - bottom left, uses drawer pattern */
+.selectedPanel {
+  position: absolute;
+  bottom: 100px;
+  left: 32px;
+  max-width: 380px;
+  padding: 0.875rem 1.25rem 1rem;
+  
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  
+  background: linear-gradient(180deg, 
+    var(--bg-hover, rgba(45,32,18,0.95)) 0%, 
+    var(--bg-panel, rgba(25,18,10,0.9)) 50%,
+    var(--bg-dark, rgba(18,12,6,0.95)) 100%);
+  
+  border: 2px solid;
+  border-color: var(--border-highlight, #6b5530) var(--border-mid, #3d2a15) var(--border-dark, #2a1c0d) var(--border-light, #5a4525);
+  border-radius: 0.75rem;
+  
+  box-shadow: var(--shadow-lg, 0 8px 24px rgba(0,0,0,0.6)), inset 0 1px 3px rgba(0,0,0,0.5);
+  position: relative;
+}
+
+.selectedPanel::before {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border-radius: 0.5rem;
+  border: 1px solid var(--highlight-subtle, rgba(255,220,160,0.08));
+  background: linear-gradient(180deg, rgba(255,220,160,0.02) 0%, transparent 20%);
+  pointer-events: none;
+}
+
+.selectedName {
+  font-family: 'Philosopher', 'Palatino Linotype', Georgia, serif;
+  font-size: var(--font-md, 0.875rem);
+  font-weight: var(--weight-semibold, 600);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin: 0;
+  text-shadow: 0 0 8px currentColor;
+  position: relative;
+  padding-bottom: 0.375rem;
+}
+
+.selectedName::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--highlight-strong, rgba(255,220,160,0.25)), transparent);
+}
+
+.selectedLore {
+  font-size: var(--font-sm, 0.75rem);
+  color: var(--color-dim, #8a7a60);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.statsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.875rem;
+  padding: 0.5rem 0.625rem;
+  
+  background: linear-gradient(180deg, var(--bg-card, rgba(35,25,15,0.9)) 0%, var(--bg-dark, rgba(18,12,6,0.95)) 100%);
+  border: 1px solid var(--border-light, #5a4525);
+  border-radius: 0.375rem;
+  
+  box-shadow:
+    inset 0 1px 0 var(--highlight-subtle, rgba(255,220,160,0.08)),
+    inset 0 -1px 3px rgba(0,0,0,0.3);
+}
+
+.statItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 60px;
+}
+
+.statLabel {
+  font-size: var(--font-xs, 0.6875rem);
+  font-weight: var(--weight-semibold, 600);
+  color: var(--color-subtle, #6a5a48);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.statValue {
+  font-size: var(--font-base, 0.8125rem);
+  color: var(--color-gold-light, #f0e6c8);
+  font-weight: var(--weight-semibold, 600);
+}
+
+.tagsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+
+.tagBadge {
+  font-size: var(--font-xs, 0.6875rem);
+  font-weight: var(--weight-semibold, 600);
+  letter-spacing: 0.02em;
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.1875rem;
+  
+  background: rgba(0,0,0,0.3);
+  border: 1px solid var(--highlight-medium, rgba(255,220,160,0.15));
+  color: var(--color-muted, #a89878);
+  text-transform: capitalize;
+}
+
+/* ============================================================================
+   SIDE PANELS CONTAINER - Left and Right panels
+   ============================================================================ */
+
+.sidePanels {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 24px;
+}
+
+.sidePanels > * {
+  pointer-events: auto;
+}
+
+/* ============================================================================
+   LORE PANEL - Left side class lore/backstory
+   ============================================================================ */
+
+.lorePanel {
+  min-width: 220px;
+  max-width: 280px;
+  padding: 1rem 1.25rem;
+  
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  
+  background: linear-gradient(180deg, 
+    var(--bg-hover, rgba(45,32,18,0.95)) 0%, 
+    var(--bg-panel, rgba(25,18,10,0.9)) 50%,
+    var(--bg-dark, rgba(18,12,6,0.95)) 100%);
+  
+  border: 2px solid;
+  border-color: var(--class-color, var(--border-glow, #8a6a40));
+  border-radius: 0.75rem;
+  
+  box-shadow: 
+    var(--shadow-lg, 0 8px 24px rgba(0,0,0,0.6)),
+    0 0 20px color-mix(in srgb, var(--class-color, #a89878) 30%, transparent),
+    inset 0 1px 3px rgba(0,0,0,0.5);
+  
+  color: var(--color-gold, #e8d6a8);
+  font-family: 'Philosopher', 'Palatino Linotype', Georgia, serif;
+  user-select: none;
+  position: relative;
+}
+
+.lorePanel::before {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border-radius: 0.5rem;
+  border: 1px solid var(--highlight-subtle, rgba(255,220,160,0.08));
+  background: linear-gradient(180deg, rgba(255,220,160,0.02) 0%, transparent 20%);
+  pointer-events: none;
+}
+
+.lorePanelTitle {
+  margin: 0;
+  font-size: var(--font-md, 0.875rem);
+  font-weight: var(--weight-semibold, 600);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--class-color, var(--color-gold, #e8d6a8));
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  text-align: center;
+  position: relative;
+  padding-bottom: 0.5rem;
+}
+
+.lorePanelTitle::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--highlight-strong, rgba(255,220,160,0.25)), transparent);
+}
+
+.lorePanelText {
+  margin: 0;
+  font-size: var(--font-sm, 0.75rem);
+  font-weight: var(--weight-normal, 400);
+  color: var(--color-dim, #8a7a60);
+  line-height: 1.6;
+  text-align: left;
+  font-style: italic;
+}
+
+/* ============================================================================
+   CLASS INFO PANEL - Right side stats & skills (drawer pattern)
+   ============================================================================ */
+
+.classInfoPanel {
+  min-width: 200px;
+  max-width: 240px;
+  padding: 0.875rem 1.25rem 1rem;
+  
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  
+  background: linear-gradient(180deg, 
+    var(--bg-hover, rgba(45,32,18,0.95)) 0%, 
+    var(--bg-panel, rgba(25,18,10,0.9)) 50%,
+    var(--bg-dark, rgba(18,12,6,0.95)) 100%);
+  
+  border: 2px solid;
+  border-color: var(--class-color, var(--border-glow, #8a6a40));
+  border-radius: 0.75rem;
+  
+  box-shadow: 
+    var(--shadow-lg, 0 8px 24px rgba(0,0,0,0.6)),
+    0 0 20px color-mix(in srgb, var(--class-color, #a89878) 30%, transparent),
+    inset 0 1px 3px rgba(0,0,0,0.5);
+  
+  color: var(--color-gold, #e8d6a8);
+  font-family: 'Philosopher', 'Palatino Linotype', Georgia, serif;
+  user-select: none;
+  position: relative;
+}
+
+/* Inner highlight border */
+.classInfoPanel::before {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border-radius: 0.5rem;
+  border: 1px solid var(--highlight-subtle, rgba(255,220,160,0.08));
+  background: linear-gradient(180deg, rgba(255,220,160,0.02) 0%, transparent 20%);
+  pointer-events: none;
+}
+
+.panelClassName {
+  margin: 0;
+  font-size: var(--font-md, 0.875rem);
+  font-weight: var(--weight-semibold, 600);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--class-color, var(--color-gold, #e8d6a8));
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  text-align: center;
+  position: relative;
+  padding-bottom: 0.375rem;
+}
+
+.panelClassName::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: -0.5rem;
+  right: -0.5rem;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--highlight-strong, rgba(255,220,160,0.25)), transparent);
+}
+
+.panelTags {
+  display: flex;
+  gap: 0.375rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.panelTag {
+  padding: 0.125rem 0.375rem;
+  font-size: var(--font-xs, 0.6875rem);
+  font-weight: var(--weight-semibold, 600);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--color-muted, #a89878);
+  background: rgba(0,0,0,0.3);
+  border-radius: 0.1875rem;
+  border: 1px solid var(--highlight-medium, rgba(255,220,160,0.15));
+}
+
+.panelDescription {
+  margin: 0;
+  font-size: var(--font-sm, 0.75rem);
+  font-weight: var(--weight-normal, 400);
+  color: var(--color-dim, #8a7a60);
+  text-align: center;
+  line-height: 1.4;
+}
+
+.panelStats {
+  display: flex;
+  justify-content: center;
+  gap: 1.25rem;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  background: linear-gradient(180deg, var(--bg-card, rgba(35,25,15,0.9)) 0%, var(--bg-dark, rgba(18,12,6,0.95)) 100%);
+  border-radius: 0.375rem;
+  border: 1px solid var(--border-light, #5a4525);
+  box-shadow:
+    inset 0 1px 0 var(--highlight-subtle, rgba(255,220,160,0.08)),
+    inset 0 -1px 3px rgba(0,0,0,0.3);
+}
+
+.panelStat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.panelStatLabel {
+  font-size: var(--font-xs, 0.6875rem);
+  color: var(--color-subtle, #6a5a48);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.panelStatValue {
+  font-size: var(--font-base, 0.8125rem);
+  font-weight: var(--weight-semibold, 600);
+  color: var(--color-gold-light, #f0e6c8);
+}
+
+.panelLoadout {
+  display: flex;
+  justify-content: center;
+  gap: 0.375rem;
+  width: 100%;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--highlight-subtle, rgba(255,220,160,0.08));
+}
+
+.panelSkillIcon {
+  width: 2rem;
+  height: 2rem;
+  padding: 0.25rem;
+  border-radius: 0.375rem;
+  
+  background: linear-gradient(180deg, var(--bg-card, rgba(35,25,15,0.9)) 0%, var(--bg-panel, rgba(25,18,10,0.9)) 100%);
+  border: 1px solid;
+  border-color: var(--border-light, #5a4525) var(--border-mid, #3d2a15) var(--border-dark, #2a1c0d) var(--border-light, #5a4525);
+  
+  box-shadow:
+    inset 0 1px 0 var(--highlight-subtle, rgba(255,220,160,0.08)),
+    inset 0 -2px 4px rgba(0,0,0,0.6);
+  
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.panelSkillIcon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 0 2px var(--class-color, #a89878));
+}
+
+/* ============================================================================
+   BOTTOM ACTIONS - Centered button at bottom
+   ============================================================================ */
+
+.bottomActions {
+  display: flex;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+.classPanel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 20px;
+  min-width: 120px;
+  
+  background: linear-gradient(180deg, rgba(40,30,18,0.9) 0%, rgba(25,18,10,0.95) 100%);
+  border: 2px solid var(--border-mid, #3d2a15);
+  border-radius: 8px;
+  
+  cursor: pointer;
+  font-family: inherit;
+  color: var(--color-muted, #a89878);
+  
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,220,160,0.08);
+  transition: all 0.15s ease;
+}
+
+.classPanel:hover {
+  border-color: var(--class-color, #6b5530);
+  background: linear-gradient(180deg, rgba(55,42,25,0.95) 0%, rgba(35,25,15,0.98) 100%);
+  color: var(--color-gold, #e8d6a8);
+  box-shadow: 
+    0 6px 16px rgba(0,0,0,0.5),
+    0 0 12px color-mix(in srgb, var(--class-color, #a89878) 20%, transparent),
+    inset 0 1px 0 rgba(255,220,160,0.12);
+}
+
+.classPanelSelected {
+  border-color: var(--class-color, #8a6a40);
+  background: linear-gradient(180deg, rgba(65,48,28,0.95) 0%, rgba(45,32,18,0.98) 100%);
+  color: var(--color-gold-light, #f0e6c8);
+  box-shadow: 
+    0 6px 20px rgba(0,0,0,0.5),
+    0 0 20px color-mix(in srgb, var(--class-color, #a89878) 30%, transparent),
+    inset 0 1px 0 rgba(255,220,160,0.15);
+}
+
+.classPanelName {
+  font-size: var(--font-sm, 0.75rem);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.classPanelDesc {
+  font-size: var(--font-xs, 0.6875rem);
+  color: var(--color-dim, #8a7a60);
+  text-align: center;
+}
+
+/* Bottom bar - contains selected info and button */
+.bottomBar {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 16px 24px;
+  
+  background: linear-gradient(180deg, rgba(35,25,15,0.95) 0%, rgba(20,14,8,0.98) 100%);
+  border: 2px solid;
+  border-color: var(--border-highlight, #6b5530) var(--border-mid, #3d2a15) var(--border-dark, #2a1c0d) var(--border-light, #5a4525);
+  border-radius: 12px;
+  
+  box-shadow: 0 8px 24px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,220,160,0.08);
+}
+
+.selectedInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 400px;
+}
+
+.selectedInfo .selectedName {
+  margin: 0;
+  padding-bottom: 0;
+}
+
+.selectedInfo .selectedName::after {
+  display: none;
+}
+
+.selectedInfo .statsRow {
+  padding: 6px 10px;
+  gap: 12px;
+}
+
+.selectedInfo .statItem {
+  flex-direction: row;
+  gap: 6px;
+  min-width: auto;
+  align-items: center;
+}
+
+.selectedInfo .tagsRow {
+  gap: 6px;
+}
+
+/* Skills Showcase - starting skills display */
+.skillsShowcase {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  
+  background: linear-gradient(180deg, rgba(40,30,18,0.8) 0%, rgba(25,18,10,0.9) 100%);
+  border: 1px solid var(--border-mid, #3d2a15);
+  border-radius: 8px;
+}
+
+.skillsLabel {
+  font-size: var(--font-xs, 0.6875rem);
+  color: var(--color-muted, #a89878);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.skillsRow {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.skillIcon {
+  width: 40px;
+  height: 40px;
+  
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  background: linear-gradient(180deg, rgba(55,42,25,0.95) 0%, rgba(35,25,15,0.98) 100%);
+  border: 2px solid var(--border-mid, #3d2a15);
+  border-radius: 6px;
+  
+  box-shadow: 
+    0 2px 4px rgba(0,0,0,0.3),
+    inset 0 1px 0 rgba(255,220,160,0.1);
+  
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.skillIcon:hover {
+  transform: scale(1.1);
+  border-color: var(--color-gold, #e8d6a8);
+}
+
+.skillIcon img {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.4));
+}

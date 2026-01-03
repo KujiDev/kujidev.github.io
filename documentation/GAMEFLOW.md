@@ -2,7 +2,112 @@
 
 ## Overview
 
-This document describes the game session lifecycle: starting new games, loading saved games, and class switching.
+This document describes the game session lifecycle: screen navigation, starting new games, loading saved games, and character creation.
+
+## Screen Flow
+
+```
+┌─────────────────┐     New Game      ┌────────────────────────┐     Confirm      ┌─────────────┐
+│  LoadingScreen  │ ────────────────► │ CharacterCreationScreen │ ──────────────► │  GameScene  │
+└─────────────────┘                   └────────────────────────┘                  └─────────────┘
+         │                                                                               ▲
+         │                              Continue                                         │
+         └───────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Flow States (App.jsx)
+
+| State | Description |
+|-------|-------------|
+| `LOADING` | Initial state. Shows loading progress, then New Game / Continue buttons |
+| `CHARACTER_CREATION` | Class selection screen for new games |
+| `GAME` | Main game scene with player, UI, world |
+
+### Navigation Rules
+
+- **New Game** → Always goes through CharacterCreationScreen
+- **Continue** → Skips CharacterCreationScreen, loads saved game directly
+- **No in-game class switching** - ClassSwitcher removed in Phase 19
+- **No in-game new game button** - Must go through LoadingScreen
+
+---
+
+## CharacterCreationScreen
+
+### Purpose
+
+- Single authority for initializing a new game
+- Player selects class from available options (data-driven from class config)
+- On confirm: `startNewGame(classId)` is called, then navigates to GameScene
+
+### R3F Campfire Scene (Phase 20)
+
+The character creation screen features a 3D campfire scene with class models:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Choose Your Class                         │
+│                                                              │
+│     ┌──────────┐            🔥            ┌──────────┐      │
+│     │  Wizard  │        Campfire          │  Cleric  │      │
+│     │  Panel   │                          │  Panel   │      │
+│     └──────────┘                          └──────────┘      │
+│         🧙                                    🧎             │
+│      (model)                               (model)           │
+│                                                              │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │  Selected Class: Wizard                              │   │
+│  │  Master of arcane devastation...                     │   │
+│  │  HP: 100 | MP: 100 | HP/s: 2 | MP/s: 5               │   │
+│  │  [caster] [ranged] [elemental] [glass_cannon]        │   │
+│  └──────────────────────────────────────────────────────┘   │
+│                                                              │
+│                    [ Begin Adventure ]                       │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Components
+
+| Component | Purpose |
+|-----------|---------|
+| `CharacterSelectionScene` | R3F Canvas with Town, models, panels |
+| `ClassPreviewModel` | Displays class model in idle animation |
+| `CharacterPanel3D` | Floating HTML panel with class info |
+
+### Data-Driven Model Placement
+
+```json
+// In class.json
+"characterSelection": {
+  "position": [-2.5, 0, -1.5],
+  "rotation": 0.4,
+  "panelOffset": [0, 2.5, 0]
+}
+```
+
+### Interaction
+
+- **Click model or panel** → Selects that class
+- **Hover model** → Gold glow effect (matches game UI)
+- **Selected model** → Bronze highlight + gentle float animation
+- **Click empty space** → No effect (selection stays)
+
+### Stability (Phase 21)
+
+- **Suspense boundaries** around each model for graceful loading
+- **Error handling** for missing animations (falls back to first available)
+- **CSS variables** from game theme for consistent styling
+- **Safe async loading** prevents white screens
+
+### Debug Logging
+
+```
+[DEBUG][CharacterCreation] Loaded class: wizard animations: [IDLE, CAST_SECONDARY, CAST_PRIMARY, RUN, DEATH]
+[DEBUG][CharacterCreation] selectedClass=wizard
+[DEBUG][CharacterCreation] selectedClass=wizard, className=Wizard, defaultLoadout={...}
+```
+
+---
 
 ## State Persistence
 
@@ -28,22 +133,30 @@ This document describes the game session lifecycle: starting new games, loading 
 
 ### Trigger
 
-- Click "New Game" button
-- Call `startNewGame()` action
+1. Click "New Game" in LoadingScreen
+2. Select class in CharacterCreationScreen
+3. Click "Begin Adventure"
 
 ### Behavior
 
-1. **Clear ALL localStorage** - All game-related keys are removed
-2. **Reset to default class** - Wizard (or specified starting class)
-3. **Load default loadout** - From class JSON config
-4. **Reset resources** - Health/mana to max
-5. **Clear buffs** - No active buffs
-6. **Clear achievements** - Empty set
-7. **Reset pixies** - Default collected pixies only
+1. **Navigate to CharacterCreationScreen**
+2. **Player selects class** from data-driven list
+3. **startNewGame(classId) is called:**
+   - Clear ALL localStorage
+   - Reset to selected class
+   - Load default loadout from class JSON config
+   - Reset resources to max
+   - Clear buffs
+   - Clear achievements
+   - Reset pixies to defaults
+4. **Navigate to GameScene**
 
 ### Debug Logging
 
 ```
+[LOADING SCREEN] New Game selected - navigating to Character Creation
+[CHARACTER CREATION] Selected class: wizard
+[GAME FLOW] Character created with class: wizard
 [NEW GAME] ============================================
 [NEW GAME] Starting class: wizard
 [NEW GAME] Fresh loadout slots: 8
@@ -57,11 +170,12 @@ This document describes the game session lifecycle: starting new games, loading 
 ### Code Path
 
 ```javascript
-// App.jsx ClassSwitcher
-const handleNewGame = useCallback(() => {
-  startNewGame();      // Clears storage, resets state
-  setClassId('wizard'); // Syncs UI context
-}, [startNewGame, setClassId]);
+// CharacterCreationScreen/index.jsx
+const handleConfirm = useCallback(() => {
+  if (!selectedClassId) return;
+  startNewGame(selectedClassId);  // Clears storage, resets state to selected class
+  onComplete(selectedClassId);    // Navigate to GameScene
+}, [selectedClassId, startNewGame, onComplete]);
 ```
 
 ---

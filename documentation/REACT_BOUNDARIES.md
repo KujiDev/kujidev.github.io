@@ -196,6 +196,79 @@ function SpellBook() {
 
 ---
 
+## R3F Interaction Rules (Phase 20)
+
+React Three Fiber follows the same boundary rules as 2D React.
+
+### ✅ ALLOWED in R3F
+
+1. **Render models from config paths**
+   ```jsx
+   // GOOD: Model path comes from class config
+   const { scene } = useGLTF(classConfig.model.path);
+   ```
+
+2. **Apply visual effects (highlight, glow)**
+   ```jsx
+   // GOOD: Visual feedback for selection state
+   if (isSelected) child.material = HIGHLIGHT_MATERIAL;
+   ```
+
+3. **Forward click events to handler**
+   ```jsx
+   // GOOD: Forwards intent, doesn't decide validity
+   onClick={() => onSelectClass(classConfig.id)}
+   ```
+
+4. **Read positions from config**
+   ```jsx
+   // GOOD: Position comes from characterSelection config
+   <group position={classConfig.characterSelection.position}>
+   ```
+
+### ❌ FORBIDDEN in R3F
+
+1. **Hardcode class-specific logic**
+   ```jsx
+   // BAD: R3F knowing class identity
+   if (classId === 'wizard') {
+     position = [-2, 0, -1];
+   }
+   ```
+
+2. **Define model paths in components**
+   ```jsx
+   // BAD: Hardcoded path
+   const { scene } = useGLTF('/models/Wizard-transformed.glb');
+   
+   // GOOD: Path from config
+   const { scene } = useGLTF(classConfig.model.path);
+   ```
+
+3. **Filter or transform class data**
+   ```jsx
+   // BAD: R3F filtering classes
+   const casterClasses = classes.filter(c => c.tags.includes('caster'));
+   ```
+
+### CharacterSelectionScene Example
+
+```jsx
+// GOOD: All data from class config, no hardcoded class logic
+function CharacterDisplay({ classConfig, isSelected, onSelect }) {
+  const { position, rotation, panelOffset } = classConfig.characterSelection;
+  
+  return (
+    <group position={position} rotation={[0, rotation, 0]}>
+      <ClassPreviewModel classConfig={classConfig} isSelected={isSelected} />
+      <CharacterPanel3D classConfig={classConfig} position={panelOffset} />
+    </group>
+  );
+}
+```
+
+---
+
 ## Testing the Boundary
 
 Ask yourself:

@@ -1,7 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useProgress } from '@react-three/drei';
-import { useKeyMap } from '@/hooks/useKeyMap';
-import { useSlotMap, usePixies, useAchievements } from '@/hooks/useGame';
 import styles from './styles.module.css';
 
 const MIN_DISPLAY_TIME = 1000; // Minimum 1 second display
@@ -11,17 +9,24 @@ const SAVE_KEY = 'kuji_game_started';
 const hasSavedProgress = () => localStorage.getItem(SAVE_KEY) === 'true';
 
 // Mark that the game has been started
-const markGameStarted = () => localStorage.setItem(SAVE_KEY, 'true');
+export const markGameStarted = () => localStorage.setItem(SAVE_KEY, 'true');
 
 // Clear the game started flag
-const clearGameStarted = () => localStorage.removeItem(SAVE_KEY);
+export const clearGameStarted = () => localStorage.removeItem(SAVE_KEY);
 
-export default function LoadingScreen() {
+/**
+ * Loading Screen Component
+ * 
+ * FLOW:
+ * - New Game → onNewGame callback (navigates to CharacterCreation)
+ * - Continue → onContinue callback (navigates to Game)
+ * 
+ * @param {Object} props
+ * @param {Function} props.onNewGame - Called when "New Game" is clicked
+ * @param {Function} props.onContinue - Called when "Continue" is clicked
+ */
+export default function LoadingScreen({ onNewGame, onContinue }) {
   const { progress, active } = useProgress();
-  const { resetToDefaults: resetKeyMap } = useKeyMap();
-  const { resetToDefaults: resetSlotMap } = useSlotMap();
-  const { resetToDefaults: resetAchievements } = useAchievements();
-  const { resetToDefaults: resetPixies } = usePixies();
   
   const [show, setShow] = useState(true);
   const [fadeOut, setFadeOut] = useState(false);
@@ -52,25 +57,29 @@ export default function LoadingScreen() {
     }
   }, [progress, active, startTime]);
   
-  const handleStartGame = useCallback(() => {
-    // Clear game started flag and reset all game state
-    clearGameStarted();
-    resetKeyMap();
-    resetSlotMap();
-    resetAchievements();
-    resetPixies();
+  const handleStartNewGame = useCallback(() => {
+    if (import.meta.env.DEV) {
+      console.log('[LOADING SCREEN] New Game selected - navigating to Character Creation');
+    }
     
-    // Mark game as started and enter
-    markGameStarted();
     setFadeOut(true);
-    setTimeout(() => setShow(false), 500);
-  }, [resetKeyMap, resetSlotMap, resetAchievements, resetPixies]);
+    setTimeout(() => {
+      setShow(false);
+      onNewGame?.();
+    }, 500);
+  }, [onNewGame]);
   
   const handleContinue = useCallback(() => {
-    // Just enter the game with existing progress
+    if (import.meta.env.DEV) {
+      console.log('[LOADING SCREEN] Continue selected - loading saved game');
+    }
+    
     setFadeOut(true);
-    setTimeout(() => setShow(false), 500);
-  }, []);
+    setTimeout(() => {
+      setShow(false);
+      onContinue?.();
+    }, 500);
+  }, [onContinue]);
   
   if (!show) return null;
   
@@ -133,7 +142,7 @@ export default function LoadingScreen() {
             )}
             <button 
               className={`${styles.menuButton} ${canContinue ? styles.menuButtonSecondary : ''}`}
-              onClick={handleStartGame}
+              onClick={handleStartNewGame}
             >
               New Game
             </button>

@@ -10,6 +10,12 @@
     "position": [0, 0, 0]
   },
   
+  "characterSelection": {
+    "position": [2.5, 0, -1.5],
+    "rotation": -0.4,
+    "panelOffset": [0, 2.5, 0]
+  },
+  
   "ui": {
     "icon": null,
     "color": "#f0d890",

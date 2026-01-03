@@ -13,7 +13,8 @@ import MenuBar from "@/components/MenuBar";
 import AchievementToast from "@/components/AchievementToast";
 import Target, { TargetProvider, useTarget } from "@/components/Target";
 import TargetHealthBar from "@/components/TargetHealthBar";
-import LoadingScreen from "@/components/LoadingScreen";
+import LoadingScreen, { markGameStarted } from "@/components/LoadingScreen";
+import CharacterCreationScreen from "@/components/CharacterCreationScreen";
 import Town from "@/components/Town";
 import TrainingDummyModel from "@/components/TrainingDummyModel";
 import PixieOrbit from "@/components/PixieOrbit";
@@ -29,7 +30,16 @@ import { useSlotButton, useMouseSlotButton } from "@/hooks/useSlotButton";
 import { SKILL_SLOTS, MOUSE_SLOTS, CONSUMABLE_SLOTS, PIXIE_SLOTS } from "@/config/slots";
 import { DragDropProvider } from "@/hooks/useDragDrop";
 import { getSkills, getConsumables } from "@/config/actions";
-import { getClasses } from "@/engine/classes";
+
+// =============================================================================
+// GAME FLOW STATES
+// =============================================================================
+
+const GAME_FLOW = {
+  LOADING: 'loading',
+  CHARACTER_CREATION: 'characterCreation',
+  GAME: 'game',
+};
 
 // =============================================================================
 // CLASS CONTEXT - Allows components to access current class
@@ -331,87 +341,50 @@ const Scene = () => {
   )
 }
 
-/**
- * Class Switcher - Development tool to demonstrate class abstraction
- * 
- * IMPORTANT: This component syncs TWO class states:
- * 1. ClassContext (UI state) - controls which model/visuals to show
- * 2. gameStore.activeClassId (data state) - controls loadout, allowed skills
- * 
- * The gameStore.setActiveClass() is the SINGLE SOURCE OF TRUTH for class switching.
- * It handles all class-scoped state rebinding (loadout, allowed skills, etc.)
- */
-const ClassSwitcher = () => {
-  const { classId, setClassId } = useCurrentClass();
-  const { setActiveClass, startNewGame } = useActiveClass();
-  const classes = getClasses();
-  
-  const handleClassSwitch = useCallback((newClassId) => {
-    // Sync BOTH states - gameStore is the authority
-    setActiveClass(newClassId);  // Rebinds loadout, skills, state
-    setClassId(newClassId);       // Updates UI context
-  }, [setActiveClass, setClassId]);
-  
-  const handleNewGame = useCallback(() => {
-    // Start fresh - clears all storage, resets to defaults
-    startNewGame();
-    // Sync UI context to default class
-    setClassId('wizard');
-  }, [startNewGame, setClassId]);
-  
-  return (
-    <div style={{
-      position: 'fixed',
-      top: '10px',
-      left: '10px',
-      zIndex: 9999,
-      display: 'flex',
-      gap: '8px',
-      padding: '8px',
-      background: 'rgba(0,0,0,0.7)',
-      borderRadius: '8px',
-      border: '1px solid rgba(255,255,255,0.1)',
-    }}>
-      <button
-        onClick={handleNewGame}
-        style={{
-          padding: '6px 12px',
-          border: '1px solid rgba(255,100,100,0.5)',
-          borderRadius: '4px',
-          background: 'rgba(100,30,30,0.8)',
-          color: '#ff8080',
-          cursor: 'pointer',
-          fontWeight: 'normal',
-          fontSize: '12px',
-        }}
-      >
-        New Game
-      </button>
-      <div style={{ width: '1px', background: 'rgba(255,255,255,0.2)' }} />
-      {classes.map(cls => (
-        <button
-          key={cls.id}
-          onClick={() => handleClassSwitch(cls.id)}
-          style={{
-            padding: '6px 12px',
-            border: classId === cls.id ? '2px solid #ffd700' : '1px solid rgba(255,255,255,0.2)',
-            borderRadius: '4px',
-            background: classId === cls.id ? 'rgba(255,215,0,0.2)' : 'rgba(40,30,20,0.8)',
-            color: cls.ui?.color || '#ffffff',
-            cursor: 'pointer',
-            fontWeight: classId === cls.id ? 'bold' : 'normal',
-            fontSize: '12px',
-          }}
-        >
-          {cls.name}
-        </button>
-      ))}
-    </div>
-  );
-};
-
 export default function App() {
+  const [gameFlow, setGameFlow] = useState(GAME_FLOW.LOADING);
   const [classId, setClassId] = useState('wizard');
+  const { activeClassId } = useActiveClass();
+  
+  // Sync classId with activeClassId from store when entering game
+  useEffect(() => {
+    if (gameFlow === GAME_FLOW.GAME && activeClassId) {
+      setClassId(activeClassId);
+      
+      if (import.meta.env.DEV) {
+        console.log(`[GAME SCENE] Active class: ${activeClassId}`);
+      }
+    }
+  }, [gameFlow, activeClassId]);
+  
+  // Handler for New Game - navigate to character creation
+  const handleNewGame = useCallback(() => {
+    setGameFlow(GAME_FLOW.CHARACTER_CREATION);
+  }, []);
+  
+  // Handler for Continue - go directly to game
+  const handleContinue = useCallback(() => {
+    if (import.meta.env.DEV) {
+      console.log('[GAME FLOW] Continuing saved game');
+    }
+    setGameFlow(GAME_FLOW.GAME);
+  }, []);
+  
+  // Handler for character creation complete
+  const handleCharacterCreated = useCallback((selectedClassId) => {
+    // Mark game as started for future sessions
+    markGameStarted();
+    
+    // Update class context
+    setClassId(selectedClassId);
+    
+    if (import.meta.env.DEV) {
+      console.log(`[GAME FLOW] Character created with class: ${selectedClassId}`);
+    }
+    
+    // Navigate to game
+    setGameFlow(GAME_FLOW.GAME);
+  }, []);
   
   return (
     <ClassContext.Provider value={{ classId, setClassId }}>
@@ -419,11 +392,33 @@ export default function App() {
     <KeyMapProvider>
     <DragDropProvider>
         <GameControls>
-          <LoadingScreen />
-          <AchievementToast />
-          <ClassSwitcher />
-          {import.meta.env.DEV && <DebugPanel />}
-          <div style={{ width: "100vw", height: "100vh" }}>
+          {/* Loading Screen - shown first */}
+          {gameFlow === GAME_FLOW.LOADING && (
+            <LoadingScreen 
+              onNewGame={handleNewGame}
+              onContinue={handleContinue}
+            />
+          )}
+          
+          {/* Character Creation - shown after New Game */}
+          {gameFlow === GAME_FLOW.CHARACTER_CREATION && (
+            <CharacterCreationScreen onComplete={handleCharacterCreated} />
+          )}
+          
+          {/* Game UI - only shown during gameplay */}
+          {gameFlow === GAME_FLOW.GAME && (
+            <>
+              <AchievementToast />
+              {import.meta.env.DEV && <DebugPanel />}
+            </>
+          )}
+          
+          {/* Canvas is always rendered (for asset loading), but only visible in game */}
+          <div style={{ 
+            width: "100vw", 
+            height: "100vh",
+            visibility: gameFlow === GAME_FLOW.GAME ? 'visible' : 'hidden',
+          }}>
             <Canvas 
               flat 
               camera={{ fov: 50, position: [11.02, 10, 11.02] }} 
