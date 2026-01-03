@@ -33,10 +33,25 @@ Each class stores its loadout under a unique localStorage key:
 // In gameStore.js
 {
   activeClassId: 'wizard',           // Current class
-  slotMap: { slot_1: 'ice_shard', ... },  // Class-specific loadout
-  allowedSkills: Set(['ice_shard', 'meteor', ...]),  // Skills owned by current class
+  slotMap: { slot_1: 'skill_1', ... },  // Class-specific loadout (uses action IDs)
+  allowedSkills: Set(['ice_shard', 'meteor', ...]),  // Skills owned (semantic skill IDs)
+  allowedActions: Set(['skill_1', 'skill_2', 'potion', 'azure', ...]),  // All equipable items (action IDs)
 }
 ```
+
+### ID Translation
+
+The codebase uses two types of IDs:
+
+1. **Semantic Skill IDs** (from JSON): `ice_shard`, `health_potion`, `meteor`
+2. **Action IDs** (runtime): `skill_1`, `potion`, `skill_2`
+
+Translation happens in `engine/actions.js`:
+- `getActionIdForSkill(skillId)` → converts `health_potion` → `potion`
+- `getSkillIdForAction(actionId)` → converts `potion` → `health_potion`
+
+The `allowedActions` Set contains **action IDs** (post-translation) for slot assignment validation.
+The `allowedSkills` Set contains **semantic skill IDs** for execution validation.
 
 ---
 
@@ -85,24 +100,21 @@ if (!state.allowedSkills.has(skillId)) {
 
 ## Slot Assignment Rules
 
-When assigning a skill to a slot:
+When assigning an item to a slot:
 
-1. **Ownership Check** - Only skills in `allowedSkills` can be assigned
-2. **Slot Type Check** - Skills go to SKILL_SLOTS, consumables to CONSUMABLE_SLOTS
-3. **Duplicate Check** - Same skill cannot be in multiple slots
+1. **Ownership Check** - Only items in `allowedActions` can be assigned (skills, consumables, pixies)
+2. **Slot Type Check** - Skills go to SKILL_SLOTS, consumables to CONSUMABLE_SLOTS, pixies to PIXIE_SLOTS
+3. **Swap on Duplicate** - Same item in different slot triggers a swap
 4. **Persistence** - Changes are saved to class-specific localStorage immediately
 
 ```javascript
 // assignToSlot validates before assigning
 assignToSlot: (slotId, actionId) => {
-  const { slotMap, activeClassId, allowedSkills } = get();
-  
-  const action = getActionById(actionId);
-  const skillId = action._skillId || action.id;
+  const { activeClassId, allowedActions } = get();
   
   // Block if not owned by current class
-  if (!allowedSkills.has(skillId)) {
-    console.warn(`Cannot assign ${skillId} - not owned by ${activeClassId}`);
+  if (!allowedActions.has(actionId)) {
+    console.error(`[DEBUG][Equip] REJECTED: "${actionId}" not in allowedActions for ${activeClassId}`);
     return;
   }
   
@@ -139,15 +151,22 @@ On first load (no localStorage), the engine reads this default and persists it.
 In development mode, class switches log detailed info:
 
 ```
-[CLASS SWITCH] wizard → cleric
-[LOADOUT] Loaded 2 slots
-[ALLOWED] 3 skills available
+[DEBUG][ClassSwitch] wizard → cleric
+[DEBUG][ClassSwitch] Loadout: {"slot_1":"skill_1",...}
+[DEBUG][ClassSwitch] AllowedActions: ["skill_1","skill_2","potion","food","azure","verdant",...]
 ```
 
-Blocked executions log errors:
+Equip attempts log:
 
 ```
-[GUARD] Skill execution blocked: "ice_shard" not owned by cleric
+[DEBUG][Equip] Attempt equip item="potion" into slot="slot_consumable_1" allowedActions=[...]
+[DEBUG][Equip] ACCEPTED: "potion" → slot_consumable_1
+```
+
+Blocked equips log errors:
+
+```
+[DEBUG][Equip] REJECTED: "ice_shard" not in allowedActions for cleric
 ```
 
 ---
@@ -156,18 +175,23 @@ Blocked executions log errors:
 
 | File | Role |
 |------|------|
-| `gameStore.js` | State owner, class switch logic |
-| `useGame.js` | Component hooks (useActiveClass, useSlotMap) |
-| `engine/classes.js` | Class JSON accessors |
-| `config/classes/*.json` | Class definitions with skills and defaults |
-| `App.jsx` | ClassSwitcher component |
+| `gameStore.js` | State owner, class switch logic, slot assignment guard |
+| `useGame.js` | Component hooks (useActiveClass, useSlotMap) wrapping gameStore |
+| `engine/classes.js` | Class JSON accessors, getAllAllowedActionsForClass |
+| `engine/actions.js` | Action transformation, ID translation (getActionIdForSkill) |
+| `config/slots.js` | Slot definitions, isDropCompatible |
+| `data/classes/*.json` | Class definitions with skills and defaults |
+
+> **Note:** `hooks/useSlotMap.jsx` is deprecated dead code - do not use. The `useSlotMap` hook is now in `useGame.js` and wraps gameStore.
 
 ---
 
 ## Invariants
 
-1. **slotMap only contains skills from activeClassId**
+1. **slotMap only contains action IDs from activeClassId's allowedActions**
 2. **Switching class rebinds ALL class-scoped state**
-3. **Execution is always validated by allowedSkills**
-4. **Each class's loadout persists independently**
-5. **setActiveClass is the ONLY entry point for class switching**
+3. **Slot assignment is validated by allowedActions (action IDs)**
+4. **Execution is validated by allowedSkills (semantic skill IDs)**
+5. **Each class's loadout persists independently**
+6. **setActiveClass is the ONLY entry point for class switching**
+7. **ID translation: semantic skill IDs → action IDs happens in getAllAllowedActionsForClass()**

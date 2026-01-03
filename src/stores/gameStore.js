@@ -685,10 +685,15 @@ export const useGameStore = create(
     assignToSlot: (slotId, actionId) => {
       const { activeClassId, allowedActions } = get();
       
+      // DEBUG: Log equip attempt
+      if (import.meta.env.DEV) {
+        console.log(`[DEBUG][Equip] Attempt equip item="${actionId}" into slot="${slotId}" allowedActions=${JSON.stringify([...allowedActions])}`);
+      }
+      
       // OWNERSHIP GUARD: Block assignment if action not owned by active class
       if (!allowedActions.has(actionId)) {
         if (import.meta.env.DEV) {
-          console.error(`[SLOT GUARD] Assignment blocked: "${actionId}" not owned by ${activeClassId}`);
+          console.error(`[DEBUG][Equip] REJECTED: "${actionId}" not in allowedActions for ${activeClassId}`);
         }
         return; // HARD BLOCK
       }
@@ -708,7 +713,7 @@ export const useGameStore = create(
         saveSlotMapForClass(activeClassId, updated);
         
         if (import.meta.env.DEV) {
-          console.log(`[SLOT] Assigned "${actionId}" to ${slotId}`);
+          console.log(`[DEBUG][Equip] ACCEPTED: "${actionId}" → ${slotId}`);
         }
         
         return { slotMap: updated };
@@ -745,6 +750,25 @@ export const useGameStore = create(
       set({ slotMap: defaults });
     },
     
+    /**
+     * Force refresh the allowedActions cache.
+     * Useful for development when code changes don't trigger a full store re-init.
+     */
+    refreshAllowedActions: () => {
+      const { activeClassId } = get();
+      const newAllowedSkills = new Set(getAllowedSkillsForClass(activeClassId));
+      const newAllowedActions = new Set(getAllAllowedActionsForClass(activeClassId));
+      
+      if (import.meta.env.DEV) {
+        console.log(`[DEBUG][Store] refreshAllowedActions for ${activeClassId}:`, [...newAllowedActions]);
+      }
+      
+      set({
+        allowedSkills: newAllowedSkills,
+        allowedActions: newAllowedActions,
+      });
+    },
+    
     // =========================================================================
     // CLASS SWITCHING
     // =========================================================================
@@ -776,9 +800,9 @@ export const useGameStore = create(
       saveActiveClass(classId);
       
       if (import.meta.env.DEV) {
-        console.log(`[CLASS SWITCH] ${currentClassId} → ${classId}`);
-        console.log(`[LOADOUT] Loaded ${Object.values(newSlotMap).filter(Boolean).length} slots`);
-        console.log(`[ALLOWED] ${newAllowedSkills.size} skills, ${newAllowedActions.size} total actions`);
+        console.log(`[DEBUG][ClassSwitch] ${currentClassId} → ${classId}`);
+        console.log(`[DEBUG][ClassSwitch] Loadout: ${JSON.stringify(newSlotMap)}`);
+        console.log(`[DEBUG][ClassSwitch] AllowedActions: ${JSON.stringify([...newAllowedActions])}`);
       }
       
       set({
@@ -1182,6 +1206,13 @@ export const stopGameTick = () => {
 // Auto-start tick when module loads
 if (typeof window !== 'undefined') {
   startGameTick();
+  
+  // DEV: Force refresh allowedActions to pick up code changes after HMR
+  if (import.meta.env.DEV) {
+    setTimeout(() => {
+      useGameStore.getState().refreshAllowedActions();
+    }, 100);
+  }
 }
 
 // =============================================================================

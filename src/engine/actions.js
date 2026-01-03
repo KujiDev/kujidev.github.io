@@ -422,11 +422,16 @@ export function calculatePixieBuffs(equippedIds) {
 
 /**
  * Get the drag type for an action.
+ * Returns 'skill', 'consumable', or 'pixie' based on action type.
  */
 export function getDragType(action) {
   if (!action) return null;
+  // Check explicit dragType first (e.g., from dragData)
   if (action.dragType) return action.dragType;
-  return action.type === ACTION_TYPES.CONSUMABLE ? 'consumable' : 'skill';
+  // Check type for entity-based items
+  if (action.type === ACTION_TYPES.CONSUMABLE || action.type === 'consumable') return 'consumable';
+  if (action.type === ACTION_TYPES.PIXIE || action.type === 'pixie') return 'pixie';
+  return 'skill';
 }
 
 /**
@@ -488,6 +493,18 @@ export function isActionForSkill(actionId, skillId) {
 export function getSkillIdForAction(actionId) {
   if (!actionId) return null;
   return ACTION_TO_SKILL_ID[actionId] || actionId;
+}
+
+/**
+ * Get the runtime action ID for a semantic skill ID.
+ * Used to translate class JSON skill lists to runtime action IDs.
+ * 
+ * @param {string} skillId - The semantic skill ID (e.g., 'ice_shard', 'health_potion')
+ * @returns {string} The runtime action ID (e.g., 'skill_1', 'potion')
+ */
+export function getActionIdForSkill(skillId) {
+  if (!skillId) return null;
+  return SKILL_TO_ACTION_ID[skillId] || skillId;
 }
 
 // Re-export ELEMENTS for convenience

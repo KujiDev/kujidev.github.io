@@ -94,9 +94,17 @@ export function DragDropProvider({ children }) {
       }
     });
     
+    if (import.meta.env.DEV) {
+      console.log(`[DEBUG][DragDrop] Drop: item="${dragging.id}" dragType="${dragging.dragType}" targetSlot="${targetSlot}"`);
+    }
+    
     if (targetSlot) {
       // Validate type compatibility using centralized function
       const isCompatible = isDropCompatible(dragging.dragType, targetSlot);
+      
+      if (import.meta.env.DEV) {
+        console.log(`[DEBUG][DragDrop] isDropCompatible(${dragging.dragType}, ${targetSlot}) = ${isCompatible}`);
+      }
       
       if (isCompatible) {
         // If dragging from a slot to another slot, swap them

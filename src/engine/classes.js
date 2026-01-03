@@ -16,7 +16,7 @@
 
 import wizardData from '@/data/classes/wizard.json';
 import clericData from '@/data/classes/cleric.json';
-import { getSkills, getConsumables, getPixies } from '@/engine/actions';
+import { getSkills, getConsumables, getPixies, getActionIdForSkill } from '@/engine/actions';
 
 // =============================================================================
 // CLASS REGISTRY
@@ -103,12 +103,30 @@ export function getCollectablePixiesForClass(classId) {
 /**
  * Get ALL allowed actions for a class (skills + consumables + pixies).
  * This is used for slot assignment validation.
+ * 
+ * IMPORTANT: Returns runtime action IDs (e.g., 'skill_1', 'potion', 'azure')
+ * NOT semantic skill IDs from JSON (e.g., 'ice_shard', 'health_potion')
  */
 export function getAllAllowedActionsForClass(classId) {
   const cls = getClassById(classId);
   const skills = cls?.allowedSkills || [];
   const pixies = cls?.collectablePixies || [];
-  return [...skills, ...pixies];
+  
+  // Translate skill IDs to action IDs (pixie IDs don't need translation)
+  const actionIds = skills.map(skillId => getActionIdForSkill(skillId));
+  
+  const result = [...actionIds, ...pixies];
+  
+  if (import.meta.env.DEV) {
+    console.log(`[DEBUG][Classes] getAllAllowedActionsForClass("${classId}"):`, {
+      skills,
+      actionIds,
+      pixies,
+      result,
+    });
+  }
+  
+  return result;
 }
 
 /**
