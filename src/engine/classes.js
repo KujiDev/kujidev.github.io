@@ -93,6 +93,25 @@ export function getAllowedSkillsForClass(classId) {
 }
 
 /**
+ * Get collectable pixies for a class.
+ */
+export function getCollectablePixiesForClass(classId) {
+  const cls = getClassById(classId);
+  return cls?.collectablePixies || [];
+}
+
+/**
+ * Get ALL allowed actions for a class (skills + consumables + pixies).
+ * This is used for slot assignment validation.
+ */
+export function getAllAllowedActionsForClass(classId) {
+  const cls = getClassById(classId);
+  const skills = cls?.allowedSkills || [];
+  const pixies = cls?.collectablePixies || [];
+  return [...skills, ...pixies];
+}
+
+/**
  * Get default loadout for a class.
  */
 export function getDefaultLoadoutForClass(classId) {

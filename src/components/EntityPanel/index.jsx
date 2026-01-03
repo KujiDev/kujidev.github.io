@@ -19,21 +19,16 @@ import { MenuButton, Drawer, DrawerTitle, ScrollList, SvgIcon } from '@/ui';
 import { useDraggable, useDropTarget, useDragDrop } from '@/hooks/useDragDrop';
 import { useSlotMap, usePixies } from '@/hooks/useGame';
 import { useClassContent } from '@/hooks/useClassContent';
-import { getPixieActionById, ELEMENTS } from '@/config/actions';
 import { ALL_SLOTS } from '@/config/slots';
+import { BUFF_DISPLAY_INFO } from '@/game/entities';
 import styles from './styles.module.css';
 
-// =============================================================================
-// BUFF INFO - For displaying buff stats
-// =============================================================================
-
+// Alias for backward compatibility
 const BUFF_INFO = {
-  healthRegen: { label: 'Health Regen', suffix: '/sec', color: '#40ff80', name: 'Healing' },
-  manaRegen: { label: 'Mana Regen', suffix: '/sec', color: '#40a0ff', name: 'Mana' },
-  maxHealth: { label: 'Max Health', suffix: '', color: '#ff6040', name: 'Vitality' },
-  maxMana: { label: 'Max Mana', suffix: '', color: '#a040ff', name: 'Arcane' },
-  healthRegenBonus: { label: 'Health Regen', suffix: '/s', color: '#40ff80', name: 'Healing' },
-  manaRegenBonus: { label: 'Mana Regen', suffix: '/s', color: '#40a0ff', name: 'Mana' },
+  ...BUFF_DISPLAY_INFO,
+  // Legacy aliases
+  healthRegenBonus: BUFF_DISPLAY_INFO.healthRegen,
+  manaRegenBonus: BUFF_DISPLAY_INFO.manaRegen,
 };
 
 // =============================================================================
@@ -73,11 +68,14 @@ const EntitySlot = memo(function EntitySlot({ slotId, slotIndex, entityType, get
     startPos.current = null;
   };
   
+  // Element color is pre-resolved in the entity data
+  const elementColor = entity?.color || entity?.element?.primaryColor || '#a89878';
+  
   return (
     <div
       ref={dropRef}
       className={`${styles['entity-slot']} ${isHovered && isDragging ? styles['slot-hover'] : ''} ${entity ? styles['slot-filled'] : ''}`}
-      style={entity ? { '--element-color': entity.color || ELEMENTS[entity.element]?.primary } : undefined}
+      style={entity ? { '--element-color': elementColor } : undefined}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
@@ -97,12 +95,13 @@ const EntitySlot = memo(function EntitySlot({ slotId, slotIndex, entityType, get
 // =============================================================================
 
 const EntityCard = memo(function EntityCard({ entity, panel }) {
-  const element = entity.element ? ELEMENTS[entity.element] : null;
+  // Element is pre-resolved in the game layer
+  const element = entity.element; // Already has { id, name, primaryColor, secondaryColor }
   const { handlers, isDragging } = useDraggable(entity);
   const { getSlotForAction } = useSlotMap();
   
   const assignedSlot = getSlotForAction(entity.id);
-  const elementColor = entity.color || element?.primary || '#a89878';
+  const elementColor = entity.color || element?.primaryColor || '#a89878';
   
   // Get buff info if entity has a buff
   const buffInfo = entity.buff?.type ? BUFF_INFO[entity.buff.type] : null;
@@ -127,7 +126,7 @@ const EntityCard = memo(function EntityCard({ entity, panel }) {
             {element && (
               <span 
                 className={styles['entity-element']}
-                style={{ '--element-color': element.primary }}
+                style={{ '--element-color': element.primaryColor }}
               >
                 {element.name}
               </span>

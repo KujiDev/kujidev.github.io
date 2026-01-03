@@ -17,6 +17,7 @@ import LoadingScreen from "@/components/LoadingScreen";
 import Town from "@/components/Town";
 import TrainingDummyModel from "@/components/TrainingDummyModel";
 import PixieOrbit from "@/components/PixieOrbit";
+import DebugPanel from "@/components/DebugPanel";
 // Projectiles - owned by the scene, triggered by player actions
 import IceShard from "@/components/IceShard";
 import Meteor from "@/components/Meteor";
@@ -342,7 +343,7 @@ const Scene = () => {
  */
 const ClassSwitcher = () => {
   const { classId, setClassId } = useCurrentClass();
-  const { setActiveClass } = useActiveClass();
+  const { setActiveClass, startNewGame } = useActiveClass();
   const classes = getClasses();
   
   const handleClassSwitch = useCallback((newClassId) => {
@@ -350,6 +351,13 @@ const ClassSwitcher = () => {
     setActiveClass(newClassId);  // Rebinds loadout, skills, state
     setClassId(newClassId);       // Updates UI context
   }, [setActiveClass, setClassId]);
+  
+  const handleNewGame = useCallback(() => {
+    // Start fresh - clears all storage, resets to defaults
+    startNewGame();
+    // Sync UI context to default class
+    setClassId('wizard');
+  }, [startNewGame, setClassId]);
   
   return (
     <div style={{
@@ -364,6 +372,22 @@ const ClassSwitcher = () => {
       borderRadius: '8px',
       border: '1px solid rgba(255,255,255,0.1)',
     }}>
+      <button
+        onClick={handleNewGame}
+        style={{
+          padding: '6px 12px',
+          border: '1px solid rgba(255,100,100,0.5)',
+          borderRadius: '4px',
+          background: 'rgba(100,30,30,0.8)',
+          color: '#ff8080',
+          cursor: 'pointer',
+          fontWeight: 'normal',
+          fontSize: '12px',
+        }}
+      >
+        New Game
+      </button>
+      <div style={{ width: '1px', background: 'rgba(255,255,255,0.2)' }} />
       {classes.map(cls => (
         <button
           key={cls.id}
@@ -398,6 +422,7 @@ export default function App() {
           <LoadingScreen />
           <AchievementToast />
           <ClassSwitcher />
+          {import.meta.env.DEV && <DebugPanel />}
           <div style={{ width: "100vw", height: "100vh" }}>
             <Canvas 
               flat 

@@ -53,7 +53,7 @@ import {
 import { DEFAULT_COLLECTED_PIXIES } from '@/config/entities/pixies';
 import { PIXIE_SLOTS, getDefaultSlotMap } from '@/config/slots';
 import { ACHIEVEMENTS } from '@/config/achievements';
-import { getDefaultLoadoutForClass, getAllowedSkillsForClass } from '@/engine/classes';
+import { getDefaultLoadoutForClass, getAllowedSkillsForClass, getAllAllowedActionsForClass, getClasses, getDefaultClass } from '@/engine/classes';
 
 // =============================================================================
 // STORAGE HELPERS
@@ -167,6 +167,43 @@ const saveAchievements = (unlocked) => {
   }
 };
 
+/**
+ * Clear ALL game storage - used for New Game.
+ * This removes all localStorage keys related to the game.
+ */
+const clearAllStorage = () => {
+  try {
+    // Clear active class
+    localStorage.removeItem(STORAGE_KEYS.ACTIVE_CLASS);
+    
+    // Clear all class-specific slot maps
+    const allClasses = getClasses();
+    for (const cls of allClasses) {
+      localStorage.removeItem(`${STORAGE_KEYS.SLOT_MAP_PREFIX}${cls.id}`);
+    }
+    
+    // Clear pixies
+    localStorage.removeItem(STORAGE_KEYS.PIXIES);
+    
+    // Clear achievements
+    localStorage.removeItem(STORAGE_KEYS.ACHIEVEMENTS);
+    
+    if (import.meta.env.DEV) {
+      console.log('[STORAGE] All game storage cleared');
+    }
+  } catch (e) {
+    console.warn('Failed to clear storage:', e);
+  }
+};
+
+/**
+ * Get the default class ID for new games.
+ */
+const getDefaultClassId = () => {
+  const defaultClass = getDefaultClass();
+  return defaultClass?.id || 'wizard';
+};
+
 // =============================================================================
 // STORE CREATION
 // =============================================================================
@@ -216,8 +253,11 @@ export const useGameStore = create(
     // Slot map is derived from the active class's loadout
     slotMap: loadSlotMapForClass(loadActiveClass()),
     
-    // Cache of allowed skills for the active class (for execution guards)
+    // Cache of allowed skills for the active class (for EXECUTION guards)
     allowedSkills: new Set(getAllowedSkillsForClass(loadActiveClass())),
+    
+    // Cache of ALL allowed actions for slot assignment (skills + pixies + consumables)
+    allowedActions: new Set(getAllAllowedActionsForClass(loadActiveClass())),
     
     // =========================================================================
     // PIXIES
@@ -643,7 +683,16 @@ export const useGameStore = create(
     },
     
     assignToSlot: (slotId, actionId) => {
-      const { activeClassId } = get();
+      const { activeClassId, allowedActions } = get();
+      
+      // OWNERSHIP GUARD: Block assignment if action not owned by active class
+      if (!allowedActions.has(actionId)) {
+        if (import.meta.env.DEV) {
+          console.error(`[SLOT GUARD] Assignment blocked: "${actionId}" not owned by ${activeClassId}`);
+        }
+        return; // HARD BLOCK
+      }
+      
       set(state => {
         const updated = { ...state.slotMap };
         
@@ -657,6 +706,10 @@ export const useGameStore = create(
         
         updated[slotId] = actionId;
         saveSlotMapForClass(activeClassId, updated);
+        
+        if (import.meta.env.DEV) {
+          console.log(`[SLOT] Assigned "${actionId}" to ${slotId}`);
+        }
         
         return { slotMap: updated };
       });
@@ -697,12 +750,13 @@ export const useGameStore = create(
     // =========================================================================
     
     /**
+    /**
      * Switch to a different class.
      * This is the ONLY way to change the active class.
      * On switch:
      * - Save current class's loadout
      * - Load new class's loadout
-     * - Update allowed skills cache
+     * - Update allowed skills/actions cache
      */
     setActiveClass: (classId) => {
       const { activeClassId: currentClassId, slotMap: currentSlotMap } = get();
@@ -713,9 +767,10 @@ export const useGameStore = create(
       // Save current class's loadout before switching
       saveSlotMapForClass(currentClassId, currentSlotMap);
       
-      // Load new class's loadout and allowed skills
+      // Load new class's loadout and allowed skills/actions
       const newSlotMap = loadSlotMapForClass(classId);
       const newAllowedSkills = new Set(getAllowedSkillsForClass(classId));
+      const newAllowedActions = new Set(getAllAllowedActionsForClass(classId));
       
       // Persist the class change
       saveActiveClass(classId);
@@ -723,18 +778,225 @@ export const useGameStore = create(
       if (import.meta.env.DEV) {
         console.log(`[CLASS SWITCH] ${currentClassId} → ${classId}`);
         console.log(`[LOADOUT] Loaded ${Object.values(newSlotMap).filter(Boolean).length} slots`);
-        console.log(`[ALLOWED] ${newAllowedSkills.size} skills available`);
+        console.log(`[ALLOWED] ${newAllowedSkills.size} skills, ${newAllowedActions.size} total actions`);
       }
       
       set({
         activeClassId: classId,
         slotMap: newSlotMap,
         allowedSkills: newAllowedSkills,
+        allowedActions: newAllowedActions,
         // Reset casting state on class switch to prevent ghost abilities
         activeAction: null,
         playerState: PLAYER_STATES.IDLE,
         castProgress: 0,
       });
+    },
+    
+    // =========================================================================
+    // GAME SESSION ACTIONS (New Game / Load Game)
+    // =========================================================================
+    
+    /**
+     * Start a new game - completely resets all state to defaults.
+     * This is the NUCLEAR option - clears all localStorage and resets to fresh state.
+     * 
+     * Use when:
+     * - Player clicks "New Game"
+     * - Need to reset to a clean slate
+     * 
+     * @param {string} [startingClassId] - Optional starting class (defaults to wizard)
+     */
+    startNewGame: (startingClassId) => {
+      // Clear ALL persistent storage first
+      clearAllStorage();
+      
+      // Determine starting class
+      const classId = startingClassId || getDefaultClassId();
+      
+      // Get fresh defaults for the starting class
+      const freshSlotMap = getDefaultSlotMapForClass(classId);
+      const freshAllowedSkills = new Set(getAllowedSkillsForClass(classId));
+      const freshAllowedActions = new Set(getAllAllowedActionsForClass(classId));
+      
+      if (import.meta.env.DEV) {
+        console.log('[NEW GAME] ============================================');
+        console.log(`[NEW GAME] Starting class: ${classId}`);
+        console.log(`[NEW GAME] Fresh loadout slots: ${Object.values(freshSlotMap).filter(Boolean).length}`);
+        console.log(`[NEW GAME] Allowed skills: ${freshAllowedSkills.size}`);
+        console.log(`[NEW GAME] Allowed actions: ${freshAllowedActions.size}`);
+        console.log(`[NEW GAME] Pixies reset to: ${DEFAULT_COLLECTED_PIXIES.join(', ')}`);
+        console.log(`[NEW GAME] Achievements cleared`);
+        console.log('[NEW GAME] ============================================');
+      }
+      
+      // Reset ALL state to fresh defaults
+      set({
+        // FSM state
+        playerState: PLAYER_STATES.IDLE,
+        previousState: null,
+        activeAction: null,
+        completedAction: null,
+        interruptCounter: 0,
+        interruptedAction: null,
+        interruptedProgress: 0,
+        
+        // Resources
+        mana: STATS.MAX_MANA,
+        health: STATS.MAX_HEALTH,
+        
+        // Buffs
+        buffs: [],
+        
+        // Casting
+        castProgress: 0,
+        isClickTriggered: false,
+        heldInputs: new Set(),
+        mouseButtonActions: { 0: null, 2: null },
+        
+        // Class & loadout - FRESH from config
+        activeClassId: classId,
+        slotMap: freshSlotMap,
+        allowedSkills: freshAllowedSkills,
+        allowedActions: freshAllowedActions,
+        
+        // Pixies - FRESH defaults
+        collectedPixies: DEFAULT_COLLECTED_PIXIES,
+        
+        // Achievements - CLEARED
+        unlockedAchievements: new Set(),
+        achievementToastQueue: [],
+        currentAchievementToast: null,
+      });
+    },
+    
+    /**
+     * Load a saved game - completely overwrites current state.
+     * NEVER merges - always full replacement.
+     * 
+     * @param {Object} saveData - The saved game data
+     * @param {string} saveData.activeClassId - The class ID to load
+     * @param {Object} saveData.classLoadouts - Map of classId -> slotMap
+     * @param {string[]} saveData.collectedPixies - Array of collected pixie IDs
+     * @param {string[]} saveData.unlockedAchievements - Array of unlocked achievement IDs
+     * @param {number} [saveData.health] - Current health (optional)
+     * @param {number} [saveData.mana] - Current mana (optional)
+     */
+    loadSavedGame: (saveData) => {
+      if (!saveData || !saveData.activeClassId) {
+        console.error('[LOAD GAME] Invalid save data - missing activeClassId');
+        return false;
+      }
+      
+      // Clear existing storage before loading
+      clearAllStorage();
+      
+      const classId = saveData.activeClassId;
+      
+      // Restore all class loadouts to localStorage
+      if (saveData.classLoadouts) {
+        for (const [cId, cSlotMap] of Object.entries(saveData.classLoadouts)) {
+          saveSlotMapForClass(cId, cSlotMap);
+        }
+      }
+      
+      // Load the active class's slot map
+      const loadedSlotMap = saveData.classLoadouts?.[classId] 
+        || getDefaultSlotMapForClass(classId);
+      
+      // Rebuild allowed actions from class config (not from save)
+      const loadedAllowedSkills = new Set(getAllowedSkillsForClass(classId));
+      const loadedAllowedActions = new Set(getAllAllowedActionsForClass(classId));
+      
+      // Persist the loaded state
+      saveActiveClass(classId);
+      
+      if (saveData.collectedPixies) {
+        savePixies(saveData.collectedPixies);
+      }
+      
+      if (saveData.unlockedAchievements) {
+        saveAchievements(new Set(saveData.unlockedAchievements));
+      }
+      
+      if (import.meta.env.DEV) {
+        console.log('[LOAD GAME] ============================================');
+        console.log(`[LOAD GAME] Active class: ${classId}`);
+        console.log(`[LOAD GAME] Loaded slots: ${Object.values(loadedSlotMap).filter(Boolean).length}`);
+        console.log(`[LOAD GAME] Pixies: ${saveData.collectedPixies?.length || 0}`);
+        console.log(`[LOAD GAME] Achievements: ${saveData.unlockedAchievements?.length || 0}`);
+        console.log('[LOAD GAME] ============================================');
+      }
+      
+      // Overwrite ALL state
+      set({
+        // FSM state - reset to idle
+        playerState: PLAYER_STATES.IDLE,
+        previousState: null,
+        activeAction: null,
+        completedAction: null,
+        interruptCounter: 0,
+        interruptedAction: null,
+        interruptedProgress: 0,
+        
+        // Resources - from save or defaults
+        mana: saveData.mana ?? STATS.MAX_MANA,
+        health: saveData.health ?? STATS.MAX_HEALTH,
+        
+        // Buffs - always start fresh (buffs don't persist across sessions)
+        buffs: [],
+        
+        // Casting
+        castProgress: 0,
+        isClickTriggered: false,
+        heldInputs: new Set(),
+        mouseButtonActions: { 0: null, 2: null },
+        
+        // Class & loadout - from save
+        activeClassId: classId,
+        slotMap: loadedSlotMap,
+        allowedSkills: loadedAllowedSkills,
+        allowedActions: loadedAllowedActions,
+        
+        // Pixies - from save or defaults
+        collectedPixies: saveData.collectedPixies || DEFAULT_COLLECTED_PIXIES,
+        
+        // Achievements - from save or empty
+        unlockedAchievements: new Set(saveData.unlockedAchievements || []),
+        achievementToastQueue: [],
+        currentAchievementToast: null,
+      });
+      
+      return true;
+    },
+    
+    /**
+     * Export current game state for saving.
+     * Returns a serializable object that can be passed to loadSavedGame.
+     */
+    exportSaveData: () => {
+      const state = get();
+      
+      // Collect all class loadouts from localStorage
+      const classLoadouts = {};
+      const allClasses = getClasses();
+      for (const cls of allClasses) {
+        const slotMap = loadSlotMapForClass(cls.id);
+        classLoadouts[cls.id] = slotMap;
+      }
+      
+      // Make sure current class's in-memory slotMap is included
+      classLoadouts[state.activeClassId] = state.slotMap;
+      
+      return {
+        activeClassId: state.activeClassId,
+        classLoadouts,
+        collectedPixies: [...state.collectedPixies],
+        unlockedAchievements: [...state.unlockedAchievements],
+        health: state.health,
+        mana: state.mana,
+        // Note: buffs are NOT saved - they're ephemeral
+      };
     },
     
     // =========================================================================

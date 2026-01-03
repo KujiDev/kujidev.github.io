@@ -74,23 +74,20 @@ export function resolveSkillForRender(skill, context = {}) {
       secondaryColor: element.secondary,
     } : null,
     
-    // Pre-resolved costs
-    costs: {
-      mana: skill.manaCost || 0,
-      health: skill.healthCost || 0,
-      manaPerSecond: skill.manaPerSecond || 0,
-    },
-    
-    // Pre-resolved gains
-    gains: {
-      mana: skill.manaGain || 0,
-    },
+    // Flat cost/gain properties (for component compatibility)
+    manaCost: skill.manaCost || 0,
+    healthCost: skill.healthCost || 0,
+    manaPerSecond: skill.manaPerSecond || 0,
+    manaGain: skill.manaGain || 0,
     
     // Pre-resolved buff info
     buff: skill.buff ? {
       duration: skill.buff.duration,
       type: skill.buff.type,
       value: skill.buff.value,
+      // Include legacy bonus fields for consumables
+      healthRegenBonus: skill.buff.healthRegenBonus || 0,
+      manaRegenBonus: skill.buff.manaRegenBonus || 0,
       displayInfo: BUFF_DISPLAY_INFO[skill.buff.type],
     } : null,
     
@@ -128,11 +125,14 @@ export function resolvePixieForRender(pixie, context = {}) {
     description: pixie.description,
     icon: pixie.icon,
     color: pixie.color,
+    type: 'pixie', // Entity type for UI display
+    activationType: 'passive', // Pixies are always passive
     
-    // Pre-resolved buff info
+    // Pre-resolved buff info with displayInfo
     buff: pixie.buff ? {
       type: pixie.buff.type,
       value: pixie.buff.value,
+      duration: pixie.buff.duration || 0,
       displayInfo: buffInfo,
     } : null,
     
@@ -179,11 +179,13 @@ export function resolveConsumableForRender(consumable, context = {}) {
       secondaryColor: element.secondary,
     } : null,
     
-    // Pre-resolved buff info
+    // Pre-resolved buff info with legacy bonus fields
     buff: consumable.buff ? {
       duration: consumable.buff.duration,
       type: consumable.buff.type,
       value: consumable.buff.value,
+      healthRegenBonus: consumable.buff.healthRegenBonus || 0,
+      manaRegenBonus: consumable.buff.manaRegenBonus || 0,
       displayInfo: BUFF_DISPLAY_INFO[consumable.buff.type],
     } : null,
     

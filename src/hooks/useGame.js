@@ -361,11 +361,17 @@ export function useActiveClass() {
   const activeClassId = useGameStore(s => s.activeClassId);
   const setActiveClass = useGameStore(s => s.setActiveClass);
   const allowedSkills = useGameStore(s => s.allowedSkills);
+  const startNewGame = useGameStore(s => s.startNewGame);
+  const loadSavedGame = useGameStore(s => s.loadSavedGame);
+  const exportSaveData = useGameStore(s => s.exportSaveData);
   
   return {
     activeClassId,
     setActiveClass,
     allowedSkills,
+    startNewGame,
+    loadSavedGame,
+    exportSaveData,
   };
 }
 

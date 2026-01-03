@@ -214,3 +214,52 @@ src/
 - [Runtime Flow](./RUNTIME_FLOW.md) – Action execution paths
 - [Adding New Content](./ADDING_NEW_CONTENT.md) – How to add entities
 - [Common Failure Modes](./COMMON_FAILURE_MODES.md) – Troubleshooting
+- [React Boundaries](./REACT_BOUNDARIES.md) – What React can/cannot do
+- [Debugging](./DEBUGGING.md) – Debug panel and console tools
+
+## State Management
+
+### Key State Sets
+
+| Set | Purpose | Managed By |
+|-----|---------|------------|
+| `allowedSkills` | Execution guard for skills/consumables | `gameStore.js` |
+| `allowedActions` | Slot assignment guard (skills + pixies) | `gameStore.js` |
+| `slotMap` | Current action → slot assignments | `gameStore.js` |
+
+### Class Switching
+
+When the player switches classes:
+
+1. Current class's `slotMap` is persisted to localStorage
+2. New class's `slotMap` is loaded (or defaults applied)
+3. `allowedSkills` is rebuilt from new class's `allowedSkills` array
+4. `allowedActions` is rebuilt from new class's skills + pixies
+5. Casting state is reset
+
+All of this happens atomically in `setActiveClass()`.
+
+### New Game / Load Game
+
+The store provides explicit actions for session management:
+
+- `startNewGame(classId?)` – Clears all storage, resets to fresh defaults
+- `loadSavedGame(saveData)` – Overwrites all state from save data (never merges)
+- `exportSaveData()` – Returns serializable save data
+
+See [GAMEFLOW.md](./GAMEFLOW.md) for detailed flow documentation.
+
+## Development Tools
+
+### Debug Panel
+
+Development-only panel for inspecting state. Toggle with `` ` `` (backtick) or F12.
+
+### Console API
+
+- `window.DEBUG_CONTEXT` – Current state snapshot
+- `window.toggleDebugPanel()` – Toggle debug panel
+- `window.DEBUG_CONTEXT.startNewGame()` – Start fresh game
+- `window.DEBUG_CONTEXT.exportSaveData()` – Export save data
+
+See [DEBUGGING.md](./DEBUGGING.md) for full details.
