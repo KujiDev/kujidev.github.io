@@ -1,0 +1,80 @@
+[
+  {
+    "$schema": "../schemas/panel.schema.json",
+    "id": "spellbook",
+    "label": "Spell Book",
+    "icon": "book.svg",
+    "entityType": "skill",
+    "slotTypes": ["skill"],
+    "width": 380,
+    "order": 1,
+    "filters": [
+      { "id": "all", "label": "All", "color": "#a89878", "match": null },
+      { "id": "ice", "label": "Ice", "color": "#70c0ff", "match": { "field": "element", "value": "ice" } },
+      { "id": "fire", "label": "Fire", "color": "#ff6040", "match": { "field": "element", "value": "fire" } },
+      { "id": "arcane", "label": "Arcane", "color": "#a040ff", "match": { "field": "element", "value": "arcane" } },
+      { "id": "mana", "label": "Mana", "color": "#4080ff", "match": { "field": "element", "value": "mana" } },
+      { "id": "holy", "label": "Holy", "color": "#f0d890", "match": { "field": "element", "value": "holy" } },
+      { "id": "healing", "label": "Healing", "color": "#40ff80", "match": { "field": "element", "value": "healing" } }
+    ],
+    "cardFields": {
+      "name": "label",
+      "description": "description",
+      "icon": "icon",
+      "element": "element",
+      "stats": ["manaCost", "manaGain", "manaPerSecond", "healthCost", "buff"]
+    },
+    "emptyMessage": "No spells in this category"
+  },
+  {
+    "$schema": "../schemas/panel.schema.json",
+    "id": "consumables",
+    "label": "Consumables",
+    "icon": "potion.svg",
+    "entityType": "consumable",
+    "slotTypes": ["consumable"],
+    "width": 340,
+    "order": 2,
+    "filters": [
+      { "id": "all", "label": "All", "color": "#a89878", "match": null },
+      { "id": "potion", "label": "Potions", "color": "#40ff80", "match": { "field": "id", "contains": "potion" } },
+      { "id": "food", "label": "Food", "color": "#c9a55a", "match": { "field": "id", "contains": "food" } }
+    ],
+    "cardFields": {
+      "name": "label",
+      "description": "description",
+      "icon": "icon",
+      "stats": ["buff"]
+    },
+    "hint": "Drag to consumable slots only",
+    "emptyMessage": "No consumables in this category"
+  },
+  {
+    "$schema": "../schemas/panel.schema.json",
+    "id": "pixies",
+    "label": "Pixies",
+    "icon": "pixie.svg",
+    "entityType": "pixie",
+    "slotTypes": ["pixie"],
+    "width": 360,
+    "order": 3,
+    "filters": [
+      { "id": "all", "label": "All", "color": "#a89878", "match": null },
+      { "id": "equipped", "label": "Equipped", "color": "#40ff80", "match": { "field": "_equipped", "value": true } },
+      { "id": "unequipped", "label": "Unequipped", "color": "#808080", "match": { "field": "_equipped", "value": false } }
+    ],
+    "cardFields": {
+      "name": "label",
+      "description": "description",
+      "icon": "icon",
+      "element": "element",
+      "stats": ["buff"]
+    },
+    "slots": {
+      "show": true,
+      "slotPrefix": "slot_pixie_",
+      "count": 3
+    },
+    "emptyMessage": "No pixies collected yet"
+  }
+]

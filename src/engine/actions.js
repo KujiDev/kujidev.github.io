@@ -32,6 +32,11 @@ import pixieVerdantIcon from '@/assets/icons/pixie-verdant.svg';
 import pixieAzureIcon from '@/assets/icons/pixie-azure.svg';
 import pixieVioletIcon from '@/assets/icons/pixie-violet.svg';
 import pixieCrimsonIcon from '@/assets/icons/pixie-crimson.svg';
+// Cleric skill icons
+import holyBoltIcon from '@/assets/icons/holy-bolt.svg';
+import divineShieldIcon from '@/assets/icons/divine-shield.svg';
+import healIcon from '@/assets/icons/heal.svg';
+import smiteIcon from '@/assets/icons/smite.svg';
 
 // =============================================================================
 // ICON RESOLUTION
@@ -50,6 +55,11 @@ const ICON_MAP = {
   'pixie-azure.svg': pixieAzureIcon,
   'pixie-violet.svg': pixieVioletIcon,
   'pixie-crimson.svg': pixieCrimsonIcon,
+  // Cleric icons
+  'holy-bolt.svg': holyBoltIcon,
+  'divine-shield.svg': divineShieldIcon,
+  'heal.svg': healIcon,
+  'smite.svg': smiteIcon,
 };
 
 /**

@@ -1,0 +1,94 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "panel.schema.json",
+  "title": "UI Panel Definition",
+  "description": "Schema for defining entity panels in the menu bar",
+  "type": "object",
+  "required": ["id", "label", "icon", "entityType", "slotTypes", "order", "filters"],
+  
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z_]+$",
+      "description": "Unique identifier for the panel"
+    },
+    "label": {
+      "type": "string",
+      "description": "Display name for the panel"
+    },
+    "icon": {
+      "type": "string",
+      "description": "Icon filename (from assets/icons/)"
+    },
+    "entityType": {
+      "type": "string",
+      "enum": ["skill", "consumable", "pixie"],
+      "description": "Type of entity this panel displays"
+    },
+    "slotTypes": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Slot types these entities can be dropped into"
+    },
+    "width": {
+      "type": "number",
+      "default": 360,
+      "description": "Drawer width in pixels"
+    },
+    "order": {
+      "type": "number",
+      "description": "Display order in menu bar"
+    },
+    "filters": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "label", "color"],
+        "properties": {
+          "id": { "type": "string" },
+          "label": { "type": "string" },
+          "color": { "type": "string" },
+          "match": {
+            "oneOf": [
+              { "type": "null" },
+              {
+                "type": "object",
+                "properties": {
+                  "field": { "type": "string" },
+                  "value": {},
+                  "contains": { "type": "string" }
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    "cardFields": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "icon": { "type": "string" },
+        "element": { "type": "string" },
+        "stats": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "slots": {
+      "type": "object",
+      "properties": {
+        "show": { "type": "boolean" },
+        "slotPrefix": { "type": "string" },
+        "count": { "type": "number" }
+      }
+    },
+    "hint": {
+      "type": "string",
+      "description": "Hint text shown in panel"
+    },
+    "emptyMessage": {
+      "type": "string",
+      "description": "Message shown when no entities match filter"
+    }
+  }
+}

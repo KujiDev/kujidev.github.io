@@ -190,5 +190,103 @@
       "slotType": "consumable"
     },
     "tags": ["consumable", "mana", "food"]
+  },
+  {
+    "$schema": "../schemas/skill.schema.json",
+    "id": "holy_bolt",
+    "label": "Holy Bolt",
+    "description": "Launch a bolt of divine light that damages enemies or heals allies.",
+    "type": "attack",
+    "element": "holy",
+    "animation": "CAST_PRIMARY",
+    "costs": {
+      "mana": 12
+    },
+    "effects": {
+      "damage": { "base": 20, "element": "holy" }
+    },
+    "restrictions": {
+      "classes": ["cleric"]
+    },
+    "ui": {
+      "icon": "holy-bolt.svg",
+      "defaultKey": "KeyQ"
+    },
+    "tags": ["projectile", "single_target", "holy", "heal_ally"]
+  },
+  {
+    "$schema": "../schemas/skill.schema.json",
+    "id": "divine_shield",
+    "label": "Divine Shield",
+    "description": "Invoke divine protection, absorbing damage for a short duration.",
+    "type": "buff",
+    "element": "holy",
+    "animation": "CAST_BUFF",
+    "costs": {
+      "mana": 25
+    },
+    "effects": {
+      "buff": {
+        "id": "divine_shield",
+        "duration": 8,
+        "absorb": 50
+      }
+    },
+    "restrictions": {
+      "classes": ["cleric"]
+    },
+    "ui": {
+      "icon": "divine-shield.svg",
+      "defaultKey": "KeyW"
+    },
+    "tags": ["defensive", "buff", "shield"]
+  },
+  {
+    "$schema": "../schemas/skill.schema.json",
+    "id": "heal",
+    "label": "Heal",
+    "description": "Channel healing light to restore health over time.",
+    "type": "cast",
+    "element": "healing",
+    "animation": "CAST_SECONDARY",
+    "castTime": 1.2,
+    "costs": {
+      "mana": 20
+    },
+    "effects": {
+      "heal": { "base": 40 }
+    },
+    "restrictions": {
+      "classes": ["cleric"]
+    },
+    "ui": {
+      "icon": "heal.svg",
+      "defaultKey": "KeyE"
+    },
+    "tags": ["healing", "single_target", "support"]
+  },
+  {
+    "$schema": "../schemas/skill.schema.json",
+    "id": "smite",
+    "label": "Smite",
+    "description": "Call down divine wrath upon your enemies, dealing holy damage.",
+    "type": "cast",
+    "element": "holy",
+    "animation": "CAST_SECONDARY",
+    "castTime": 1.0,
+    "costs": {
+      "mana": 30
+    },
+    "effects": {
+      "damage": { "base": 55, "element": "holy" }
+    },
+    "restrictions": {
+      "classes": ["cleric"]
+    },
+    "ui": {
+      "icon": "smite.svg",
+      "defaultKey": "KeyR"
+    },
+    "tags": ["damage", "holy", "burst"]
   }
 ]

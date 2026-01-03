@@ -9,19 +9,61 @@ This project implements a **data-driven ARPG framework** where all game content 
 - **Composable systems** – The same graph can power a skill, a passive, or a status effect
 - **Easy balancing** – Adjust numbers in JSON, see results immediately
 
+## ⚠️ CRITICAL CONSTRAINT
+
+> **React is a RENDERER ONLY. It has ZERO authority over game rules.**
+>
+> If you delete React, the game rules must still exist.
+> If that's not true → React is doing too much.
+
+See [REACT_BOUNDARIES.md](./REACT_BOUNDARIES.md) for enforcement rules.
+
 ## Architecture Layers
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                      PRESENTATION                           │
 │              React Components, Three.js, CSS                │
+│                                                             │
+│   ⚠️ RENDERER ONLY - receives props, outputs JSX           │
+│   • NO domain logic                                         │
+│   • NO filtering                                            │
+│   • NO game rules                                           │
 └─────────────────────────────────────────────────────────────┘
                             ▲
-                            │ state changes
+                            │ pre-resolved props
+                            │
+┌─────────────────────────────────────────────────────────────┐
+│                      HOOK LAYER (Adapters)                   │
+│                   useClassContent, useGame                   │
+│                                                             │
+│   • Thin adapters between stores and React                  │
+│   • Call game layer for resolution                          │
+│   • Return render-ready props                               │
+└─────────────────────────────────────────────────────────────┘
+                            ▲
+                            │ state snapshots
                             │
 ┌─────────────────────────────────────────────────────────────┐
 │                      STATE MANAGEMENT                        │
 │                    Zustand (gameStore.js)                   │
+│                                                             │
+│   • Thin adapter: stores snapshots, forwards intents        │
+│   • Never invents state                                     │
+│   • Never interprets rules                                  │
+└─────────────────────────────────────────────────────────────┘
+                            ▲
+                            │ calls pure functions
+                            │
+┌─────────────────────────────────────────────────────────────┐
+│                      GAME LAYER (Pure Logic)                 │
+│         classInstance.js │ loadout.js │ validation.js       │
+│                                                             │
+│   ✅ WHERE GAME RULES LIVE                                  │
+│   • Pure functions: data in → data out                      │
+│   • Framework-agnostic (no React, no Zustand)               │
+│   • Testable without UI                                     │
+│   • Deterministic                                           │
 └─────────────────────────────────────────────────────────────┘
                             ▲
                             │ reads frozen data

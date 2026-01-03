@@ -13,7 +13,21 @@
   "ui": {
     "icon": null,
     "color": "#9070c0",
-    "portrait": null
+    "portrait": null,
+    "panels": [
+      {
+        "id": "spellbook",
+        "filters": [
+          { "id": "all", "label": "All", "color": "#a89878" },
+          { "id": "ice", "label": "Ice", "color": "#70c0ff", "match": { "field": "element", "value": "ice" } },
+          { "id": "fire", "label": "Fire", "color": "#ff6040", "match": { "field": "element", "value": "fire" } },
+          { "id": "arcane", "label": "Arcane", "color": "#a040ff", "match": { "field": "element", "value": "arcane" } },
+          { "id": "mana", "label": "Mana", "color": "#4080ff", "match": { "field": "element", "value": "mana" } }
+        ]
+      },
+      { "id": "consumables" },
+      { "id": "pixies" }
+    ]
   },
   
   "baseStats": {

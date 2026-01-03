@@ -346,6 +346,30 @@ export function useAchievements() {
 }
 
 // =============================================================================
+// useActiveClass - Class management hook
+// =============================================================================
+
+/**
+ * Hook to access and change the active class.
+ * The setActiveClass function handles ALL class-scoped state rebinding:
+ * - Saves current loadout before switching
+ * - Loads new class loadout
+ * - Updates allowed skills cache
+ * - Resets casting state
+ */
+export function useActiveClass() {
+  const activeClassId = useGameStore(s => s.activeClassId);
+  const setActiveClass = useGameStore(s => s.setActiveClass);
+  const allowedSkills = useGameStore(s => s.allowedSkills);
+  
+  return {
+    activeClassId,
+    setActiveClass,
+    allowedSkills,
+  };
+}
+
+// =============================================================================
 // Direct store access for animation loops
 // =============================================================================
 

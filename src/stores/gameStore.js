@@ -53,35 +53,77 @@ import {
 import { DEFAULT_COLLECTED_PIXIES } from '@/config/entities/pixies';
 import { PIXIE_SLOTS, getDefaultSlotMap } from '@/config/slots';
 import { ACHIEVEMENTS } from '@/config/achievements';
+import { getDefaultLoadoutForClass, getAllowedSkillsForClass } from '@/engine/classes';
 
 // =============================================================================
 // STORAGE HELPERS
 // =============================================================================
 
 const STORAGE_KEYS = {
-  SLOT_MAP: 'player_slotmap',
+  SLOT_MAP_PREFIX: 'player_slotmap_',  // Now keyed by classId
+  ACTIVE_CLASS: 'player_active_class',
   PIXIES: 'player_pixies',
   ACHIEVEMENTS: 'player_achievements',
 };
 
-const loadSlotMap = () => {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEYS.SLOT_MAP);
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      return { ...getDefaultSlotMap(), ...parsed };
-    }
-  } catch (e) {
-    console.warn('Failed to load slotmap:', e);
-  }
-  return getDefaultSlotMap();
+/**
+ * Get default slot map for a class from its JSON config.
+ */
+const getDefaultSlotMapForClass = (classId) => {
+  const empty = getDefaultSlotMap();
+  const classDefaults = getDefaultLoadoutForClass(classId);
+  return { ...empty, ...classDefaults };
 };
 
-const saveSlotMap = (slotMap) => {
+/**
+ * Load slot map for a specific class.
+ */
+const loadSlotMapForClass = (classId) => {
+  const defaults = getDefaultSlotMapForClass(classId);
   try {
-    localStorage.setItem(STORAGE_KEYS.SLOT_MAP, JSON.stringify(slotMap));
+    const saved = localStorage.getItem(`${STORAGE_KEYS.SLOT_MAP_PREFIX}${classId}`);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      return { ...defaults, ...parsed };
+    }
   } catch (e) {
-    console.warn('Failed to save slotmap:', e);
+    console.warn(`Failed to load slotmap for ${classId}:`, e);
+  }
+  return defaults;
+};
+
+/**
+ * Save slot map for a specific class.
+ */
+const saveSlotMapForClass = (classId, slotMap) => {
+  try {
+    localStorage.setItem(`${STORAGE_KEYS.SLOT_MAP_PREFIX}${classId}`, JSON.stringify(slotMap));
+  } catch (e) {
+    console.warn(`Failed to save slotmap for ${classId}:`, e);
+  }
+};
+
+/**
+ * Load the active class ID.
+ */
+const loadActiveClass = () => {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEYS.ACTIVE_CLASS);
+    if (saved) return saved;
+  } catch (e) {
+    console.warn('Failed to load active class:', e);
+  }
+  return 'wizard'; // Default class
+};
+
+/**
+ * Save the active class ID.
+ */
+const saveActiveClass = (classId) => {
+  try {
+    localStorage.setItem(STORAGE_KEYS.ACTIVE_CLASS, classId);
+  } catch (e) {
+    console.warn('Failed to save active class:', e);
   }
 };
 
@@ -166,10 +208,16 @@ export const useGameStore = create(
     mouseButtonActions: { 0: null, 2: null }, // Track mouse button -> action
     
     // =========================================================================
-    // SLOT MAP
+    // CLASS & LOADOUT (CLASS-SCOPED)
     // =========================================================================
     
-    slotMap: loadSlotMap(),
+    activeClassId: loadActiveClass(),
+    
+    // Slot map is derived from the active class's loadout
+    slotMap: loadSlotMapForClass(loadActiveClass()),
+    
+    // Cache of allowed skills for the active class (for execution guards)
+    allowedSkills: new Set(getAllowedSkillsForClass(loadActiveClass())),
     
     // =========================================================================
     // PIXIES
@@ -386,11 +434,22 @@ export const useGameStore = create(
       if (!fsmAction) return;
       
       if (isPressed) {
+        // CLASS OWNERSHIP GUARD: Block execution if action not owned by active class
+        const action = getActionById(actionId);
+        if (action) {
+          const skillId = action._skillId || action.id;
+          if (!state.allowedSkills.has(skillId)) {
+            if (import.meta.env.DEV) {
+              console.error(`[GUARD] Skill execution blocked: "${skillId}" not owned by ${state.activeClassId}`);
+            }
+            return; // HARD BLOCK - cannot execute skills from another class
+          }
+        }
+        
         set({ isClickTriggered: isClick });
         
         // Handle INSTANT actions (consumables)
         if (fsmAction === FSM_ACTIONS.INSTANT) {
-          const action = getActionById(actionId);
           if (!state.spendResources(action)) return;
           
           // Apply buff immediately
@@ -405,7 +464,6 @@ export const useGameStore = create(
         if (!(fsmAction in transitions)) return;
         
         // Check and spend resources
-        const action = getActionById(actionId);
         if (!state.spendResources(action)) return;
         
         // Transition with action ID
@@ -585,6 +643,7 @@ export const useGameStore = create(
     },
     
     assignToSlot: (slotId, actionId) => {
+      const { activeClassId } = get();
       set(state => {
         const updated = { ...state.slotMap };
         
@@ -597,7 +656,7 @@ export const useGameStore = create(
         }
         
         updated[slotId] = actionId;
-        saveSlotMap(updated);
+        saveSlotMapForClass(activeClassId, updated);
         
         return { slotMap: updated };
       });
@@ -605,29 +664,77 @@ export const useGameStore = create(
     
     swapSlots: (slotA, slotB) => {
       if (slotA === slotB) return;
+      const { activeClassId } = get();
       
       set(state => {
         const updated = { ...state.slotMap };
         const temp = updated[slotA];
         updated[slotA] = updated[slotB];
         updated[slotB] = temp;
-        saveSlotMap(updated);
+        saveSlotMapForClass(activeClassId, updated);
         return { slotMap: updated };
       });
     },
     
     clearSlot: (slotId) => {
+      const { activeClassId } = get();
       set(state => {
         const updated = { ...state.slotMap, [slotId]: null };
-        saveSlotMap(updated);
+        saveSlotMapForClass(activeClassId, updated);
         return { slotMap: updated };
       });
     },
     
     resetSlotMap: () => {
-      const defaults = getDefaultSlotMap();
-      saveSlotMap(defaults);
+      const { activeClassId } = get();
+      const defaults = getDefaultSlotMapForClass(activeClassId);
+      saveSlotMapForClass(activeClassId, defaults);
       set({ slotMap: defaults });
+    },
+    
+    // =========================================================================
+    // CLASS SWITCHING
+    // =========================================================================
+    
+    /**
+     * Switch to a different class.
+     * This is the ONLY way to change the active class.
+     * On switch:
+     * - Save current class's loadout
+     * - Load new class's loadout
+     * - Update allowed skills cache
+     */
+    setActiveClass: (classId) => {
+      const { activeClassId: currentClassId, slotMap: currentSlotMap } = get();
+      
+      // Don't switch if already active
+      if (classId === currentClassId) return;
+      
+      // Save current class's loadout before switching
+      saveSlotMapForClass(currentClassId, currentSlotMap);
+      
+      // Load new class's loadout and allowed skills
+      const newSlotMap = loadSlotMapForClass(classId);
+      const newAllowedSkills = new Set(getAllowedSkillsForClass(classId));
+      
+      // Persist the class change
+      saveActiveClass(classId);
+      
+      if (import.meta.env.DEV) {
+        console.log(`[CLASS SWITCH] ${currentClassId} → ${classId}`);
+        console.log(`[LOADOUT] Loaded ${Object.values(newSlotMap).filter(Boolean).length} slots`);
+        console.log(`[ALLOWED] ${newAllowedSkills.size} skills available`);
+      }
+      
+      set({
+        activeClassId: classId,
+        slotMap: newSlotMap,
+        allowedSkills: newAllowedSkills,
+        // Reset casting state on class switch to prevent ghost abilities
+        activeAction: null,
+        playerState: PLAYER_STATES.IDLE,
+        castProgress: 0,
+      });
     },
     
     // =========================================================================

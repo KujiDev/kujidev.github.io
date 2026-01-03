@@ -1,7 +1,12 @@
-import { createContext, useCallback, useContext, useState, useMemo } from "react";
+import { createContext, useCallback, useContext, useState, useMemo, useEffect } from "react";
 import { getActionById, getSkills, getConsumables } from "@/config/actions";
+import { useCurrentClass } from "@/App";
+import { getDefaultLoadoutForClass, getAllowedSkillsForClass } from "@/engine/classes";
 
-const STORAGE_KEY = 'player_slotmap';
+/**
+ * Storage key prefix - loadouts are keyed by classId
+ */
+const STORAGE_KEY_PREFIX = 'player_slotmap_';
 
 /**
  * Define skill bar slots - these are UI positions, not skills
@@ -41,45 +46,83 @@ export const getSlotType = (slotId) => {
   return slot?.slotType || null;
 };
 
-const getDefaultSlotMap = () => 
+/**
+ * Get empty slot map (all slots null)
+ */
+const getEmptySlotMap = () => 
   ALL_SLOTS.reduce((acc, slot) => {
-    acc[slot.id] = slot.defaultAction;
+    acc[slot.id] = null;
     return acc;
   }, {});
 
-const saveSlotMap = (slotMap) => {
+/**
+ * Get default slot map for a specific class.
+ * Uses the class's defaultLoadout from JSON config.
+ */
+const getDefaultSlotMapForClass = (classId) => {
+  const empty = getEmptySlotMap();
+  const classDefaults = getDefaultLoadoutForClass(classId);
+  
+  // Merge class defaults into empty map
+  return { ...empty, ...classDefaults };
+};
+
+/**
+ * Save slot map for a specific class
+ */
+const saveSlotMapForClass = (classId, slotMap) => {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(slotMap));
+    localStorage.setItem(`${STORAGE_KEY_PREFIX}${classId}`, JSON.stringify(slotMap));
   } catch (e) {
-    console.warn('Failed to save slotmap:', e);
+    console.warn(`Failed to save slotmap for ${classId}:`, e);
   }
 };
 
-const loadSlotMap = () => {
-  const defaults = getDefaultSlotMap();
+/**
+ * Load slot map for a specific class.
+ * Falls back to class defaults if no saved state.
+ */
+const loadSlotMapForClass = (classId) => {
+  const defaults = getDefaultSlotMapForClass(classId);
   
   try {
-    const saved = localStorage.getItem(STORAGE_KEY);
+    const saved = localStorage.getItem(`${STORAGE_KEY_PREFIX}${classId}`);
     
     if (saved) {
       const parsed = JSON.parse(saved);
       // Merge with defaults to handle new slots
       const merged = { ...defaults, ...parsed };
-      saveSlotMap(merged);
       return merged;
     }
   } catch (e) {
-    console.warn('Failed to load slotmap:', e);
+    console.warn(`Failed to load slotmap for ${classId}:`, e);
   }
   
-  saveSlotMap(defaults);
   return defaults;
 };
 
 const SlotMapContext = createContext(null);
 
 export function SlotMapProvider({ children }) {
-  const [slotMap, setSlotMap] = useState(loadSlotMap);
+  const { classId } = useCurrentClass();
+  const [slotMap, setSlotMap] = useState(() => loadSlotMapForClass(classId));
+  
+  // When classId changes, reload the loadout for the new class
+  useEffect(() => {
+    const newSlotMap = loadSlotMapForClass(classId);
+    setSlotMap(newSlotMap);
+    
+    if (import.meta.env.DEV) {
+      console.log(`[LOADOUT][${classId}] Loaded class loadout:`, Object.keys(newSlotMap).filter(k => newSlotMap[k]).length, 'slots filled');
+    }
+  }, [classId]);
+  
+  /**
+   * Save current slotMap for the active class
+   */
+  const saveCurrentSlotMap = useCallback((newSlotMap) => {
+    saveSlotMapForClass(classId, newSlotMap);
+  }, [classId]);
 
   /**
    * Get the action ID assigned to a slot
@@ -124,10 +167,10 @@ export function SlotMapProvider({ children }) {
       // Assign the new action to the target slot
       updated[slotId] = actionId;
       
-      saveSlotMap(updated);
+      saveCurrentSlotMap(updated);
       return updated;
     });
-  }, []);
+  }, [saveCurrentSlotMap]);
 
   /**
    * Swap actions between two slots
@@ -143,10 +186,10 @@ export function SlotMapProvider({ children }) {
       updated[slotA] = actionB;
       updated[slotB] = actionA;
       
-      saveSlotMap(updated);
+      saveCurrentSlotMap(updated);
       return updated;
     });
-  }, []);
+  }, [saveCurrentSlotMap]);
 
   /**
    * Clear a slot (set to null)
@@ -155,19 +198,19 @@ export function SlotMapProvider({ children }) {
     setSlotMap(prev => {
       const updated = { ...prev };
       updated[slotId] = null;
-      saveSlotMap(updated);
+      saveCurrentSlotMap(updated);
       return updated;
     });
-  }, []);
+  }, [saveCurrentSlotMap]);
 
   /**
-   * Reset all slots to defaults
+   * Reset all slots to class defaults
    */
   const resetToDefaults = useCallback(() => {
-    const defaults = getDefaultSlotMap();
+    const defaults = getDefaultSlotMapForClass(classId);
     setSlotMap(defaults);
-    saveSlotMap(defaults);
-  }, []);
+    saveCurrentSlotMap(defaults);
+  }, [classId, saveCurrentSlotMap]);
 
   /**
    * Get all assignable actions (skills that can be dragged to slots)

@@ -56,6 +56,14 @@ export const ELEMENTS = {
     glow: '#20ff60',
     dark: '#0a3a1a',
   },
+  holy: {
+    id: 'holy',
+    name: 'Holy',
+    primary: '#f0d890',    // Warm gold
+    secondary: '#fff8e0',  // Bright white-gold
+    glow: '#ffd700',       // Divine golden glow
+    dark: '#3a3010',
+  },
 };
 
 /**

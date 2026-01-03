@@ -1,0 +1,102 @@
+{
+  "$schema": "../schemas/class.schema.json",
+  "id": "cleric",
+  "name": "Cleric",
+  "description": "A holy warrior who channels divine power to heal allies and smite enemies.",
+  
+  "model": {
+    "path": "/models/Cleric-transformed.glb",
+    "scale": 1,
+    "position": [0, 0, 0]
+  },
+  
+  "ui": {
+    "icon": null,
+    "color": "#f0d890",
+    "portrait": null,
+    "panels": [
+      {
+        "id": "spellbook",
+        "filters": [
+          { "id": "all", "label": "All", "color": "#a89878" },
+          { "id": "holy", "label": "Holy", "color": "#f0d890", "match": { "field": "element", "value": "holy" } },
+          { "id": "healing", "label": "Healing", "color": "#40ff80", "match": { "field": "element", "value": "healing" } }
+        ]
+      },
+      { "id": "consumables" },
+      { "id": "pixies" }
+    ]
+  },
+  
+  "baseStats": {
+    "maxHealth": 150,
+    "maxMana": 80,
+    "healthRegen": 4,
+    "manaRegen": 3,
+    "moveSpeed": 0.9,
+    "armor": 15,
+    "magicResist": 20,
+    "spellPower": 10,
+    "attackPower": 8,
+    "critChance": 0.03
+  },
+  
+  "allowedElements": ["holy", "healing", "mana"],
+  "primaryElement": "holy",
+  
+  "allowedSkills": [
+    "holy_bolt",
+    "divine_shield",
+    "heal",
+    "smite",
+    "health_potion",
+    "mana_biscuit"
+  ],
+  
+  "defaultLoadout": {
+    "slot_1": "holy_bolt",
+    "slot_2": "divine_shield",
+    "slot_3": "heal",
+    "slot_4": "smite",
+    "slot_lmb": "holy_bolt",
+    "slot_rmb": "smite",
+    "slot_consumable_1": "health_potion",
+    "slot_consumable_2": "mana_biscuit"
+  },
+  
+  "allowedPixies": null,
+  "defaultPixies": [],
+  "collectablePixies": ["verdant", "azure", "violet", "crimson"],
+  
+  "stateAnimations": {
+    "idle": "IDLE",
+    "casting": "CAST_SECONDARY",
+    "attacking": "CAST_PRIMARY",
+    "moving": "RUN",
+    "dead": "DEATH"
+  },
+  
+  "animationOverrides": {},
+  
+  "allowedWeapons": ["staff", "mace", "shield"],
+  "primaryWeapon": "staff",
+  "allowedArmor": ["cloth", "leather"],
+  
+  "audio": {
+    "voiceSet": "cleric_female_01",
+    "footsteps": "cloth_medium",
+    "castSounds": {
+      "holy": "holy_cast_01",
+      "healing": "heal_cast_01"
+    }
+  },
+  
+  "lore": {
+    "title": "The Cleric",
+    "shortDesc": "Divine protector and healer",
+    "fullDesc": "Clerics are devoted servants of the divine, wielding holy power to mend wounds and protect allies. While they lack the raw destructive power of wizards, their ability to sustain a party through the darkest battles makes them invaluable companions. In dire circumstances, they can call upon righteous fury to smite their foes.",
+    "faction": "Order of the Sacred Light"
+  },
+  
+  "tags": ["support", "healer", "tank", "holy"]
+}

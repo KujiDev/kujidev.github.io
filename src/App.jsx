@@ -1,32 +1,44 @@
 import { Canvas } from "@react-three/fiber";
 import { CameraControls, Environment, KeyboardControls, useKeyboardControls } from "@react-three/drei";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
-import { useEffect, useRef, Suspense, useState, useMemo } from "react";
+import { useEffect, useRef, Suspense, useState, useMemo, createContext, useContext, useCallback } from "react";
 
 import Hud from "@/components/Hud";
 import SkillBar, { Slot } from "@/components/SkillBar";
 import Orb from "@/components/Orb";
 import CastingBar from "@/components/CastingBar";
 import BuffBar from "@/components/BuffBar";
-import { Model as Wizard } from "@/components/Wizard";
+import Player from "@/components/Player";
 import MenuBar from "@/components/MenuBar";
 import AchievementToast from "@/components/AchievementToast";
 import Target, { TargetProvider, useTarget } from "@/components/Target";
 import TargetHealthBar from "@/components/TargetHealthBar";
-import IceShard from "@/components/IceShard";
-import Meteor from "@/components/Meteor";
 import LoadingScreen from "@/components/LoadingScreen";
 import Town from "@/components/Town";
 import TrainingDummyModel from "@/components/TrainingDummyModel";
 import PixieOrbit from "@/components/PixieOrbit";
+// Projectiles - owned by the scene, triggered by player actions
+import IceShard from "@/components/IceShard";
+import Meteor from "@/components/Meteor";
 
 import { KeyMapProvider, useKeyMap } from "@/hooks/useKeyMap";
-import { usePlayerState, useSlotMap, useAchievements } from "@/hooks/useGame";
+import { usePlayerState, useSlotMap, useAchievements, useActiveClass } from "@/hooks/useGame";
 import { InputProvider, KeyboardSync, useInput } from "@/hooks/useInput";
 import { useSlotButton, useMouseSlotButton } from "@/hooks/useSlotButton";
 import { SKILL_SLOTS, MOUSE_SLOTS, CONSUMABLE_SLOTS, PIXIE_SLOTS } from "@/config/slots";
 import { DragDropProvider } from "@/hooks/useDragDrop";
 import { getSkills, getConsumables } from "@/config/actions";
+import { getClasses } from "@/engine/classes";
+
+// =============================================================================
+// CLASS CONTEXT - Allows components to access current class
+// =============================================================================
+
+const ClassContext = createContext({ classId: 'wizard', setClassId: () => {} });
+
+export function useCurrentClass() {
+  return useContext(ClassContext);
+}
 
 // === DEVELOPMENT ICON VERIFICATION ===
 // Runs once at startup to ensure all actions have icons resolved
@@ -257,6 +269,7 @@ const TrainingDummy = ({ children }) => {
  */
 const Scene = () => {
   const { unlockTarget } = useTarget() || {}
+  const { classId } = useCurrentClass();
   
   const handleMissClick = (e) => {
     // Only unlock if clicking on non-target (floor, background)
@@ -274,13 +287,14 @@ const Scene = () => {
       <directionalLight position={[5, 10, 5]} intensity={0.5} color="#8b7355" />
       <pointLight position={[0, 2, 0]} intensity={1} color="#ff6b35" distance={10} />
       
-      {/* Floor - click to deselect target */}
       {/* Town environment */}
       <Town />
 
+      {/* Player - class-agnostic, configured by classId from context */}
       <PlayerTarget>
-        <Wizard position={[0, 0, 0]} />
-        <PixieOrbit />
+        <Player classId={classId} position={[0, 0, 0]}>
+          <PixieOrbit />
+        </Player>
       </PlayerTarget>
 
       {/* Test enemy target */}
@@ -288,10 +302,8 @@ const Scene = () => {
         <TrainingDummyModel position={[0, 0, 3]} />
       </TrainingDummy>
       
-      {/* Ice Shard effect - targets the training dummy */}
+      {/* Projectile effects - triggered by player actions, target the dummy */}
       <IceShard targetPosition={[0, 0, 3]} />
-      
-      {/* Meteor effect - targets the training dummy */}
       <Meteor targetPosition={[0, 0, 3]} />
     
       <CameraControls
@@ -318,14 +330,74 @@ const Scene = () => {
   )
 }
 
-export default function App() {
+/**
+ * Class Switcher - Development tool to demonstrate class abstraction
+ * 
+ * IMPORTANT: This component syncs TWO class states:
+ * 1. ClassContext (UI state) - controls which model/visuals to show
+ * 2. gameStore.activeClassId (data state) - controls loadout, allowed skills
+ * 
+ * The gameStore.setActiveClass() is the SINGLE SOURCE OF TRUTH for class switching.
+ * It handles all class-scoped state rebinding (loadout, allowed skills, etc.)
+ */
+const ClassSwitcher = () => {
+  const { classId, setClassId } = useCurrentClass();
+  const { setActiveClass } = useActiveClass();
+  const classes = getClasses();
+  
+  const handleClassSwitch = useCallback((newClassId) => {
+    // Sync BOTH states - gameStore is the authority
+    setActiveClass(newClassId);  // Rebinds loadout, skills, state
+    setClassId(newClassId);       // Updates UI context
+  }, [setActiveClass, setClassId]);
+  
   return (
+    <div style={{
+      position: 'fixed',
+      top: '10px',
+      left: '10px',
+      zIndex: 9999,
+      display: 'flex',
+      gap: '8px',
+      padding: '8px',
+      background: 'rgba(0,0,0,0.7)',
+      borderRadius: '8px',
+      border: '1px solid rgba(255,255,255,0.1)',
+    }}>
+      {classes.map(cls => (
+        <button
+          key={cls.id}
+          onClick={() => handleClassSwitch(cls.id)}
+          style={{
+            padding: '6px 12px',
+            border: classId === cls.id ? '2px solid #ffd700' : '1px solid rgba(255,255,255,0.2)',
+            borderRadius: '4px',
+            background: classId === cls.id ? 'rgba(255,215,0,0.2)' : 'rgba(40,30,20,0.8)',
+            color: cls.ui?.color || '#ffffff',
+            cursor: 'pointer',
+            fontWeight: classId === cls.id ? 'bold' : 'normal',
+            fontSize: '12px',
+          }}
+        >
+          {cls.name}
+        </button>
+      ))}
+    </div>
+  );
+};
+
+export default function App() {
+  const [classId, setClassId] = useState('wizard');
+  
+  return (
+    <ClassContext.Provider value={{ classId, setClassId }}>
     <TargetProvider>
     <KeyMapProvider>
     <DragDropProvider>
         <GameControls>
           <LoadingScreen />
           <AchievementToast />
+          <ClassSwitcher />
           <div style={{ width: "100vw", height: "100vh" }}>
             <Canvas 
               flat 
@@ -342,5 +414,6 @@ export default function App() {
     </DragDropProvider>
     </KeyMapProvider>
     </TargetProvider>
+    </ClassContext.Provider>
   );
 }
