@@ -1,7 +1,7 @@
 import { useRef, useMemo, memo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { PIXIES } from '@/config/entities/pixies';
+import { getPixieActionById } from '@/config/actions';
 import { useSlotMap } from '@/hooks/useGame';
 import { PIXIE_SLOTS } from '@/config/slots';
 
@@ -147,7 +147,7 @@ export default function PixieOrbit() {
     return PIXIE_SLOTS
       .map(slot => slotMap?.[slot.id])
       .filter(Boolean)
-      .map(id => PIXIES[id])
+      .map(id => getPixieActionById(id))
       .filter(Boolean);
   }, [slotMap]);
   

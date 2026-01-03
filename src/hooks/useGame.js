@@ -11,8 +11,7 @@ import { useCallback, useMemo, useRef, useEffect } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { useGameStore } from '@/stores/gameStore';
 import { PLAYER_STATES, STATE_ANIMATIONS } from '@/config/stats';
-import { getActionById } from '@/config/actions';
-import { PIXIES, calculatePixieBuffs } from '@/config/entities/pixies';
+import { getActionById, getPixies, getPixieActionById, calculatePixieBuffs } from '@/config/actions';
 import { PIXIE_SLOTS, SKILL_SLOTS, MOUSE_SLOTS, CONSUMABLE_SLOTS, ALL_SLOTS } from '@/config/slots';
 
 // =============================================================================
@@ -195,13 +194,25 @@ export function useSlotMap() {
 
 /**
  * Hook to manage pixies.
- * Provides the same API as the old PixiesContext.
+ * Pixies are now passive skills - they use the same pipeline as skills/consumables.
  */
 export function usePixies() {
   const collectedPixies = useGameStore(s => s.collectedPixies);
   const slotMap = useGameStore(s => s.slotMap);
   const collectPixie = useGameStore(s => s.collectPixie);
   const resetToDefaults = useGameStore(s => s.resetPixies);
+  
+  // Get all pixie actions (from the unified actions layer)
+  const allPixies = useMemo(() => getPixies(), []);
+  
+  // Build a lookup map for pixies
+  const pixieMap = useMemo(() => {
+    const map = {};
+    for (const p of allPixies) {
+      map[p.id] = p;
+    }
+    return map;
+  }, [allPixies]);
   
   // Derive equipped from slot map
   const equipped = useMemo(() => {
@@ -215,18 +226,18 @@ export function usePixies() {
     return calculatePixieBuffs(equipped);
   }, [equipped]);
   
-  // Get equipped pixie data for 3D rendering
+  // Get equipped pixie actions for 3D rendering
   const equippedPixies = useMemo(() => {
-    return equipped.map(id => PIXIES[id]).filter(Boolean);
-  }, [equipped]);
+    return equipped.map(id => pixieMap[id]).filter(Boolean);
+  }, [equipped, pixieMap]);
   
   // Get collected but not equipped
   const unequippedPixies = useMemo(() => {
     return collectedPixies
       .filter(id => !equipped.includes(id))
-      .map(id => PIXIES[id])
+      .map(id => pixieMap[id])
       .filter(Boolean);
-  }, [collectedPixies, equipped]);
+  }, [collectedPixies, equipped, pixieMap]);
   
   return {
     collected: collectedPixies,
@@ -237,7 +248,7 @@ export function usePixies() {
     collectPixie,
     resetToDefaults,
     MAX_EQUIPPED: 3,
-    PIXIES,
+    PIXIES: pixieMap, // Legacy compatibility
   };
 }
 

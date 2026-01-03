@@ -42,6 +42,7 @@ import {
   canAffordAction,
   isChannelAction,
   canRecastAction,
+  calculatePixieBuffs,
 } from '@/config/actions';
 import { 
   createBuffInstance, 
@@ -49,7 +50,7 @@ import {
   removeExpiredBuffs,
   calculateBuffTotals,
 } from '@/config/entities/buffs';
-import { calculatePixieBuffs, DEFAULT_COLLECTED_PIXIES } from '@/config/entities/pixies';
+import { DEFAULT_COLLECTED_PIXIES } from '@/config/entities/pixies';
 import { PIXIE_SLOTS, getDefaultSlotMap } from '@/config/slots';
 import { ACHIEVEMENTS } from '@/config/achievements';
 

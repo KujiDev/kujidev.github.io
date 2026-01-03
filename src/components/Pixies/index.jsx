@@ -3,7 +3,7 @@ import { MenuButton, Drawer, DrawerTitle, ScrollList, SvgIcon } from '@/ui';
 import { useDraggable, useDropTarget, useDragDrop } from '@/hooks/useDragDrop';
 import { useSlotMap, usePixies } from '@/hooks/useGame';
 import { PIXIE_SLOTS } from '@/config/slots';
-import { PIXIES } from '@/config/entities/pixies';
+import { getPixies } from '@/config/actions';
 import styles from './styles.module.css';
 import pixieIcon from '@/assets/icons/pixie.svg?raw';
 
@@ -28,6 +28,7 @@ const TABS = [
  */
 const PixieSlot = memo(function PixieSlot({ slotId, slotIndex }) {
   const { slotMap } = useSlotMap();
+  const { PIXIES } = usePixies();
   const { ref: dropRef, isHovered, isDragging } = useDropTarget(slotId);
   const { startDrag } = useDragDrop();
   const startPos = useRef(null);
@@ -48,7 +49,7 @@ const PixieSlot = memo(function PixieSlot({ slotId, slotIndex }) {
     const dy = e.clientY - startPos.current.y;
     if (Math.sqrt(dx * dx + dy * dy) > 5) {
       startDrag(
-        { id: pixie.id, icon: pixie.icon, label: pixie.name, dragType: 'pixie' },
+        { id: pixie.id, icon: pixie.icon, label: pixie.label, dragType: 'pixie' },
         { x: e.clientX, y: e.clientY },
         slotId
       );
@@ -71,7 +72,7 @@ const PixieSlot = memo(function PixieSlot({ slotId, slotIndex }) {
       onPointerCancel={handlePointerUp}
     >
       {pixie ? (
-        <img src={pixie.icon} alt={pixie.name} draggable={false} />
+        <img src={pixie.icon} alt={pixie.label} draggable={false} />
       ) : (
         <span className={styles['slot-number']}>{slotIndex + 1}</span>
       )}
@@ -81,6 +82,7 @@ const PixieSlot = memo(function PixieSlot({ slotId, slotIndex }) {
 
 /**
  * PixieCard - matches SpellCard pattern exactly
+ * Now receives pixie actions (same shape as skill actions)
  */
 const PixieCard = memo(function PixieCard({ pixie }) {
   const buffInfo = BUFF_INFO[pixie.buff.type];
@@ -89,7 +91,7 @@ const PixieCard = memo(function PixieCard({ pixie }) {
   // Create a draggable action object matching the spell pattern
   const action = useMemo(() => ({
     id: pixie.id,
-    label: pixie.name,
+    label: pixie.label,
     icon: pixie.icon,
     dragType: 'pixie',
   }), [pixie]);
@@ -118,7 +120,7 @@ const PixieCard = memo(function PixieCard({ pixie }) {
           </div>
         )}
         <div className={styles['pixie-info']}>
-          <span className={styles['pixie-name']}>{pixie.name}</span>
+          <span className={styles['pixie-name']}>{pixie.label}</span>
           <div className={styles['pixie-badges']}>
             <span 
               className={styles['pixie-element']}
@@ -151,12 +153,12 @@ export default function Pixies() {
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
   const buttonRef = useRef(null);
-  const { collected } = usePixies();
+  const { collected, PIXIES } = usePixies();
   
   // Get all collected pixies as objects
   const allPixies = useMemo(() => 
     collected.map(id => PIXIES[id]).filter(Boolean),
-    [collected]
+    [collected, PIXIES]
   );
   
   // Filter by buff type

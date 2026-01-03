@@ -8,6 +8,8 @@
  * 
  * This is a compatibility layer that maintains the same API as the old
  * hardcoded actions.js, but sources data from JSON.
+ * 
+ * ALL entities (skills, consumables, pixies) use the same pipeline.
  */
 
 // Re-export everything from the engine's actions module
@@ -20,6 +22,9 @@ export {
   getSkills,
   getSpells,
   getConsumables,
+  getPixies,
+  getPixieActionById,
+  calculatePixieBuffs,
   getDragType,
   canAffordAction,
   isChannelAction,

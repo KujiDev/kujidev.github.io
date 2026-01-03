@@ -1,7 +1,6 @@
 import { usePlayerState, useSlotMap } from "@/hooks/useGame";
-import { PIXIES } from "@/config/entities/pixies";
+import { getPixieActionById, isActionForSkill } from "@/config/actions";
 import { PIXIE_SLOTS } from "@/config/slots";
-import { isActionForSkill } from "@/config/actions";
 import { useState, useEffect, memo, useMemo } from "react";
 import styles from "./styles.module.css";
 import arcaneRushIcon from '@/assets/icons/arcane-rush.svg';
@@ -130,13 +129,13 @@ const PixieBuffIcon = memo(function PixieBuffIcon({ pixie }) {
         className={`${styles["buff-icon"]} ${styles["buff-passive"]}`}
         style={{ '--pixie-color': pixie.color }}
       >
-        <img src={pixie.icon} alt={pixie.name} className={styles["buff-image"]} />
+        <img src={pixie.icon} alt={pixie.label} className={styles["buff-image"]} />
       </div>
       
       {showTooltip && (
         <div className={styles.tooltip}>
           <div className={styles["tooltip-header"]}>
-            <span className={styles["tooltip-name"]}>{pixie.name}</span>
+            <span className={styles["tooltip-name"]}>{pixie.label}</span>
             <span className={`${styles["tooltip-type"]} ${styles["tooltip-type-passive"]}`}>Passive</span>
           </div>
           <p className={styles["tooltip-desc"]}>{pixie.description}</p>
@@ -162,7 +161,7 @@ export default function BuffBar() {
     return PIXIE_SLOTS
       .map(slot => slotMap?.[slot.id])
       .filter(Boolean)
-      .map(id => PIXIES[id])
+      .map(id => getPixieActionById(id))
       .filter(Boolean);
   }, [slotMap]);
   

@@ -7,13 +7,15 @@
  * expected by the game code. It provides the same API as the old actions.js
  * but reads from the engine's loaded data.
  * 
- * This allows us to:
- * - Use JSON as the single source of truth
- * - Keep existing game code working without changes
- * - Gradually migrate to cleaner patterns
+ * ALL entities (skills, consumables, pixies) flow through the same pipeline:
+ * JSON → Loader → Actions → Runtime
+ * 
+ * Pixies are passive skills - they use the same shape, differing only by:
+ * - activationType: 'passive'
+ * - They provide stat buffs while equipped
  */
 
-import { getSkillById, getAllSkills, getStatusById } from './loader';
+import { getSkillById, getAllSkills, getStatusById, getAllPixes } from './loader';
 import { ELEMENTS } from '@/config/elements';
 import { FSM_ACTIONS } from '@/config/stats';
 
@@ -26,6 +28,10 @@ import arcaneBoltIcon from '@/assets/icons/arcane-bolt.svg';
 import arcaneBlastIcon from '@/assets/icons/arcane-blast.svg';
 import healthPotionIcon from '@/assets/icons/health-potion.svg';
 import foodIcon from '@/assets/icons/food.svg';
+import pixieVerdantIcon from '@/assets/icons/pixie-verdant.svg';
+import pixieAzureIcon from '@/assets/icons/pixie-azure.svg';
+import pixieVioletIcon from '@/assets/icons/pixie-violet.svg';
+import pixieCrimsonIcon from '@/assets/icons/pixie-crimson.svg';
 
 // =============================================================================
 // ICON RESOLUTION
@@ -40,6 +46,10 @@ const ICON_MAP = {
   'arcane-blast.svg': arcaneBlastIcon,
   'health-potion.svg': healthPotionIcon,
   'food.svg': foodIcon,
+  'pixie-verdant.svg': pixieVerdantIcon,
+  'pixie-azure.svg': pixieAzureIcon,
+  'pixie-violet.svg': pixieVioletIcon,
+  'pixie-crimson.svg': pixieCrimsonIcon,
 };
 
 /**
@@ -79,6 +89,7 @@ const TYPE_TO_FSM = {
   'channel': FSM_ACTIONS.MOVE,
   'buff': FSM_ACTIONS.CAST,
   'consumable': FSM_ACTIONS.INSTANT,
+  'passive': null, // Passive skills don't trigger FSM actions
 };
 
 /**
@@ -90,6 +101,7 @@ export const ACTION_TYPES = {
   CHANNEL: 'Channel',
   BUFF: 'Buff',
   CONSUMABLE: 'Consumable',
+  PIXIE: 'Pixie', // Passive companion - provides buffs while equipped
 };
 
 const TYPE_TO_LEGACY = {
@@ -98,6 +110,7 @@ const TYPE_TO_LEGACY = {
   'channel': ACTION_TYPES.CHANNEL,
   'buff': ACTION_TYPES.BUFF,
   'consumable': ACTION_TYPES.CONSUMABLE,
+  'passive': ACTION_TYPES.PIXIE,
 };
 
 // =============================================================================
@@ -188,6 +201,51 @@ function transformSkillToAction(skill) {
 }
 
 /**
+ * Transform a JSON pixie into an action format.
+ * Pixies are passive skills - they don't need activation, just provide buffs.
+ */
+function transformPixieToAction(pixie) {
+  if (!pixie) return null;
+  
+  const icon = resolveIcon(pixie.visual?.icon);
+  
+  // ASSERTION: Icon should be resolved for all pixies with icons defined
+  if (import.meta.env.DEV && pixie.visual?.icon !== undefined && !icon) {
+    console.error(`[ACTIONS ASSERTION FAILED] Pixie "${pixie.id}" has visual.icon but resolution failed!`, {
+      originalIcon: pixie.visual.icon,
+      resolvedIcon: icon,
+    });
+  }
+  
+  return {
+    id: pixie.id,
+    label: pixie.name,
+    description: pixie.description,
+    type: ACTION_TYPES.PIXIE,
+    activationType: 'passive', // Key differentiator from active skills
+    element: pixie.element,
+    fsmAction: null, // Passive - no FSM action
+    icon,
+    
+    // Visual properties for 3D rendering
+    color: pixie.visual?.color || '#ffffff',
+    glowColor: pixie.visual?.glowColor || '#ffffff',
+    
+    // Buff provided while equipped
+    buff: pixie.buff ? {
+      type: pixie.buff.type,
+      value: pixie.buff.value,
+    } : null,
+    
+    // Drag type for slot system
+    dragType: 'pixie',
+    
+    // Original JSON ID for reference
+    _pixieId: pixie.id,
+  };
+}
+
+/**
  * Format a key code for display.
  */
 function formatDisplayKey(keyCode) {
@@ -205,6 +263,10 @@ let ACTIONS_CACHE = null;
 let ACTION_BY_ID = null;
 let FSM_BY_ID = null;
 let ELEMENT_BY_ID = null;
+
+// Separate cache for pixies (passive skills)
+let PIXIES_CACHE = null;
+let PIXIE_BY_ID = null;
 
 /**
  * Build the ACTIONS object from loaded JSON data.
@@ -231,6 +293,29 @@ function buildActions() {
   }
   
   return ACTIONS_CACHE;
+}
+
+/**
+ * Build the PIXIES object from loaded JSON data.
+ * Pixies are passive skills - same pipeline, different cache.
+ */
+function buildPixies() {
+  if (PIXIES_CACHE) return PIXIES_CACHE;
+  
+  PIXIES_CACHE = {};
+  PIXIE_BY_ID = new Map();
+  
+  const pixes = getAllPixes();
+  
+  for (const pix of pixes) {
+    const action = transformPixieToAction(pix);
+    if (!action) continue;
+    
+    PIXIES_CACHE[action.id] = action;
+    PIXIE_BY_ID.set(action.id, action);
+  }
+  
+  return PIXIES_CACHE;
 }
 
 // =============================================================================
@@ -284,6 +369,45 @@ export const getSpells = getSkills;
 export function getConsumables() {
   const actions = buildActions();
   return Object.values(actions).filter(a => a.type === ACTION_TYPES.CONSUMABLE);
+}
+
+/**
+ * Get all pixie actions (passive skills)
+ */
+export function getPixies() {
+  return Object.values(buildPixies());
+}
+
+/**
+ * Get pixie action by ID - O(1)
+ */
+export function getPixieActionById(pixieId) {
+  buildPixies();
+  return PIXIE_BY_ID?.get(pixieId) || null;
+}
+
+/**
+ * Calculate total buffs from equipped pixie IDs.
+ * Returns { healthRegen, manaRegen, maxHealth, maxMana }
+ */
+export function calculatePixieBuffs(equippedIds) {
+  const buffs = {
+    healthRegen: 0,
+    manaRegen: 0,
+    maxHealth: 0,
+    maxMana: 0,
+  };
+  
+  buildPixies();
+  
+  for (const pixieId of equippedIds) {
+    const pixie = PIXIE_BY_ID?.get(pixieId);
+    if (pixie?.buff) {
+      buffs[pixie.buff.type] += pixie.buff.value;
+    }
+  }
+  
+  return buffs;
 }
 
 /**
