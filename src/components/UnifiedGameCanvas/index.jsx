@@ -334,9 +334,7 @@ export default function UnifiedGameCanvas({
     }}>
       <Canvas 
         flat 
-        camera={{ fov: 50, position: [0, 8, 12] }} 
-        eventSource={document.getElementById('root')} 
-        eventPrefix="client"
+        camera={{ fov: 50, position: [0, 8, 12] }}
       >
         <Physics gravity={[0, -9.81, 0]}>
           <Suspense fallback={null}>

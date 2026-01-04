@@ -733,9 +733,7 @@ const GameCanvas = ({ visible, selectedClassId, onSelectClass }) => {
     }}>
       <Canvas 
         flat 
-        camera={{ fov: 50, position: [0, 8, 12] }} 
-        eventSource={document.getElementById('root')} 
-        eventPrefix="client"
+        camera={{ fov: 50, position: [0, 8, 12] }}
       >
         <Suspense fallback={null}>
           <UnifiedScene 

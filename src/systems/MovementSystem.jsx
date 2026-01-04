@@ -60,6 +60,10 @@ export function GroundPlane() {
   }
   
   const handleClick = useCallback((event) => {
+    // TODO: Add UI click blocking here
+    // The R3F onClick fires even when clicking on DOM UI elements above the canvas.
+    // Need to detect if click originated from UI and block ground movement.
+    
     // INPUT GATING: Block all clicks during scene transitions
     if (!useSceneStore.getState().canAcceptInput()) {
       if (import.meta.env.DEV) {

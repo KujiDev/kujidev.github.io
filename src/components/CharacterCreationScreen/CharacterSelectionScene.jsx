@@ -518,8 +518,6 @@ export default function CharacterSelectionScene({
     <Canvas 
       flat 
       camera={{ fov: 50, position: [0, 8, 12] }}
-      eventSource={document.getElementById('root')}
-      eventPrefix="client"
     >
       <Physics gravity={[0, 0, 0]} paused>
         <SceneContent
