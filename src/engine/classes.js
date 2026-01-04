@@ -16,6 +16,10 @@
 
 import wizardData from '@/data/classes/wizard.json';
 import clericData from '@/data/classes/cleric.json';
+import monkData from '@/data/classes/monk.json';
+import rangerData from '@/data/classes/ranger.json';
+import rogueData from '@/data/classes/rogue.json';
+import warriorData from '@/data/classes/warrior.json';
 import { getSkills, getConsumables, getPixies, getActionIdForSkill } from '@/engine/actions';
 
 // =============================================================================
@@ -35,6 +39,10 @@ function buildClasses() {
   const allClassData = [
     wizardData,
     clericData,
+    monkData,
+    rangerData,
+    rogueData,
+    warriorData,
   ];
   
   CLASSES_CACHE = allClassData.map(cls => ({

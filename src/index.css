@@ -162,3 +162,9 @@ button:focus-visible {
     scroll-behavior: auto !important;
   }
 }
+
+/* ============ GLOBAL ANIMATIONS ============ */
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}

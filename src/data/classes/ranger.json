@@ -1,0 +1,113 @@
+{
+  "$schema": "../schemas/class.schema.json",
+  "id": "ranger",
+  "name": "Ranger",
+  "description": "A skilled archer and tracker who excels at ranged combat and survival.",
+  
+  "model": {
+    "path": "/models/Ranger-transformed.glb",
+    "scale": 1,
+    "position": [0, 0, 0]
+  },
+  
+  "characterSelection": {
+    "position": [1.8, 0, -1.5],
+    "rotation": -0.2,
+    "panelOffset": [0, 2.5, 0]
+  },
+  
+  "ui": {
+    "icon": null,
+    "color": "#60a040",
+    "portrait": null,
+    "panels": [
+      {
+        "id": "spellbook",
+        "filters": [
+          { "id": "all", "label": "All", "color": "#a89878" },
+          { "id": "physical", "label": "Physical", "color": "#c0a060", "match": { "field": "element", "value": "physical" } },
+          { "id": "nature", "label": "Nature", "color": "#60a040", "match": { "field": "element", "value": "nature" } }
+        ]
+      },
+      { "id": "consumables" },
+      { "id": "pixies" }
+    ]
+  },
+  
+  "baseStats": {
+    "maxHealth": 110,
+    "maxMana": 70,
+    "healthRegen": 3,
+    "manaRegen": 3,
+    "moveSpeed": 1.1,
+    "armor": 8,
+    "magicResist": 5,
+    "spellPower": 5,
+    "attackPower": 18,
+    "critChance": 0.12
+  },
+  
+  "allowedElements": ["physical", "nature", "mana"],
+  "primaryElement": "physical",
+  
+  "allowedSkills": [
+    "aimed_shot",
+    "multishot",
+    "disengage",
+    "natures_blessing",
+    "quick_shot",
+    "explosive_arrow",
+    "health_potion",
+    "mana_biscuit",
+    "mana_potion",
+    "rejuvenation_potion"
+  ],
+  
+  "defaultLoadout": {
+    "slot_1": "aimed_shot",
+    "slot_2": "multishot",
+    "slot_3": "disengage",
+    "slot_4": "natures_blessing",
+    "slot_lmb": "quick_shot",
+    "slot_rmb": "explosive_arrow",
+    "slot_consumable_1": "health_potion",
+    "slot_consumable_2": "mana_biscuit"
+  },
+  
+  "allowedPixies": null,
+  "defaultPixies": [],
+  "collectablePixies": ["verdant", "azure", "violet", "crimson"],
+  
+  "stateAnimations": {
+    "idle": "Idle",
+    "casting": "Bow_Shoot",
+    "attacking": "Bow_Draw",
+    "moving": "Run",
+    "dead": "Death"
+  },
+  
+  "animationOverrides": {},
+  
+  "weaponMeshes": ["Ranger_Bow"],
+  "allowedWeapons": ["bow", "crossbow"],
+  "primaryWeapon": "bow",
+  "allowedArmor": ["leather", "mail"],
+  
+  "audio": {
+    "voiceSet": "ranger_female_01",
+    "footsteps": "leather_medium",
+    "castSounds": {
+      "physical": "arrow_shot_01",
+      "nature": "nature_cast_01"
+    }
+  },
+  
+  "lore": {
+    "title": "The Ranger",
+    "shortDesc": "Expert marksman and wilderness survivor",
+    "fullDesc": "Rangers are masters of the bow, trained in the art of precision shooting and wilderness survival. They can track prey across any terrain and strike from great distances with deadly accuracy. Their connection to nature grants them limited healing abilities and enhanced mobility.",
+    "faction": "Wildwood Sentinels"
+  },
+  
+  "tags": ["ranged", "physical", "agile", "nature"]
+}

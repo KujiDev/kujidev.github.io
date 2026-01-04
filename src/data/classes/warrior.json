@@ -1,0 +1,113 @@
+{
+  "$schema": "../schemas/class.schema.json",
+  "id": "warrior",
+  "name": "Warrior",
+  "description": "A heavily armored fighter who excels at close combat and protecting allies.",
+  
+  "model": {
+    "path": "/models/Warrior-transformed.glb",
+    "scale": 1,
+    "position": [0, 0, 0]
+  },
+  
+  "characterSelection": {
+    "position": [5, 0, 2.5],
+    "rotation": -0.5,
+    "panelOffset": [0, 2.5, 0]
+  },
+  
+  "ui": {
+    "icon": null,
+    "color": "#c04040",
+    "portrait": null,
+    "panels": [
+      {
+        "id": "spellbook",
+        "filters": [
+          { "id": "all", "label": "All", "color": "#a89878" },
+          { "id": "physical", "label": "Physical", "color": "#c0a060", "match": { "field": "element", "value": "physical" } },
+          { "id": "fire", "label": "Rage", "color": "#c04040", "match": { "field": "element", "value": "fire" } }
+        ]
+      },
+      { "id": "consumables" },
+      { "id": "pixies" }
+    ]
+  },
+  
+  "baseStats": {
+    "maxHealth": 180,
+    "maxMana": 50,
+    "healthRegen": 5,
+    "manaRegen": 2,
+    "moveSpeed": 0.9,
+    "armor": 25,
+    "magicResist": 10,
+    "spellPower": 0,
+    "attackPower": 15,
+    "critChance": 0.08
+  },
+  
+  "allowedElements": ["physical", "fire", "mana"],
+  "primaryElement": "physical",
+  
+  "allowedSkills": [
+    "shield_slam",
+    "whirlwind",
+    "berserker_rage",
+    "iron_fortress",
+    "cleave",
+    "execute",
+    "health_potion",
+    "mana_biscuit",
+    "mana_potion",
+    "rejuvenation_potion"
+  ],
+  
+  "defaultLoadout": {
+    "slot_1": "shield_slam",
+    "slot_2": "whirlwind",
+    "slot_3": "berserker_rage",
+    "slot_4": "iron_fortress",
+    "slot_lmb": "cleave",
+    "slot_rmb": "execute",
+    "slot_consumable_1": "health_potion",
+    "slot_consumable_2": "mana_biscuit"
+  },
+  
+  "allowedPixies": null,
+  "defaultPixies": [],
+  "collectablePixies": ["verdant", "azure", "violet", "crimson"],
+  
+  "stateAnimations": {
+    "idle": "Idle",
+    "casting": "Sword_Attack",
+    "attacking": "Sword_Attack2",
+    "moving": "Run",
+    "dead": "Death"
+  },
+  
+  "animationOverrides": {},
+  
+  "weaponMeshes": ["Warrior_Sword"],
+  "allowedWeapons": ["sword", "axe", "shield"],
+  "primaryWeapon": "sword",
+  "allowedArmor": ["mail", "plate"],
+  
+  "audio": {
+    "voiceSet": "warrior_male_01",
+    "footsteps": "plate_heavy",
+    "castSounds": {
+      "physical": "sword_swing_01",
+      "fire": "rage_shout_01"
+    }
+  },
+  
+  "lore": {
+    "title": "The Warrior",
+    "shortDesc": "Unstoppable force of steel and fury",
+    "fullDesc": "Warriors are the frontline of any battle, clad in heavy armor and wielding devastating weapons. They charge into the fray, drawing enemy attention while their allies strike from safety. Their rage fuels powerful attacks, and their resilience allows them to endure tremendous punishment.",
+    "faction": "Iron Legion"
+  },
+  
+  "tags": ["melee", "tank", "physical", "berserker"]
+}

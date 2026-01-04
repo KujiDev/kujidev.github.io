@@ -67,5 +67,52 @@
     },
     "tags": ["mana", "food", "consumable"],
     "dispellable": false
+  },
+  {
+    "$schema": "../schemas/status.schema.json",
+    "id": "mana_potion",
+    "name": "Mana Surge",
+    "description": "An arcane elixir is restoring your mana over time.",
+    "type": "buff",
+    "category": "hot",
+    "duration": 10,
+    "stacking": {
+      "rule": "refresh",
+      "maxStacks": 1
+    },
+    "effects": {
+      "manaRegen": 8
+    },
+    "visual": {
+      "icon": "mana-potion.svg",
+      "color": "#4080ff",
+      "particleEffect": "mana_sparkle"
+    },
+    "tags": ["mana", "potion", "consumable"],
+    "dispellable": false
+  },
+  {
+    "$schema": "../schemas/status.schema.json",
+    "id": "rejuvenation_potion",
+    "name": "Rejuvenation",
+    "description": "A balanced elixir is restoring your health and mana over time.",
+    "type": "buff",
+    "category": "hot",
+    "duration": 12,
+    "stacking": {
+      "rule": "refresh",
+      "maxStacks": 1
+    },
+    "effects": {
+      "healthRegen": 5,
+      "manaRegen": 5
+    },
+    "visual": {
+      "icon": "rejuvenation-potion.svg",
+      "color": "#a060c0",
+      "particleEffect": "heal_glow"
+    },
+    "tags": ["healing", "mana", "potion", "consumable"],
+    "dispellable": false
   }
 ]

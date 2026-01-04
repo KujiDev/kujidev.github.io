@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Dark background -->
+  <rect width="64" height="64" rx="4" fill="#1a1a2a"/>
+  <rect x="2" y="2" width="60" height="60" rx="3" fill="#120d16" stroke="#322a42" stroke-width="1"/>
+  
+  <!-- Dual glow (health + mana) -->
+  <ellipse cx="28" cy="46" rx="10" ry="4" fill="#c04060" opacity="0.2"/>
+  <ellipse cx="36" cy="46" rx="10" ry="4" fill="#4080ff" opacity="0.2"/>
+  
+  <!-- Bottle body (rounded) -->
+  <path d="M20,28 Q16,32 16,40 L16,48 Q16,56 24,56 L40,56 Q48,56 48,48 L48,40 Q48,32 44,28 Z" 
+        fill="#402060" stroke="#6040a0" stroke-width="1.5"/>
+  
+  <!-- Split liquid - red on left, blue on right, purple in middle -->
+  <path d="M18,40 L18,46 Q18,54 24,54 L32,54 L32,36 Q26,36 22,40 Z" 
+        fill="#c04060" opacity="0.8"/>
+  <path d="M46,40 L46,46 Q46,54 40,54 L32,54 L32,36 Q38,36 42,40 Z" 
+        fill="#4080ff" opacity="0.8"/>
+  
+  <!-- Purple blend in middle -->
+  <rect x="30" y="36" width="4" height="18" fill="#8040a0" opacity="0.8"/>
+  
+  <!-- Shine -->
+  <path d="M22,42 L22,48 Q22,52 24,52 L26,52 Q28,52 28,48 L28,42 Z" 
+        fill="#e06080" opacity="0.4"/>
+  
+  <!-- Bottle neck -->
+  <rect x="28" y="18" width="8" height="12" fill="#402060" stroke="#6040a0" stroke-width="1.5"/>
+  
+  <!-- Cork with gems -->
+  <rect x="26" y="10" width="12" height="10" rx="2" fill="#8a6a4a" stroke="#6a4a2a" stroke-width="1"/>
+  <circle cx="29" cy="15" r="2" fill="#c04060"/>
+  <circle cx="35" cy="15" r="2" fill="#4080ff"/>
+  
+  <!-- Sparkles -->
+  <circle cx="24" cy="44" r="1" fill="#ffa0a0"/>
+  <circle cx="40" cy="42" r="1" fill="#a0c0ff"/>
+  <circle cx="32" cy="48" r="1.5" fill="#c0a0e0"/>
+  
+  <!-- Swirl -->
+  <path d="M26,44 Q32,38 38,44" fill="none" stroke="#c0a0e0" stroke-width="1" opacity="0.5"/>
+</svg>

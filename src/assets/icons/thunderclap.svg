@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Dark background - Lightning theme -->
+  <rect width="64" height="64" rx="4" fill="#2a2a1a"/>
+  <rect x="2" y="2" width="60" height="60" rx="3" fill="#14140d" stroke="#4a4a20" stroke-width="1"/>
+  
+  <!-- Ground impact -->
+  <ellipse cx="32" cy="54" rx="20" ry="4" fill="#ffff40" opacity="0.3"/>
+  
+  <!-- Lightning bolts radiating out -->
+  <path d="M32,32 L28,20 L32,24 L30,8" fill="none" stroke="#ffff80" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M32,32 L44,24 L40,28 L52,18" fill="none" stroke="#ffff80" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M32,32 L20,24 L24,28 L12,18" fill="none" stroke="#ffff80" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M32,32 L48,36 L44,34 L58,38" fill="none" stroke="#ffff60" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M32,32 L16,36 L20,34 L6,38" fill="none" stroke="#ffff60" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Central fist/palm -->
+  <circle cx="32" cy="42" r="10" fill="#f0a030" stroke="#ffcc60" stroke-width="2"/>
+  <circle cx="32" cy="42" r="5" fill="#ffff80" opacity="0.6"/>
+  
+  <!-- Electric sparks -->
+  <circle cx="28" cy="14" r="2" fill="#ffffff"/>
+  <circle cx="50" cy="20" r="1.5" fill="#ffff80"/>
+  <circle cx="14" cy="20" r="1.5" fill="#ffff80"/>
+</svg>

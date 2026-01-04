@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Dark background - Rage theme (red) -->
+  <rect width="64" height="64" rx="4" fill="#2e1a1a"/>
+  <rect x="2" y="2" width="60" height="60" rx="3" fill="#1a0d0d" stroke="#4a2a2a" stroke-width="1"/>
+  
+  <!-- Rage aura -->
+  <circle cx="32" cy="32" r="24" fill="#c02020" opacity="0.15"/>
+  <circle cx="32" cy="32" r="18" fill="#e04040" opacity="0.2"/>
+  <circle cx="32" cy="32" r="12" fill="#ff6060" opacity="0.2"/>
+  
+  <!-- Angry face silhouette -->
+  <circle cx="32" cy="28" r="12" fill="#a04040" stroke="#c06060" stroke-width="2"/>
+  
+  <!-- Angry eyes -->
+  <path d="M24,24 L28,27 L24,27" fill="#ff4040"/>
+  <path d="M40,24 L36,27 L40,27" fill="#ff4040"/>
+  <circle cx="26" cy="26" r="2" fill="#ffff40"/>
+  <circle cx="38" cy="26" r="2" fill="#ffff40"/>
+  
+  <!-- Angry mouth -->
+  <path d="M26,32 L32,35 L38,32" fill="none" stroke="#200000" stroke-width="2" stroke-linecap="round"/>
+  
+  <!-- Rage flames around head -->
+  <path d="M16,28 Q14,20 18,14 Q16,22 20,26" fill="#ff4040" opacity="0.7"/>
+  <path d="M48,28 Q50,20 46,14 Q48,22 44,26" fill="#ff4040" opacity="0.7"/>
+  <path d="M28,12 Q26,6 32,4 Q30,10 32,14" fill="#ff6060" opacity="0.6"/>
+  <path d="M36,12 Q38,6 32,4 Q34,10 32,14" fill="#ff6060" opacity="0.6"/>
+  
+  <!-- Power veins -->
+  <path d="M20,38 L18,44 L22,48" stroke="#c04040" stroke-width="2" fill="none"/>
+  <path d="M44,38 L46,44 L42,48" stroke="#c04040" stroke-width="2" fill="none"/>
+  
+  <!-- Ground impact -->
+  <ellipse cx="32" cy="56" rx="16" ry="4" fill="#c04040" opacity="0.3"/>
+</svg>

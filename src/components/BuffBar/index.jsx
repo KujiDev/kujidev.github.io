@@ -1,10 +1,11 @@
 import { usePlayerState, useSlotMap } from "@/hooks/useGame";
-import { getPixieActionById, isActionForSkill } from "@/config/actions";
+import { getPixieActionById, getActionById, isChannelAction } from "@/config/actions";
 import { PIXIE_SLOTS } from "@/config/slots";
 import { useState, useEffect, memo, useMemo } from "react";
 import styles from "./styles.module.css";
-import arcaneRushIcon from '@/assets/icons/arcane-rush.svg';
 
+// BUFF_INFO provides tooltip text for buffs - keyed by status/buff ID
+// TODO: Move this to statuses.json for full data-driven architecture
 const BUFF_INFO = {
   mana_body: {
     description: 'Your body is infused with pure mana, greatly increasing mana regeneration.',
@@ -154,7 +155,12 @@ export default function BuffBar() {
   const { slotMap } = useSlotMap();
   const [now, setNow] = useState(Date.now());
   
-  const isArcaneRushActive = state === STATES.MOVING && isActionForSkill(activeAction, 'arcane_rush');
+  // Data-driven: Get active channel action info from action data
+  const activeChannelAction = useMemo(() => {
+    if (state !== STATES.MOVING || !activeAction) return null;
+    const action = getActionById(activeAction);
+    return action && isChannelAction(action) ? action : null;
+  }, [state, activeAction, STATES.MOVING]);
   
   // Get equipped pixies from slot map - use slotMap directly for stable reference
   const equippedPixies = useMemo(() => {
@@ -179,7 +185,7 @@ export default function BuffBar() {
     return () => clearInterval(interval);
   }, [hasTimedBuffs]);
   
-  const hasBuffs = hasTimedBuffs || isArcaneRushActive || hasPixieBuffs;
+  const hasBuffs = hasTimedBuffs || activeChannelAction || hasPixieBuffs;
   
   if (!hasBuffs) return null;
   
@@ -190,12 +196,12 @@ export default function BuffBar() {
         <PixieBuffIcon key={pixie.id} pixie={pixie} />
       ))}
       
-      {/* Active ability buff */}
-      {isArcaneRushActive && (
+      {/* Active channel ability buff - data-driven from action */}
+      {activeChannelAction && (
         <ActiveBuffIcon 
-          id="arcane_rush"
-          name="Arcane Rush" 
-          icon={arcaneRushIcon} 
+          id={activeChannelAction._skillId || activeChannelAction.id}
+          name={activeChannelAction.label} 
+          icon={activeChannelAction.icon} 
         />
       )}
       

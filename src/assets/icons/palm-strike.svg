@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Dark background - Physical theme -->
+  <rect width="64" height="64" rx="4" fill="#2e2a1a"/>
+  <rect x="2" y="2" width="60" height="60" rx="3" fill="#171410" stroke="#4a4020" stroke-width="1"/>
+  
+  <!-- Motion lines -->
+  <line x1="6" y1="28" x2="16" y2="28" stroke="#f0a030" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
+  <line x1="4" y1="34" x2="18" y2="34" stroke="#f0a030" stroke-width="2.5" stroke-linecap="round" opacity="0.7"/>
+  <line x1="6" y1="40" x2="14" y2="40" stroke="#f0a030" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
+  
+  <!-- Open palm hand -->
+  <path d="M24,44 L24,28 Q24,24 28,24 L28,18 Q30,16 32,18 L32,24 L34,16 Q36,14 38,16 L38,24 L40,18 Q42,16 44,18 L44,28 L46,24 Q48,22 50,24 L50,36 Q50,48 38,52 L30,52 Q24,52 24,44 Z"
+        fill="#f0a030" stroke="#ffcc60" stroke-width="2" stroke-linejoin="round"/>
+  
+  <!-- Palm detail -->
+  <path d="M28,36 Q32,40 36,36" fill="none" stroke="#c06000" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M26,42 Q32,46 38,42" fill="none" stroke="#c06000" stroke-width="1.5" stroke-linecap="round"/>
+  
+  <!-- Chi glow on palm -->
+  <circle cx="34" cy="38" r="4" fill="#ffcc60" opacity="0.4"/>
+</svg>

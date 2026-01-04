@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Dark background - Meditation theme -->
+  <rect width="64" height="64" rx="4" fill="#1a2a2a"/>
+  <rect x="2" y="2" width="60" height="60" rx="3" fill="#0d1414" stroke="#2a4a4a" stroke-width="1"/>
+  
+  <defs>
+    <radialGradient id="zenGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#80ffa0"/>
+      <stop offset="50%" style="stop-color:#40c060"/>
+      <stop offset="100%" style="stop-color:#208040"/>
+    </radialGradient>
+  </defs>
+  
+  <!-- Outer aura rings -->
+  <circle cx="32" cy="32" r="26" fill="none" stroke="#40c060" stroke-width="1" opacity="0.3"/>
+  <circle cx="32" cy="32" r="22" fill="none" stroke="#60d080" stroke-width="1" opacity="0.4"/>
+  <circle cx="32" cy="32" r="18" fill="none" stroke="#80ffa0" stroke-width="1.5" opacity="0.5"/>
+  
+  <!-- Meditation pose silhouette -->
+  <ellipse cx="32" cy="50" rx="12" ry="4" fill="#40c060" opacity="0.5"/>
+  <circle cx="32" cy="28" r="6" fill="url(#zenGlow)"/>
+  <path d="M26,36 Q26,44 22,48 L42,48 Q38,44 38,36 L38,34 Q38,32 32,32 Q26,32 26,34 Z" 
+        fill="url(#zenGlow)" opacity="0.9"/>
+  
+  <!-- Yin-yang symbol in center -->
+  <circle cx="32" cy="28" r="4" fill="#0d1414" stroke="#80ffa0" stroke-width="1"/>
+  <path d="M32,24 A4,4 0 0 1 32,32 A2,2 0 0 1 32,28 A2,2 0 0 0 32,24" fill="#80ffa0"/>
+  <circle cx="32" cy="26" r="1" fill="#0d1414"/>
+  <circle cx="32" cy="30" r="1" fill="#80ffa0"/>
+  
+  <!-- Floating particles -->
+  <circle cx="18" cy="24" r="1.5" fill="#80ffa0" opacity="0.6"/>
+  <circle cx="46" cy="24" r="1.5" fill="#80ffa0" opacity="0.6"/>
+  <circle cx="24" cy="16" r="1" fill="#60d080" opacity="0.5"/>
+  <circle cx="40" cy="16" r="1" fill="#60d080" opacity="0.5"/>
+</svg>

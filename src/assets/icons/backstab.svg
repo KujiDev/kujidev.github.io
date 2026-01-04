@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Dark background - Shadow theme -->
+  <rect width="64" height="64" rx="4" fill="#2a1a2e"/>
+  <rect x="2" y="2" width="60" height="60" rx="3" fill="#140d16" stroke="#3a2a42" stroke-width="1"/>
+  
+  <!-- Shadow silhouette -->
+  <ellipse cx="32" cy="52" rx="14" ry="4" fill="#8040a0" opacity="0.3"/>
+  
+  <!-- Dagger -->
+  <path d="M38,10 L44,30 L42,32 L40,30 L38,48 L36,30 L34,32 L32,30 L38,10" 
+        fill="#c0c0c0" stroke="#808080" stroke-width="1"/>
+  
+  <!-- Dagger handle -->
+  <rect x="35" y="48" width="6" height="10" rx="1" fill="#4a2a2a"/>
+  <rect x="34" y="46" width="8" height="4" rx="1" fill="#8040a0"/>
+  
+  <!-- Blood/damage effect -->
+  <circle cx="40" cy="26" r="3" fill="#a02040" opacity="0.7"/>
+  <circle cx="42" cy="30" r="2" fill="#c04060" opacity="0.6"/>
+  
+  <!-- Critical hit lines -->
+  <line x1="22" y1="20" x2="28" y2="24" stroke="#ff6080" stroke-width="2" stroke-linecap="round"/>
+  <line x1="20" y1="28" x2="28" y2="28" stroke="#ff6080" stroke-width="2" stroke-linecap="round"/>
+  <line x1="22" y1="36" x2="28" y2="32" stroke="#ff6080" stroke-width="2" stroke-linecap="round"/>
+  
+  <!-- Shadow wisps -->
+  <path d="M18,44 Q14,38 18,32" fill="none" stroke="#8040a0" stroke-width="2" opacity="0.5"/>
+  <path d="M50,44 Q54,38 50,32" fill="none" stroke="#8040a0" stroke-width="2" opacity="0.5"/>
+</svg>

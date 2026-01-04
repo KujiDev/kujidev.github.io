@@ -11,8 +11,8 @@
   },
   
   "characterSelection": {
-    "position": [2.5, 0, -1.5],
-    "rotation": -0.4,
+    "position": [-3.5, 0, 0.5],
+    "rotation": 0.35,
     "panelOffset": [0, 2.5, 0]
   },
   
@@ -56,7 +56,9 @@
     "heal",
     "smite",
     "health_potion",
-    "mana_biscuit"
+    "mana_biscuit",
+    "mana_potion",
+    "rejuvenation_potion"
   ],
   
   "defaultLoadout": {
@@ -75,15 +77,16 @@
   "collectablePixies": ["verdant", "azure", "violet", "crimson"],
   
   "stateAnimations": {
-    "idle": "IDLE",
-    "casting": "CAST_SECONDARY",
-    "attacking": "CAST_PRIMARY",
-    "moving": "RUN",
-    "dead": "DEATH"
+    "idle": "Idle",
+    "casting": "Spell1",
+    "attacking": "Staff_Attack",
+    "moving": "Run",
+    "dead": "Death"
   },
   
   "animationOverrides": {},
   
+  "weaponMeshes": ["Cleric_Staff"],
   "allowedWeapons": ["staff", "mace", "shield"],
   "primaryWeapon": "staff",
   "allowedArmor": ["cloth", "leather"],

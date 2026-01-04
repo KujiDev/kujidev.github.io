@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Dark background - Shadow theme -->
+  <rect width="64" height="64" rx="4" fill="#2a1a2e"/>
+  <rect x="2" y="2" width="60" height="60" rx="3" fill="#140d16" stroke="#3a2a42" stroke-width="1"/>
+  
+  <!-- Motion blur lines -->
+  <line x1="4" y1="28" x2="14" y2="28" stroke="#8040a0" stroke-width="2" stroke-linecap="round" opacity="0.4"/>
+  <line x1="2" y1="34" x2="16" y2="34" stroke="#8040a0" stroke-width="2.5" stroke-linecap="round" opacity="0.6"/>
+  <line x1="4" y1="40" x2="12" y2="40" stroke="#8040a0" stroke-width="2" stroke-linecap="round" opacity="0.4"/>
+  
+  <!-- Dagger slash -->
+  <path d="M20,22 L48,38" stroke="#c0c0c0" stroke-width="4" stroke-linecap="round"/>
+  
+  <!-- Dagger -->
+  <path d="M48,38 L54,42 L52,44 L48,42 L44,48 L48,38" fill="#c0c0c0" stroke="#808080" stroke-width="1"/>
+  
+  <!-- Slash effect -->
+  <path d="M24,20 Q36,30 50,36" fill="none" stroke="#ff80a0" stroke-width="2" opacity="0.6"/>
+  <path d="M22,26 Q34,34 48,40" fill="none" stroke="#c060a0" stroke-width="1.5" opacity="0.4"/>
+  
+  <!-- Speed particles -->
+  <circle cx="28" cy="26" r="2" fill="#c080e0" opacity="0.6"/>
+  <circle cx="36" cy="30" r="1.5" fill="#a060c0" opacity="0.5"/>
+  <circle cx="42" cy="34" r="1" fill="#c080e0" opacity="0.4"/>
+</svg>

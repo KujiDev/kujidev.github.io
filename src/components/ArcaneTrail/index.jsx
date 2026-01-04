@@ -3,7 +3,7 @@ import { useFrame } from '@react-three/fiber'
 import { useGLTF } from '@react-three/drei'
 import { SkeletonUtils } from 'three-stdlib'
 import { usePlayerState } from '@/hooks/useGame'
-import { ELEMENTS, isActionForSkill } from '@/config/actions'
+import { ELEMENTS, hasVfx } from '@/config/actions'
 import * as THREE from 'three'
 
 const MAX_GHOSTS = 5
@@ -107,8 +107,8 @@ export default function ArcaneTrail({ wizardRef }) {
   const ghostIdRef = useRef(0)
   const lastSpawnRef = useRef(0)
   
-  // Check if Arcane Rush is active
-  const isArcaneRush = state === STATES.MOVING && isActionForSkill(activeAction, 'arcane_rush')
+  // Check if active action has arcane_trail VFX (data-driven)
+  const isArcaneRush = state === STATES.MOVING && hasVfx(activeAction, 'arcane_trail')
   
   // Spawn ghosts and manage trail
   useFrame((frameState) => {

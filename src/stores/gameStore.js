@@ -54,6 +54,7 @@ import { DEFAULT_COLLECTED_PIXIES } from '@/config/entities/pixies';
 import { PIXIE_SLOTS, getDefaultSlotMap } from '@/config/slots';
 import { ACHIEVEMENTS } from '@/config/achievements';
 import { getDefaultLoadoutForClass, getAllowedSkillsForClass, getAllAllowedActionsForClass, getClasses, getDefaultClass } from '@/engine/classes';
+import useWorldStore from '@/stores/worldStore';
 
 // =============================================================================
 // STORAGE HELPERS
@@ -389,7 +390,12 @@ export const useGameStore = create(
       const transitions = STATE_TRANSITIONS[playerState];
       const nextState = transitions?.[actionType];
       
-      if (!nextState) return false;
+      if (!nextState) {
+        if (import.meta.env.DEV) {
+          console.warn(`[FSM] transition FAILED: no transition for "${actionType}" from state "${playerState}"`);
+        }
+        return false;
+      }
       
       // Determine if this is an interruption
       const wasBusy = isBusyState(playerState);
@@ -409,6 +415,13 @@ export const useGameStore = create(
         finalActiveAction = isChannelAction(action) ? actionId : null;
       } else {
         finalActiveAction = actionId ?? activeAction;
+      }
+      
+      if (import.meta.env.DEV) {
+        console.log(`[FSM] TRANSITION: "${playerState}" --> "${nextState}" (action="${actionType}", activeAction="${finalActiveAction}")`);
+        if (isFinish) {
+          console.log(`[FSM] FINISH detected - setting completedAction="${activeAction}"`);
+        }
       }
       
       set({
@@ -463,6 +476,11 @@ export const useGameStore = create(
     handleInput: (actionId, isPressed, isClick = false) => {
       const state = get();
       
+      // DEBUG: Trace input
+      if (import.meta.env.DEV) {
+        console.log(`[INPUT] actionId="${actionId}" isPressed=${isPressed} isClick=${isClick}`);
+      }
+      
       // Track held state FIRST
       if (isPressed) {
         state.heldInputs.add(actionId);
@@ -471,7 +489,16 @@ export const useGameStore = create(
       }
       
       const fsmAction = getFsmAction(actionId);
-      if (!fsmAction) return;
+      if (!fsmAction) {
+        if (import.meta.env.DEV) {
+          console.error(`[INPUT] BLOCKED: getFsmAction("${actionId}") returned null`);
+        }
+        return;
+      }
+      
+      if (import.meta.env.DEV) {
+        console.log(`[FSM] actionId="${actionId}" fsmAction=${fsmAction}`);
+      }
       
       if (isPressed) {
         // CLASS OWNERSHIP GUARD: Block execution if action not owned by active class
@@ -484,16 +511,32 @@ export const useGameStore = create(
             }
             return; // HARD BLOCK - cannot execute skills from another class
           }
+        } else {
+          if (import.meta.env.DEV) {
+            console.error(`[INPUT] BLOCKED: getActionById("${actionId}") returned null`);
+          }
+          return;
         }
         
         set({ isClickTriggered: isClick });
         
         // Handle INSTANT actions (consumables)
         if (fsmAction === FSM_ACTIONS.INSTANT) {
-          if (!state.spendResources(action)) return;
+          if (import.meta.env.DEV) {
+            console.log(`[CONSUMABLE] Using "${actionId}" (instant action)`);
+          }
+          if (!state.spendResources(action)) {
+            if (import.meta.env.DEV) {
+              console.log(`[CONSUMABLE] BLOCKED: Cannot afford "${actionId}"`);
+            }
+            return;
+          }
           
           // Apply buff immediately
           if (action?.buff) {
+            if (import.meta.env.DEV) {
+              console.log(`[BUFF] Applying buff:`, action.buff);
+            }
             state.applyBuff(action.buff);
           }
           return;
@@ -501,12 +544,25 @@ export const useGameStore = create(
         
         // Check if transition is valid
         const transitions = STATE_TRANSITIONS[state.playerState];
-        if (!(fsmAction in transitions)) return;
+        if (!(fsmAction in transitions)) {
+          if (import.meta.env.DEV) {
+            console.log(`[FSM] BLOCKED: Cannot transition from "${state.playerState}" with action "${fsmAction}"`);
+          }
+          return;
+        }
         
         // Check and spend resources
-        if (!state.spendResources(action)) return;
+        if (!state.spendResources(action)) {
+          if (import.meta.env.DEV) {
+            console.log(`[FSM] BLOCKED: Cannot afford "${actionId}"`);
+          }
+          return;
+        }
         
         // Transition with action ID
+        if (import.meta.env.DEV) {
+          console.log(`[FSM] Transitioning: "${state.playerState}" --${fsmAction}--> (action="${actionId}")`);
+        }
         state.transition(fsmAction, actionId, state.castProgress);
         
       } else {
@@ -835,6 +891,9 @@ export const useGameStore = create(
       // Clear ALL persistent storage first
       clearAllStorage();
       
+      // Reset world position to origin (player starts at 0,0,0)
+      useWorldStore.getState().resetWorldPosition();
+      
       // Determine starting class
       const classId = startingClassId || getDefaultClassId();
       
@@ -1138,21 +1197,29 @@ export const useGameStore = create(
      */
     processCompletedAction: () => {
       const { completedAction } = get();
-      if (!completedAction) return;
+      if (!completedAction) {
+        console.log('[COMPLETION] processCompletedAction called but no completedAction');
+        return;
+      }
       
+      console.log('[COMPLETION] Processing completed action:', completedAction);
       const action = getActionById(completedAction);
+      console.log('[COMPLETION] Resolved action:', action?.id, action);
       
       // Apply buff on completion
       if (action?.buff) {
+        console.log('[COMPLETION] Applying buff:', action.buff);
         get().applyBuff(action.buff);
       }
       
       // Apply mana gain
       if (action?.manaGain) {
+        console.log('[COMPLETION] Applying mana gain:', action.manaGain);
         get().gainMana(action.manaGain);
       }
       
       set({ completedAction: null });
+      console.log('[COMPLETION] Action processing complete');
     },
     
     clearInterrupted: () => set({ interruptedAction: null, interruptedProgress: 0 }),

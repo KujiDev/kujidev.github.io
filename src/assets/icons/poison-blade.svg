@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Dark background - Poison/Shadow theme -->
+  <rect width="64" height="64" rx="4" fill="#1a2a1a"/>
+  <rect x="2" y="2" width="60" height="60" rx="3" fill="#0d140d" stroke="#2a3a2a" stroke-width="1"/>
+  
+  <!-- Poison drips -->
+  <path d="M28,20 Q26,26 28,32 Q26,36 28,40" fill="none" stroke="#40c040" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="28" cy="44" r="2" fill="#60e060"/>
+  
+  <path d="M36,18 Q38,24 36,30 Q38,38 36,44" fill="none" stroke="#40c040" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="36" cy="48" r="2.5" fill="#60e060"/>
+  
+  <!-- Dagger blade -->
+  <path d="M32,8 L38,28 L36,30 L34,28 L32,52 L30,28 L28,30 L26,28 L32,8" 
+        fill="#a0a0a0" stroke="#808080" stroke-width="1"/>
+  
+  <!-- Poison coating on blade -->
+  <path d="M32,12 L34,24 L32,28 L30,24 L32,12" fill="#40c040" opacity="0.6"/>
+  
+  <!-- Handle -->
+  <rect x="29" y="52" width="6" height="8" rx="1" fill="#4a2a4a"/>
+  <rect x="28" y="50" width="8" height="4" rx="1" fill="#8040a0"/>
+  
+  <!-- Poison puddle -->
+  <ellipse cx="32" cy="58" rx="10" ry="2" fill="#40c040" opacity="0.3"/>
+  
+  <!-- Bubbles -->
+  <circle cx="24" cy="50" r="1.5" fill="#60e060" opacity="0.5"/>
+  <circle cx="40" cy="46" r="1" fill="#60e060" opacity="0.5"/>
+</svg>

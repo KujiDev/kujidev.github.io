@@ -4,6 +4,70 @@ This document describes common errors and how to fix them.
 
 ---
 
+## State Management Errors
+
+### "Duplicate FSM Systems"
+
+**Symptom:** Animation or state transitions work inconsistently, or certain actions require dispatching to multiple stores.
+
+**Cause:** Multiple FSM implementations exist (e.g., gameStore AND a legacy React Context).
+
+**Fix:**
+1. There should be ONE FSM source of truth: `gameStore.js`
+2. All state queries should use `useGame.js` hooks (which wrap gameStore)
+3. Delete any legacy state management files (e.g., old `usePlayerState.jsx` Context)
+4. Never dispatch the same state change to multiple stores
+
+```javascript
+// ✅ Correct: Single source of truth
+import { usePlayerState } from '@/hooks/useGame';
+const { state, transition } = usePlayerState();
+
+// ❌ Wrong: Duplicate dispatch
+dispatchToContext('MOVE');
+gameStore.transition('MOVE');
+```
+
+### "Skills Don't Cast / getFsmAction Returns Null"
+
+**Symptom:** Input triggers UI feedback but no gameplay effect. Debug shows `[INPUT] BLOCKED: getFsmAction("ice_shard") returned null`.
+
+**Cause:** Action ID mismatch between slot map (semantic IDs like `ice_shard`) and action registry (legacy IDs like `skill_1`).
+
+**Fix:** The action registry must register actions under BOTH their legacy ID AND semantic skill ID:
+
+```javascript
+// In buildActions():
+ACTION_BY_ID.set(action.id, action);  // Legacy ID (e.g., 'skill_1')
+FSM_BY_ID.set(action.id, action.fsmAction);
+
+// ALSO register under semantic ID for data-driven slot maps
+if (action._skillId && action._skillId !== action.id) {
+  ACTION_BY_ID.set(action._skillId, action);  // Semantic ID (e.g., 'ice_shard')
+  FSM_BY_ID.set(action._skillId, action.fsmAction);
+}
+```
+
+### "VFX Hardcoded to Skill ID"
+
+**Symptom:** VFX component only works for one specific skill.
+
+**Cause:** Component checks `isActionForSkill(action, 'specific_skill')` instead of reading from skill data.
+
+**Fix:**
+1. Add `vfx` array to the skill in `skills.json`
+2. Use `hasVfx(actionId, 'vfx_id')` instead of skill ID checks
+
+```javascript
+// ✅ Data-driven
+const isActive = hasVfx(activeAction, 'arcane_trail');
+
+// ❌ Hardcoded
+const isActive = isActionForSkill(activeAction, 'arcane_rush');
+```
+
+---
+
 ## Data Loading Errors
 
 ### "Unknown skill: xxx"

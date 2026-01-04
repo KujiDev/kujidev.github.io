@@ -3,7 +3,7 @@ import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { usePlayerState } from '@/hooks/useGame'
 import { createFresnelAuraMaterial } from '@/materials/fresnelAura'
-import { ELEMENTS, isActionForSkill } from '@/config/actions'
+import { ELEMENTS, hasVfx } from '@/config/actions'
 
 // Arcane Rush - uses unified arcane glow color
 const AURA_COLOR = ELEMENTS.arcane.glow
@@ -14,7 +14,8 @@ export default function ShieldEffect({ position = [0, 0, 0] }) {
   const materialRef = useRef()
   
   const { state, activeAction, STATES } = usePlayerState()
-  const isActive = state === STATES.MOVING && isActionForSkill(activeAction, 'arcane_rush')
+  // Data-driven: show shield when action has shield_effect VFX
+  const isActive = state === STATES.MOVING && hasVfx(activeAction, 'shield_effect')
   
   // Create sphere geometry - slightly smaller than ManaShield
   const sphereGeometry = useMemo(() => {

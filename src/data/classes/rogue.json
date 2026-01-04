@@ -1,0 +1,113 @@
+{
+  "$schema": "../schemas/class.schema.json",
+  "id": "rogue",
+  "name": "Rogue",
+  "description": "A cunning assassin who strikes from the shadows with deadly precision.",
+  
+  "model": {
+    "path": "/models/Rogue-transformed.glb",
+    "scale": 1,
+    "position": [0, 0, 0]
+  },
+  
+  "characterSelection": {
+    "position": [3.5, 0, 0.5],
+    "rotation": -0.35,
+    "panelOffset": [0, 2.5, 0]
+  },
+  
+  "ui": {
+    "icon": null,
+    "color": "#8040a0",
+    "portrait": null,
+    "panels": [
+      {
+        "id": "spellbook",
+        "filters": [
+          { "id": "all", "label": "All", "color": "#a89878" },
+          { "id": "physical", "label": "Physical", "color": "#c0a060", "match": { "field": "element", "value": "physical" } },
+          { "id": "shadow", "label": "Shadow", "color": "#8040a0", "match": { "field": "element", "value": "shadow" } }
+        ]
+      },
+      { "id": "consumables" },
+      { "id": "pixies" }
+    ]
+  },
+  
+  "baseStats": {
+    "maxHealth": 90,
+    "maxMana": 70,
+    "healthRegen": 3,
+    "manaRegen": 4,
+    "moveSpeed": 1.15,
+    "armor": 5,
+    "magicResist": 5,
+    "spellPower": 5,
+    "attackPower": 20,
+    "critChance": 0.15
+  },
+  
+  "allowedElements": ["physical", "shadow", "mana"],
+  "primaryElement": "shadow",
+  
+  "allowedSkills": [
+    "backstab",
+    "shadow_step",
+    "vanish",
+    "poison_blade",
+    "quick_strike",
+    "eviscerate",
+    "health_potion",
+    "mana_biscuit",
+    "mana_potion",
+    "rejuvenation_potion"
+  ],
+  
+  "defaultLoadout": {
+    "slot_1": "backstab",
+    "slot_2": "shadow_step",
+    "slot_3": "vanish",
+    "slot_4": "poison_blade",
+    "slot_lmb": "quick_strike",
+    "slot_rmb": "eviscerate",
+    "slot_consumable_1": "health_potion",
+    "slot_consumable_2": "mana_biscuit"
+  },
+  
+  "allowedPixies": null,
+  "defaultPixies": [],
+  "collectablePixies": ["verdant", "azure", "violet", "crimson"],
+  
+  "stateAnimations": {
+    "idle": "Idle",
+    "casting": "Dagger_Attack",
+    "attacking": "Dagger_Attack2",
+    "moving": "Run",
+    "dead": "Death"
+  },
+  
+  "animationOverrides": {},
+  
+  "weaponMeshes": ["Rogue_Dagger"],
+  "allowedWeapons": ["dagger", "sword"],
+  "primaryWeapon": "dagger",
+  "allowedArmor": ["leather"],
+  
+  "audio": {
+    "voiceSet": "rogue_female_01",
+    "footsteps": "leather_light",
+    "castSounds": {
+      "physical": "dagger_slash_01",
+      "shadow": "shadow_cast_01"
+    }
+  },
+  
+  "lore": {
+    "title": "The Rogue",
+    "shortDesc": "Master of stealth and assassination",
+    "fullDesc": "Rogues are deadly assassins who strike from the shadows. They specialize in ambush tactics, using stealth and misdirection to get close to their targets before delivering devastating blows. Their mastery of poisons and shadow magic makes them feared opponents.",
+    "faction": "Shadow Guild"
+  },
+  
+  "tags": ["melee", "stealth", "assassin", "agile"]
+}

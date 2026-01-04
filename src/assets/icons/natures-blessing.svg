@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Dark background - Nature/Healing theme -->
+  <rect width="64" height="64" rx="4" fill="#1a2e1a"/>
+  <rect x="2" y="2" width="60" height="60" rx="3" fill="#0d170d" stroke="#2a442a" stroke-width="1"/>
+  
+  <defs>
+    <radialGradient id="natureGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#c0ff80"/>
+      <stop offset="50%" style="stop-color:#80c060"/>
+      <stop offset="100%" style="stop-color:#408030"/>
+    </radialGradient>
+  </defs>
+  
+  <!-- Leaf wreath -->
+  <path d="M32,8 Q40,12 44,20" fill="none" stroke="#60a040" stroke-width="2" stroke-linecap="round"/>
+  <path d="M32,8 Q24,12 20,20" fill="none" stroke="#60a040" stroke-width="2" stroke-linecap="round"/>
+  <path d="M44,20 Q50,28 50,36" fill="none" stroke="#60a040" stroke-width="2" stroke-linecap="round"/>
+  <path d="M20,20 Q14,28 14,36" fill="none" stroke="#60a040" stroke-width="2" stroke-linecap="round"/>
+  <path d="M50,36 Q48,46 40,52" fill="none" stroke="#60a040" stroke-width="2" stroke-linecap="round"/>
+  <path d="M14,36 Q16,46 24,52" fill="none" stroke="#60a040" stroke-width="2" stroke-linecap="round"/>
+  
+  <!-- Leaves -->
+  <ellipse cx="38" cy="14" rx="4" ry="2" fill="#80c060" transform="rotate(30 38 14)"/>
+  <ellipse cx="26" cy="14" rx="4" ry="2" fill="#80c060" transform="rotate(-30 26 14)"/>
+  <ellipse cx="48" cy="28" rx="4" ry="2" fill="#80c060" transform="rotate(60 48 28)"/>
+  <ellipse cx="16" cy="28" rx="4" ry="2" fill="#80c060" transform="rotate(-60 16 28)"/>
+  <ellipse cx="44" cy="48" rx="4" ry="2" fill="#80c060" transform="rotate(120 44 48)"/>
+  <ellipse cx="20" cy="48" rx="4" ry="2" fill="#80c060" transform="rotate(-120 20 48)"/>
+  
+  <!-- Central healing orb -->
+  <circle cx="32" cy="32" r="10" fill="url(#natureGlow)"/>
+  <circle cx="29" cy="29" r="3" fill="#ffffff" opacity="0.4"/>
+  
+  <!-- Plus symbol -->
+  <line x1="32" y1="26" x2="32" y2="38" stroke="#1a2e1a" stroke-width="3" stroke-linecap="round"/>
+  <line x1="26" y1="32" x2="38" y2="32" stroke="#1a2e1a" stroke-width="3" stroke-linecap="round"/>
+</svg>

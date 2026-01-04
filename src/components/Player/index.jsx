@@ -27,6 +27,7 @@ import * as THREE from 'three';
 import { usePlayerState } from '@/hooks/useGame';
 import { getClassById, getAnimationsForClass, getModelConfigForClass } from '@/engine/classes';
 import { getElementForAction, getActionById, ELEMENTS } from '@/config/actions';
+import useWorldStore, { getFacingDirection } from '@/stores/worldStore';
 
 // Class-agnostic VFX components
 import CastingCircle from '@/components/CastingCircle';
@@ -73,10 +74,15 @@ const CHANNEL_MATERIAL = new THREE.MeshBasicMaterial({
 function PlayerModel({ classConfig, children }) {
   const group = useRef();
   const modelRef = useRef();
-  const staffMaterialRef = useRef(null);
-  const originalStaffMaterialRef = useRef(null);
+  const rotationGroupRef = useRef();
+  const weaponMeshRef = useRef(null);
+  const originalWeaponMaterialRef = useRef(null);
   const originalMaterialsRef = useRef(new Map());
   const currentActionRef = useRef(null);
+  const targetRotationRef = useRef(0);
+  
+  // Get weapon mesh names from class config (data-driven)
+  const weaponMeshNames = classConfig.weaponMeshes || [];
   
   const modelConfig = getModelConfigForClass(classConfig.id);
   const animationMap = getAnimationsForClass(classConfig.id);
@@ -107,7 +113,6 @@ function PlayerModel({ classConfig, children }) {
   }, [actions, classConfig.name, animationMap]);
   
   const { 
-    animation, 
     state, 
     activeAction, 
     setCastProgress, 
@@ -116,6 +121,9 @@ function PlayerModel({ classConfig, children }) {
     tryRecast, 
     STATES 
   } = usePlayerState();
+
+  // Derive animation name from class-specific animationMap, not global STATE_ANIMATIONS
+  const animation = animationMap[state] || animationMap.idle || 'IDLE';
 
   // Store model reference
   useEffect(() => {
@@ -128,13 +136,16 @@ function PlayerModel({ classConfig, children }) {
       if (!child.isMesh) return;
       originalMaterialsRef.current.set(child, child.material.clone());
       
-      // Find staff for glow effects (common pattern across classes)
-      if (child.name.includes('Staff') || child.name.includes('Weapon')) {
-        staffMaterialRef.current = child;
-        originalStaffMaterialRef.current = child.material.clone();
+      // Find weapon mesh based on class config (data-driven)
+      if (weaponMeshNames.includes(child.name)) {
+        weaponMeshRef.current = child;
+        originalWeaponMaterialRef.current = child.material.clone();
+        if (import.meta.env.DEV) {
+          console.log(`[WEAPON] Found weapon mesh: "${child.name}" for class ${classConfig.id}`);
+        }
       }
     });
-  }, [clone]);
+  }, [clone, weaponMeshNames, classConfig.id]);
 
   // Channel ability detection (mana drain abilities)
   const isChanneling = useMemo(() => {
@@ -160,23 +171,39 @@ function PlayerModel({ classConfig, children }) {
     }
   }, [isChanneling, clone]);
 
-  // Staff glow based on active element
+  // Weapon glow based on active element (data-driven via weaponMeshes)
   useEffect(() => {
-    if (!staffMaterialRef.current) return;
+    if (!weaponMeshRef.current) return;
 
     const element = activeAction ? getElementForAction(activeAction) : null;
     
     if (element && state !== STATES.IDLE) {
-      staffMaterialRef.current.material = GLOW_MATERIALS[element.id] || originalStaffMaterialRef.current;
+      weaponMeshRef.current.material = GLOW_MATERIALS[element.id] || originalWeaponMaterialRef.current;
     } else {
-      staffMaterialRef.current.material = originalStaffMaterialRef.current;
+      weaponMeshRef.current.material = originalWeaponMaterialRef.current;
     }
   }, [state, activeAction, STATES]);
 
   // Animation handling
   useEffect(() => {
+    if (import.meta.env.DEV) {
+      console.log(`[ANIMATION] state="${state}" -> animation="${animation}" (available: ${Object.keys(actions || {}).join(', ')})`);
+    }
+    
     const currentAnimation = actions?.[animation];
-    if (!currentAnimation) return;
+    if (!currentAnimation) {
+      if (import.meta.env.DEV) {
+        console.warn(`[ANIMATION] Animation "${animation}" not found in model!`);
+      }
+      // CRITICAL FIX: Don't block FSM if animation is missing
+      // Set a null ref so fallback timer handles completion
+      currentActionRef.current = null;
+      return;
+    }
+
+    if (import.meta.env.DEV) {
+      console.log(`[ANIMATION] Playing: "${animation}"`);
+    }
 
     currentActionRef.current = currentAnimation;
 
@@ -197,12 +224,28 @@ function PlayerModel({ classConfig, children }) {
     currentAnimation.reset().fadeIn(0.2).play();
   }, [animation, actions, state, activeAction, STATES, setCastProgress]);
 
-  // Cast progress tracking
-  useFrame(() => {
-    const action = currentActionRef.current;
-    if (!action) return;
-
+  // FALLBACK: Timer-based cast completion when animation is missing
+  // This ensures FSM is NEVER blocked by animation failures
+  const castStartTimeRef = useRef(null);
+  const FALLBACK_CAST_DURATION = 1.0; // seconds
+  
+  useEffect(() => {
     if (state === STATES.CASTING || state === STATES.ATTACKING) {
+      castStartTimeRef.current = performance.now();
+    } else {
+      castStartTimeRef.current = null;
+    }
+  }, [state, STATES]);
+
+  // Cast progress tracking - handles both animation-based and fallback timer
+  useFrame(() => {
+    const isCastingOrAttacking = state === STATES.CASTING || state === STATES.ATTACKING;
+    if (!isCastingOrAttacking) return;
+    
+    const action = currentActionRef.current;
+    
+    if (action) {
+      // Animation-based progress tracking
       const duration = action.getClip().duration;
       const time = Math.min(action.time, duration);
       const progress = time / duration;
@@ -213,10 +256,55 @@ function PlayerModel({ classConfig, children }) {
         if (tryRecast()) {
           action.reset().play();
         } else {
+          if (import.meta.env.DEV) {
+            console.log(`[FSM] Animation complete, dispatching FINISH`);
+          }
           dispatchAction('FINISH');
         }
       }
+    } else if (castStartTimeRef.current) {
+      // FALLBACK: Timer-based progress when animation is missing
+      const elapsed = (performance.now() - castStartTimeRef.current) / 1000;
+      const progress = Math.min(elapsed / FALLBACK_CAST_DURATION, 1);
+      setCastProgress(progress);
+      
+      if (progress >= 1) {
+        if (import.meta.env.DEV) {
+          console.log(`[FSM] Fallback timer complete, dispatching FINISH (animation was missing)`);
+        }
+        syncCastProgressUI();
+        if (!tryRecast()) {
+          dispatchAction('FINISH');
+        }
+        castStartTimeRef.current = performance.now(); // Reset for potential recast
+      }
     }
+  });
+  
+  // Player rotation - smoothly rotate to face movement direction
+  useFrame((_, delta) => {
+    if (!rotationGroupRef.current) return;
+    
+    const isMoving = useWorldStore.getState().isMoving;
+    if (isMoving) {
+      const facingDir = getFacingDirection();
+      if (facingDir) {
+        // Calculate target rotation from facing direction vector
+        targetRotationRef.current = Math.atan2(facingDir.x, facingDir.z);
+      }
+    }
+    
+    // Smoothly interpolate current rotation to target
+    const currentRotation = rotationGroupRef.current.rotation.y;
+    const targetRotation = targetRotationRef.current;
+    
+    // Handle angle wrapping for shortest path
+    let diff = targetRotation - currentRotation;
+    while (diff > Math.PI) diff -= Math.PI * 2;
+    while (diff < -Math.PI) diff += Math.PI * 2;
+    
+    // Apply smooth rotation (lerp factor ~10 = responsive but smooth)
+    rotationGroupRef.current.rotation.y += diff * Math.min(delta * 10, 1);
   });
 
   // Player context value
@@ -229,17 +317,20 @@ function PlayerModel({ classConfig, children }) {
   return (
     <PlayerContext.Provider value={playerContext}>
       <group ref={group} dispose={null}>
-        <primitive object={clone} />
+        {/* Rotation group - character rotates to face movement direction */}
+        <group ref={rotationGroupRef}>
+          <primitive object={clone} />
         
-        {/* Class-agnostic VFX - these read state and show/hide themselves */}
-        <CastingCircle position={[0, 0.02, 0]} />
-        <ShieldEffect position={[0, 1.5, 0]} />
-        <ManaShield position={[0, 1.5, 0]} />
-        <HealingParticles position={[0, 0, 0]} />
-        <ArcaneTrail wizardRef={modelRef} />
+          {/* Class-agnostic VFX - these read state and show/hide themselves */}
+          <CastingCircle position={[0, 0.02, 0]} />
+          <ShieldEffect position={[0, 1.5, 0]} />
+          <ManaShield position={[0, 1.5, 0]} />
+          <HealingParticles position={[0, 0, 0]} />
+          <ArcaneTrail wizardRef={modelRef} />
         
-        {/* Additional children (pixies, etc.) */}
-        {children}
+          {/* Additional children (pixies, etc.) */}
+          {children}
+        </group>
       </group>
     </PlayerContext.Provider>
   );

@@ -48,6 +48,7 @@ export default function CharacterCreationScreen({ onComplete }) {
   // Default to first available class
   const [selectedClassId, setSelectedClassId] = useState(() => classes[0]?.id || 'wizard');
   const [isConfirming, setIsConfirming] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
   
   const selectedClass = useMemo(
     () => classes.find(c => c.id === selectedClassId),
@@ -95,6 +96,7 @@ export default function CharacterCreationScreen({ onComplete }) {
     if (!selectedClassId || isConfirming) return;
     
     setIsConfirming(true);
+    setIsTransitioning(true);
     
     // Debug logging
     if (import.meta.env.DEV) {
@@ -106,14 +108,18 @@ export default function CharacterCreationScreen({ onComplete }) {
       console.log(`[DEBUG][CharacterCreation] className=${selectedClass?.name}`);
       console.log(`[DEBUG][CharacterCreation] defaultLoadout=${JSON.stringify(loadout)}`);
       console.log(`[DEBUG][CharacterCreation] loadoutSlots=${loadoutSlots}`);
+      console.log('[DEBUG][CharacterCreation] Starting transition animation...');
       console.log('[DEBUG][CharacterCreation] ============================================');
     }
     
     // Initialize new game with selected class
     startNewGame(selectedClassId);
     
-    // Navigate to game scene
-    onComplete(selectedClassId);
+    // Wait for character walk + camera transition animation, then complete
+    // Total animation: ~2s for character walk + camera transition
+    setTimeout(() => {
+      onComplete(selectedClassId, { showHudTransition: true });
+    }, 2000);
   }, [selectedClassId, selectedClass, startNewGame, onComplete, isConfirming]);
   
   return (
@@ -123,13 +129,14 @@ export default function CharacterCreationScreen({ onComplete }) {
         <Suspense fallback={<SceneLoadingFallback />}>
           <CharacterSelectionScene
             selectedClassId={selectedClassId}
+            isTransitioning={isTransitioning}
             onSelectClass={handleSelectClass}
           />
         </Suspense>
       </div>
       
-      {/* Overlay UI */}
-      <div className={styles.uiOverlay}>
+      {/* Overlay UI - hide during transition for seamless effect */}
+      <div className={`${styles.uiOverlay} ${isTransitioning ? styles.uiHidden : ''}`}>
         {/* Header */}
         <div className={styles.header}>
           <h1 className={styles.title}>Choose Your Class</h1>
@@ -215,6 +222,20 @@ export default function CharacterCreationScreen({ onComplete }) {
         
         {/* Confirm button - bottom center */}
         <div className={styles.bottomActions}>
+          {/* Character selection buttons */}
+          <div className={styles.characterButtons}>
+            {classes.map(cls => (
+              <button
+                key={cls.id}
+                className={`${styles.characterButton} ${selectedClassId === cls.id ? styles.characterButtonSelected : ''}`}
+                onClick={() => handleSelectClass(cls.id)}
+                style={{ '--class-color': cls.ui?.color || '#a89878' }}
+              >
+                {cls.name}
+              </button>
+            ))}
+          </div>
+          
           <button
             className={sharedStyles['button-primary-lg']}
             onClick={handleConfirm}

@@ -67,7 +67,8 @@
       "icon": "arcane-rush.svg",
       "defaultKey": "KeyE"
     },
-    "tags": ["movement", "channel", "escape"]
+    "tags": ["movement", "channel", "escape"],
+    "vfx": ["arcane_trail", "shield_effect", "channel_glow"]
   },
   {
     "$schema": "../schemas/skill.schema.json",
@@ -83,7 +84,8 @@
     "effects": {
       "buff": {
         "id": "mana_body",
-        "duration": 30
+        "duration": 30,
+        "manaRegenBonus": 10
       }
     },
     "restrictions": {
@@ -153,7 +155,8 @@
     "effects": {
       "buff": {
         "id": "health_potion",
-        "duration": 10
+        "duration": 10,
+        "healthRegenBonus": 8
       }
     },
     "restrictions": {
@@ -178,7 +181,8 @@
     "effects": {
       "buff": {
         "id": "food_buff",
-        "duration": 15
+        "duration": 15,
+        "manaRegenBonus": 5
       }
     },
     "restrictions": {
@@ -190,6 +194,59 @@
       "slotType": "consumable"
     },
     "tags": ["consumable", "mana", "food"]
+  },
+  {
+    "$schema": "../schemas/skill.schema.json",
+    "id": "mana_potion",
+    "label": "Mana Potion",
+    "description": "Drink an arcane elixir that restores mana over time.",
+    "type": "consumable",
+    "element": "mana",
+    "animation": "USE_ITEM",
+    "costs": {},
+    "effects": {
+      "buff": {
+        "id": "mana_potion",
+        "duration": 10,
+        "manaRegenBonus": 8
+      }
+    },
+    "restrictions": {
+      "classes": null
+    },
+    "ui": {
+      "icon": "mana-potion.svg",
+      "defaultKey": "KeyG",
+      "slotType": "consumable"
+    },
+    "tags": ["consumable", "mana", "potion"]
+  },
+  {
+    "$schema": "../schemas/skill.schema.json",
+    "id": "rejuvenation_potion",
+    "label": "Rejuvenation Potion",
+    "description": "Drink a balanced elixir that restores both health and mana over time.",
+    "type": "consumable",
+    "element": "healing",
+    "animation": "USE_ITEM",
+    "costs": {},
+    "effects": {
+      "buff": {
+        "id": "rejuvenation_potion",
+        "duration": 12,
+        "healthRegenBonus": 5,
+        "manaRegenBonus": 5
+      }
+    },
+    "restrictions": {
+      "classes": null
+    },
+    "ui": {
+      "icon": "rejuvenation-potion.svg",
+      "defaultKey": "KeyH",
+      "slotType": "consumable"
+    },
+    "tags": ["consumable", "healing", "mana", "potion"]
   },
   {
     "$schema": "../schemas/skill.schema.json",
@@ -288,5 +345,588 @@
       "defaultKey": "KeyR"
     },
     "tags": ["damage", "holy", "burst"]
+  },
+  
+  {
+    "$schema": "../schemas/skill.schema.json",
+    "id": "flying_kick",
+    "label": "Flying Kick",
+    "description": "Leap through the air and deliver a devastating kick to your target.",
+    "type": "attack",
+    "element": "physical",
+    "animation": "CAST_PRIMARY",
+    "costs": {
+      "mana": 15
+    },
+    "effects": {
+      "damage": { "base": 30, "element": "physical" }
+    },
+    "restrictions": {
+      "classes": ["monk"]
+    },
+    "ui": {
+      "icon": "flying-kick.svg",
+      "defaultKey": "KeyQ"
+    },
+    "tags": ["melee", "gap_closer", "martial_arts"]
+  },
+  {
+    "$schema": "../schemas/skill.schema.json",
+    "id": "thunderclap",
+    "label": "Thunderclap",
+    "description": "Strike the ground with chi-infused force, sending lightning in all directions.",
+    "type": "cast",
+    "element": "lightning",
+    "animation": "CAST_SECONDARY",
+    "castTime": 1.0,
+    "costs": {
+      "mana": 25
+    },
+    "effects": {
+      "damage": { "base": 45, "element": "lightning", "aoe": true }
+    },
+    "restrictions": {
+      "classes": ["monk"]
+    },
+    "ui": {
+      "icon": "thunderclap.svg",
+      "defaultKey": "KeyW"
+    },
+    "tags": ["aoe", "lightning", "stun"]
+  },
+  {
+    "$schema": "../schemas/skill.schema.json",
+    "id": "inner_peace",
+    "label": "Inner Peace",
+    "description": "Enter a meditative state, rapidly restoring health and mana.",
+    "type": "channel",
+    "element": "mana",
+    "animation": "CAST_CHANNEL",
+    "costs": {},
+    "effects": {
+      "buff": {
+        "id": "inner_peace",
+        "duration": 8,
+        "healthRegenBonus": 10,
+        "manaRegenBonus": 8
+      }
+    },
+    "restrictions": {
+      "classes": ["monk"]
+    },
+    "ui": {
+      "icon": "inner-peace.svg",
+      "defaultKey": "KeyE"
+    },
+    "tags": ["healing", "meditation", "regen"]
+  },
+  {
+    "$schema": "../schemas/skill.schema.json",
+    "id": "chi_burst",
+    "label": "Chi Burst",
+    "description": "Release your inner chi in a devastating explosion of energy.",
+    "type": "buff",
+    "element": "physical",
+    "animation": "CAST_BUFF",
+    "costs": {
+      "mana": 30
+    },
+    "effects": {
+      "buff": {
+        "id": "chi_burst",
+        "duration": 10,
+        "attackPowerBonus": 20
+      }
+    },
+    "restrictions": {
+      "classes": ["monk"]
+    },
+    "ui": {
+      "icon": "chi-burst.svg",
+      "defaultKey": "KeyR"
+    },
+    "tags": ["self_buff", "damage_boost"]
+  },
+  {
+    "$schema": "../schemas/skill.schema.json",
+    "id": "palm_strike",
+    "label": "Palm Strike",
+    "description": "A quick chi-infused palm strike that generates energy.",
+    "type": "attack",
+    "element": "physical",
+    "animation": "CAST_PRIMARY",
+    "costs": {},
+    "effects": {
+      "damage": { "base": 12, "element": "physical" },
+      "manaGain": 5
+    },
+    "restrictions": {
+      "classes": ["monk"]
+    },
+    "ui": {
+      "icon": "palm-strike.svg",
+      "defaultKey": "MouseLeft"
+    },
+    "tags": ["melee", "basic_attack", "mana_restore"]
+  },
+  {
+    "$schema": "../schemas/skill.schema.json",
+    "id": "rising_dragon",
+    "label": "Rising Dragon",
+    "description": "Perform an rising uppercut that launches enemies into the air.",
+    "type": "cast",
+    "element": "physical",
+    "animation": "CAST_SECONDARY",
+    "castTime": 0.8,
+    "costs": {
+      "mana": 20
+    },
+    "effects": {
+      "damage": { "base": 35, "element": "physical" }
+    },
+    "restrictions": {
+      "classes": ["monk"]
+    },
+    "ui": {
+      "icon": "rising-dragon.svg",
+      "defaultKey": "MouseRight"
+    },
+    "tags": ["melee", "knockup", "finisher"]
+  },
+  
+  {
+    "$schema": "../schemas/skill.schema.json",
+    "id": "aimed_shot",
+    "label": "Aimed Shot",
+    "description": "Take careful aim and fire a powerful shot at your target.",
+    "type": "cast",
+    "element": "physical",
+    "animation": "CAST_SECONDARY",
+    "castTime": 1.5,
+    "costs": {
+      "mana": 20
+    },
+    "effects": {
+      "damage": { "base": 50, "element": "physical" }
+    },
+    "restrictions": {
+      "classes": ["ranger"]
+    },
+    "ui": {
+      "icon": "aimed-shot.svg",
+      "defaultKey": "KeyQ"
+    },
+    "tags": ["projectile", "ranged", "precision"]
+  },
+  {
+    "$schema": "../schemas/skill.schema.json",
+    "id": "multishot",
+    "label": "Multishot",
+    "description": "Fire a volley of arrows that hit all enemies in a cone.",
+    "type": "attack",
+    "element": "physical",
+    "animation": "CAST_PRIMARY",
+    "costs": {
+      "mana": 25
+    },
+    "effects": {
+      "damage": { "base": 20, "element": "physical", "aoe": true }
+    },
+    "restrictions": {
+      "classes": ["ranger"]
+    },
+    "ui": {
+      "icon": "multishot.svg",
+      "defaultKey": "KeyW"
+    },
+    "tags": ["projectile", "aoe", "cone"]
+  },
+  {
+    "$schema": "../schemas/skill.schema.json",
+    "id": "disengage",
+    "label": "Disengage",
+    "description": "Leap backwards to escape danger and gain movement speed.",
+    "type": "channel",
+    "element": "physical",
+    "animation": "CAST_CHANNEL",
+    "costs": {
+      "manaPerSecond": 10
+    },
+    "effects": {
+      "movement": { "speedMultiplier": 2.0 }
+    },
+    "restrictions": {
+      "classes": ["ranger"]
+    },
+    "ui": {
+      "icon": "disengage.svg",
+      "defaultKey": "KeyE"
+    },
+    "tags": ["movement", "escape", "mobility"]
+  },
+  {
+    "$schema": "../schemas/skill.schema.json",
+    "id": "natures_blessing",
+    "label": "Nature's Blessing",
+    "description": "Call upon nature to restore your health over time.",
+    "type": "buff",
+    "element": "nature",
+    "animation": "CAST_BUFF",
+    "costs": {
+      "mana": 25
+    },
+    "effects": {
+      "buff": {
+        "id": "natures_blessing",
+        "duration": 12,
+        "healthRegenBonus": 6
+      }
+    },
+    "restrictions": {
+      "classes": ["ranger"]
+    },
+    "ui": {
+      "icon": "natures-blessing.svg",
+      "defaultKey": "KeyR"
+    },
+    "tags": ["healing", "nature", "regen"]
+  },
+  {
+    "$schema": "../schemas/skill.schema.json",
+    "id": "quick_shot",
+    "label": "Quick Shot",
+    "description": "Fire a quick arrow at your target, restoring focus on hit.",
+    "type": "attack",
+    "element": "physical",
+    "animation": "CAST_PRIMARY",
+    "costs": {},
+    "effects": {
+      "damage": { "base": 15, "element": "physical" },
+      "manaGain": 6
+    },
+    "restrictions": {
+      "classes": ["ranger"]
+    },
+    "ui": {
+      "icon": "quick-shot.svg",
+      "defaultKey": "MouseLeft"
+    },
+    "tags": ["projectile", "basic_attack", "focus_restore"]
+  },
+  {
+    "$schema": "../schemas/skill.schema.json",
+    "id": "explosive_arrow",
+    "label": "Explosive Arrow",
+    "description": "Fire an arrow that explodes on impact, dealing area damage.",
+    "type": "cast",
+    "element": "fire",
+    "animation": "CAST_SECONDARY",
+    "castTime": 1.0,
+    "costs": {
+      "mana": 30
+    },
+    "effects": {
+      "damage": { "base": 40, "element": "fire", "aoe": true }
+    },
+    "restrictions": {
+      "classes": ["ranger"]
+    },
+    "ui": {
+      "icon": "explosive-arrow.svg",
+      "defaultKey": "MouseRight"
+    },
+    "tags": ["projectile", "aoe", "fire"]
+  },
+  
+  {
+    "$schema": "../schemas/skill.schema.json",
+    "id": "backstab",
+    "label": "Backstab",
+    "description": "Strike your target from behind for massive damage.",
+    "type": "attack",
+    "element": "physical",
+    "animation": "CAST_PRIMARY",
+    "costs": {
+      "mana": 20
+    },
+    "effects": {
+      "damage": { "base": 45, "element": "physical" }
+    },
+    "restrictions": {
+      "classes": ["rogue"]
+    },
+    "ui": {
+      "icon": "backstab.svg",
+      "defaultKey": "KeyQ"
+    },
+    "tags": ["melee", "stealth_bonus", "finisher"]
+  },
+  {
+    "$schema": "../schemas/skill.schema.json",
+    "id": "shadow_step",
+    "label": "Shadow Step",
+    "description": "Teleport through shadows to appear behind your target.",
+    "type": "channel",
+    "element": "shadow",
+    "animation": "CAST_CHANNEL",
+    "costs": {
+      "manaPerSecond": 12
+    },
+    "effects": {
+      "movement": { "speedMultiplier": 3.0 }
+    },
+    "restrictions": {
+      "classes": ["rogue"]
+    },
+    "ui": {
+      "icon": "shadow-step.svg",
+      "defaultKey": "KeyW"
+    },
+    "tags": ["movement", "teleport", "shadow"]
+  },
+  {
+    "$schema": "../schemas/skill.schema.json",
+    "id": "vanish",
+    "label": "Vanish",
+    "description": "Disappear into the shadows, becoming invisible and regenerating energy.",
+    "type": "buff",
+    "element": "shadow",
+    "animation": "CAST_BUFF",
+    "costs": {
+      "mana": 15
+    },
+    "effects": {
+      "buff": {
+        "id": "vanish",
+        "duration": 6,
+        "manaRegenBonus": 10
+      }
+    },
+    "restrictions": {
+      "classes": ["rogue"]
+    },
+    "ui": {
+      "icon": "vanish.svg",
+      "defaultKey": "KeyE"
+    },
+    "tags": ["stealth", "escape", "regen"]
+  },
+  {
+    "$schema": "../schemas/skill.schema.json",
+    "id": "poison_blade",
+    "label": "Poison Blade",
+    "description": "Coat your weapons in deadly poison, dealing damage over time.",
+    "type": "buff",
+    "element": "shadow",
+    "animation": "CAST_BUFF",
+    "costs": {
+      "mana": 25
+    },
+    "effects": {
+      "buff": {
+        "id": "poison_blade",
+        "duration": 15,
+        "attackPowerBonus": 10
+      }
+    },
+    "restrictions": {
+      "classes": ["rogue"]
+    },
+    "ui": {
+      "icon": "poison-blade.svg",
+      "defaultKey": "KeyR"
+    },
+    "tags": ["buff", "poison", "damage_boost"]
+  },
+  {
+    "$schema": "../schemas/skill.schema.json",
+    "id": "quick_strike",
+    "label": "Quick Strike",
+    "description": "A swift dagger strike that generates combo points.",
+    "type": "attack",
+    "element": "physical",
+    "animation": "CAST_PRIMARY",
+    "costs": {},
+    "effects": {
+      "damage": { "base": 10, "element": "physical" },
+      "manaGain": 7
+    },
+    "restrictions": {
+      "classes": ["rogue"]
+    },
+    "ui": {
+      "icon": "quick-strike.svg",
+      "defaultKey": "MouseLeft"
+    },
+    "tags": ["melee", "basic_attack", "combo_builder"]
+  },
+  {
+    "$schema": "../schemas/skill.schema.json",
+    "id": "eviscerate",
+    "label": "Eviscerate",
+    "description": "A devastating finishing move that deals massive damage.",
+    "type": "cast",
+    "element": "physical",
+    "animation": "CAST_SECONDARY",
+    "castTime": 0.6,
+    "costs": {
+      "mana": 25
+    },
+    "effects": {
+      "damage": { "base": 55, "element": "physical" }
+    },
+    "restrictions": {
+      "classes": ["rogue"]
+    },
+    "ui": {
+      "icon": "eviscerate.svg",
+      "defaultKey": "MouseRight"
+    },
+    "tags": ["melee", "finisher", "burst"]
+  },
+  
+  {
+    "$schema": "../schemas/skill.schema.json",
+    "id": "shield_slam",
+    "label": "Shield Slam",
+    "description": "Bash your target with your shield, stunning them briefly.",
+    "type": "attack",
+    "element": "physical",
+    "animation": "CAST_PRIMARY",
+    "costs": {
+      "mana": 15
+    },
+    "effects": {
+      "damage": { "base": 25, "element": "physical" }
+    },
+    "restrictions": {
+      "classes": ["warrior"]
+    },
+    "ui": {
+      "icon": "shield-slam.svg",
+      "defaultKey": "KeyQ"
+    },
+    "tags": ["melee", "stun", "defensive"]
+  },
+  {
+    "$schema": "../schemas/skill.schema.json",
+    "id": "whirlwind",
+    "label": "Whirlwind",
+    "description": "Spin in a deadly whirlwind, striking all nearby enemies.",
+    "type": "cast",
+    "element": "physical",
+    "animation": "CAST_SECONDARY",
+    "castTime": 0.8,
+    "costs": {
+      "mana": 25
+    },
+    "effects": {
+      "damage": { "base": 30, "element": "physical", "aoe": true }
+    },
+    "restrictions": {
+      "classes": ["warrior"]
+    },
+    "ui": {
+      "icon": "whirlwind.svg",
+      "defaultKey": "KeyW"
+    },
+    "tags": ["melee", "aoe", "spin"]
+  },
+  {
+    "$schema": "../schemas/skill.schema.json",
+    "id": "berserker_rage",
+    "label": "Berserker Rage",
+    "description": "Enter a berserker rage, moving faster and hitting harder.",
+    "type": "channel",
+    "element": "fire",
+    "animation": "CAST_CHANNEL",
+    "costs": {
+      "manaPerSecond": 8
+    },
+    "effects": {
+      "movement": { "speedMultiplier": 1.5 }
+    },
+    "restrictions": {
+      "classes": ["warrior"]
+    },
+    "ui": {
+      "icon": "berserker-rage.svg",
+      "defaultKey": "KeyE"
+    },
+    "tags": ["movement", "rage", "buff"]
+  },
+  {
+    "$schema": "../schemas/skill.schema.json",
+    "id": "iron_fortress",
+    "label": "Iron Fortress",
+    "description": "Fortify your defenses, absorbing incoming damage.",
+    "type": "buff",
+    "element": "physical",
+    "animation": "CAST_BUFF",
+    "costs": {
+      "mana": 20
+    },
+    "effects": {
+      "buff": {
+        "id": "iron_fortress",
+        "duration": 10,
+        "absorb": 60,
+        "maxHealthBonus": 30
+      }
+    },
+    "restrictions": {
+      "classes": ["warrior"]
+    },
+    "ui": {
+      "icon": "iron-fortress.svg",
+      "defaultKey": "KeyR"
+    },
+    "tags": ["defensive", "shield", "tank"]
+  },
+  {
+    "$schema": "../schemas/skill.schema.json",
+    "id": "cleave",
+    "label": "Cleave",
+    "description": "A powerful swing that hits multiple enemies in front of you.",
+    "type": "attack",
+    "element": "physical",
+    "animation": "CAST_PRIMARY",
+    "costs": {},
+    "effects": {
+      "damage": { "base": 15, "element": "physical", "aoe": true },
+      "manaGain": 4
+    },
+    "restrictions": {
+      "classes": ["warrior"]
+    },
+    "ui": {
+      "icon": "cleave.svg",
+      "defaultKey": "MouseLeft"
+    },
+    "tags": ["melee", "basic_attack", "cleave"]
+  },
+  {
+    "$schema": "../schemas/skill.schema.json",
+    "id": "execute",
+    "label": "Execute",
+    "description": "A devastating finishing blow that deals extra damage to low health targets.",
+    "type": "cast",
+    "element": "physical",
+    "animation": "CAST_SECONDARY",
+    "castTime": 1.0,
+    "costs": {
+      "mana": 20
+    },
+    "effects": {
+      "damage": { "base": 60, "element": "physical" }
+    },
+    "restrictions": {
+      "classes": ["warrior"]
+    },
+    "ui": {
+      "icon": "execute.svg",
+      "defaultKey": "MouseRight"
+    },
+    "tags": ["melee", "finisher", "execute"]
   }
 ]

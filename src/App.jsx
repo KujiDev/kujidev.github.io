@@ -1,6 +1,7 @@
-import { Canvas } from "@react-three/fiber";
-import { CameraControls, Environment, KeyboardControls, useKeyboardControls } from "@react-three/drei";
+import { Canvas, useFrame } from "@react-three/fiber";
+import { Environment, KeyboardControls, useKeyboardControls } from "@react-three/drei";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
+import { Physics } from "@react-three/rapier";
 import { useEffect, useRef, Suspense, useState, useMemo, createContext, useContext, useCallback } from "react";
 
 import Hud from "@/components/Hud";
@@ -14,7 +15,7 @@ import AchievementToast from "@/components/AchievementToast";
 import Target, { TargetProvider, useTarget } from "@/components/Target";
 import TargetHealthBar from "@/components/TargetHealthBar";
 import LoadingScreen, { markGameStarted } from "@/components/LoadingScreen";
-import CharacterCreationScreen from "@/components/CharacterCreationScreen";
+import CharacterCreationUI from "@/components/CharacterCreationScreen/CharacterCreationUI";
 import Town from "@/components/Town";
 import TrainingDummyModel from "@/components/TrainingDummyModel";
 import PixieOrbit from "@/components/PixieOrbit";
@@ -22,6 +23,15 @@ import DebugPanel from "@/components/DebugPanel";
 // Projectiles - owned by the scene, triggered by player actions
 import IceShard from "@/components/IceShard";
 import Meteor from "@/components/Meteor";
+
+// World system - Diablo-style "world moves around player"
+import WorldRoot from "@/components/WorldRoot";
+import IsometricCamera from "@/components/IsometricCamera";
+import { MovementSync, MovementDebugOverlay, ClickIndicator, GroundPlane, markGameActive } from "@/systems/MovementSystem";
+
+// Scene management
+import SceneManager, { Scene } from "@/components/SceneManager";
+import useSceneStore, { SCENES, useSceneTransition, useInputGate, selectCurrentScene } from "@/stores/sceneStore";
 
 import { KeyMapProvider, useKeyMap } from "@/hooks/useKeyMap";
 import { usePlayerState, useSlotMap, useAchievements, useActiveClass } from "@/hooks/useGame";
@@ -31,15 +41,7 @@ import { SKILL_SLOTS, MOUSE_SLOTS, CONSUMABLE_SLOTS, PIXIE_SLOTS } from "@/confi
 import { DragDropProvider } from "@/hooks/useDragDrop";
 import { getSkills, getConsumables } from "@/config/actions";
 
-// =============================================================================
-// GAME FLOW STATES
-// =============================================================================
-
-const GAME_FLOW = {
-  LOADING: 'loading',
-  CHARACTER_CREATION: 'characterCreation',
-  GAME: 'game',
-};
+// SCENES are now defined in sceneStore.js
 
 // =============================================================================
 // CLASS CONTEXT - Allows components to access current class
@@ -74,8 +76,22 @@ const AchievementTracker = () => {
   const trackedFirstPixie = useRef(false);
   const trackedPixieTrio = useRef(false);
   
-  // Build set of skill action IDs from data
-  const skillActionIds = useMemo(() => new Set(getSkills().map(s => s.id)), []);
+  // Build set of skill action IDs from data - include both legacy and semantic IDs
+  const skillActionIds = useMemo(() => {
+    const skills = getSkills();
+    const ids = new Set();
+    for (const s of skills) {
+      ids.add(s.id);  // Legacy ID (e.g., 'skill_1')
+      if (s._skillId) ids.add(s._skillId);  // Semantic ID (e.g., 'ice_shard')
+    }
+    return ids;
+  }, []);
+  
+  // Build set of consumable buff IDs (data-driven)
+  const consumableBuffIds = useMemo(() => {
+    const consumables = getConsumables();
+    return new Set(consumables.map(c => c.buff?.id).filter(Boolean));
+  }, []);
 
   useEffect(() => {
     if (!hasTrackedCast.current && (state === 'casting' || state === 'attacking') && activeAction) {
@@ -86,12 +102,16 @@ const AchievementTracker = () => {
     }
   }, [state, activeAction, unlock, skillActionIds]);
 
+  // DATA-DRIVEN: Trigger achievement for ANY consumable buff (not just health_potion)
   useEffect(() => {
-    if (!trackedPotionBuff.current && buffs.some(b => b.id === 'health_potion')) {
+    if (!trackedPotionBuff.current && buffs.some(b => consumableBuffIds.has(b.id))) {
+      if (import.meta.env.DEV) {
+        console.log(`[ACHIEVEMENT] potion_master unlocked via buff:`, buffs.map(b => b.id));
+      }
       unlock('potion_master');
       trackedPotionBuff.current = true;
     }
-  }, [buffs, unlock]);
+  }, [buffs, unlock, consumableBuffIds]);
 
   // Track pixie achievements
   useEffect(() => {
@@ -200,10 +220,10 @@ const MouseSlotButton = ({ slotId }) => {
   );
 };
 
-const GameUI = () => (
+const GameUI = ({ slideIn }) => (
   <>
     <TargetHealthBar />
-    <Hud>
+    <Hud slideIn={slideIn}>
       <Orb type="health" label="Health" />
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', position: 'relative' }}>
         <BuffBar />
@@ -230,8 +250,10 @@ const GameUI = () => (
 /**
  * Wraps content with keyboard controls and settings.
  */
-const GameControls = ({ children }) => {
+const GameControls = ({ children, hudSlideIn }) => {
   const { keyMap } = useKeyMap();
+  const currentScene = useSceneStore(selectCurrentScene);
+  const isGameScene = currentScene === SCENES.GAME;
 
   return (
     <KeyboardControls map={keyMap}>
@@ -240,7 +262,8 @@ const GameControls = ({ children }) => {
         <KeyboardSync />
         <InputToStateSync />
         <AchievementTracker />
-        <GameUI />
+        {/* HUD only visible during game scene */}
+        {isGameScene && <GameUI slideIn={hudSlideIn} />}
       </InputProvider>
     </KeyboardControls>
   );
@@ -276,9 +299,16 @@ const TrainingDummy = ({ children }) => {
 };
 
 /**
- * 3D Scene content.
+ * 3D Game Scene content - Diablo-style world offset system.
+ * 
+ * ARCHITECTURE:
+ * - Player is ALWAYS at (0, 0, 0)
+ * - World objects are children of WorldRoot
+ * - WorldRoot position is driven by worldOffset (inverted player movement)
+ * - Camera is fixed isometric, always looks at origin
+ * - Physics via Rapier for collision detection
  */
-const Scene = () => {
+const GameScene = () => {
   const { unlockTarget } = useTarget() || {}
   const { classId } = useCurrentClass();
   
@@ -288,46 +318,60 @@ const Scene = () => {
   }
   
   return (
-    <>
+    <Physics gravity={[0, -9.81, 0]}>
       <color attach="background" args={['#1a1a2e']} />
       <fog attach="fog" args={['#1a1a2e', 15, 40]} />
       <Environment preset="night" background={false} />
       
-      {/* Lighting */}
+      {/* Global lighting - not affected by world offset */}
       <ambientLight intensity={0.2} />
       <directionalLight position={[5, 10, 5]} intensity={0.5} color="#8b7355" />
-      <pointLight position={[0, 2, 0]} intensity={1} color="#ff6b35" distance={10} />
       
-      {/* Town environment */}
-      <Town />
-
-      {/* Player - class-agnostic, configured by classId from context */}
+      {/* ================================================================= */}
+      {/* PLAYER - Always at origin (0, 0, 0) - NOT inside WorldRoot       */}
+      {/* ================================================================= */}
       <PlayerTarget>
         <Player classId={classId} position={[0, 0, 0]}>
           <PixieOrbit />
         </Player>
       </PlayerTarget>
 
-      {/* Test enemy target */}
-      <TrainingDummy>
-        <TrainingDummyModel position={[0, 0, 3]} />
-      </TrainingDummy>
-      
-      {/* Projectile effects - triggered by player actions, target the dummy */}
-      <IceShard targetPosition={[0, 0, 3]} />
-      <Meteor targetPosition={[0, 0, 3]} />
-    
-      <CameraControls
-        makeDefault
-        minDistance={18}
-        maxDistance={18}
-        minPolarAngle={Math.PI / 3}
-        maxPolarAngle={Math.PI / 3}
-        minAzimuthAngle={Math.PI / 4}
-        maxAzimuthAngle={Math.PI / 4}
-        dollySpeed={0}
-        truckSpeed={0}
+      {/* ================================================================= */}
+      {/* WORLD ROOT - Everything that moves around the player             */}
+      {/* ================================================================= */}
+      <WorldRoot>
+        {/* Invisible ground plane for click-to-move */}
+        <GroundPlane />
+        
+        {/* Campfire light - part of world, moves with it */}
+        <pointLight position={[0, 2, 0]} intensity={1} color="#ff6b35" distance={10} />
+        
+        {/* Town environment */}
+        <Town />
+
+        {/* Test enemy target */}
+        <TrainingDummy>
+          <TrainingDummyModel position={[0, 0, 3]} />
+        </TrainingDummy>
+        
+        {/* Projectile effects - spawn at player (origin), travel into world */}
+        <IceShard targetPosition={[0, 0, 3]} />
+        <Meteor targetPosition={[0, 0, 3]} />
+        
+        {/* Click destination indicator */}
+        <ClickIndicator />
+      </WorldRoot>
+
+      {/* ================================================================= */}
+      {/* CAMERA & SYSTEMS - Fixed isometric, no user rotation             */}
+      {/* ================================================================= */}
+      <IsometricCamera 
+        distance={18}
+        enableZoom={false}
       />
+      
+      {/* Movement system - path following */}
+      <MovementSync />
 
       <EffectComposer>
         <Bloom 
@@ -337,99 +381,491 @@ const Scene = () => {
           mipmapBlur
         />
       </EffectComposer>
-    </>
+    </Physics>
   )
 }
 
+/**
+ * =============================================================================
+ * UNIFIED SCENE - Handles both Character Selection and Gameplay
+ * =============================================================================
+ * 
+ * Same Town/environment is used for both scenes. Camera and content
+ * smoothly transition between modes for seamless experience.
+ */
+import { CameraControls } from '@react-three/drei';
+import { getClasses } from '@/engine/classes';
+import ClassPreviewModel from '@/components/CharacterCreationScreen/ClassPreviewModel';
+
+// Camera positions for different scenes
+const CAMERA_POSITIONS = {
+  characterSelection: { position: [0, 8, 12], target: [0, 1.2, 0] },
+  gameplay: { position: [11.02, 10, 11.02], target: [0, 0, 0] },
+};
+
+/**
+ * Get camera target for a specific class (or first class as default)
+ */
+function getCharacterCameraTarget(classes, classId) {
+  const targetClass = classes.find(c => c.id === classId) || classes[0];
+  if (targetClass?.characterSelection) {
+    const [x, y, z] = targetClass.characterSelection.position;
+    return {
+      position: CAMERA_POSITIONS.characterSelection.position,
+      target: [x, (y || 0) + 1.2, z],
+    };
+  }
+  return CAMERA_POSITIONS.characterSelection;
+}
+
+/**
+ * Unified camera that transitions between character selection and gameplay
+ * Defaults to first character's position even before character selection starts
+ */
+function UnifiedCamera({ selectedClassId }) {
+  const cameraRef = useRef();
+  const currentScene = useSceneStore(selectCurrentScene);
+  const prevSceneRef = useRef(null);
+  const classes = useMemo(() => getClasses(), []);
+  const isFirstRender = useRef(true);
+  
+  useEffect(() => {
+    if (!cameraRef.current) return;
+    
+    const isTransitioningToGame = currentScene === SCENES.GAME && prevSceneRef.current === SCENES.CHARACTER_SELECTION;
+    
+    let cam;
+    let smoothTime = 0.6;
+    let animate = !isFirstRender.current;
+    
+    if (currentScene === SCENES.GAME) {
+      cam = CAMERA_POSITIONS.gameplay;
+      if (isTransitioningToGame) smoothTime = 1.2;
+    } else if (currentScene === SCENES.CHARACTER_SELECTION) {
+      // Focus on selected character
+      cam = getCharacterCameraTarget(classes, selectedClassId);
+    } else {
+      // LOADING or other scenes: default to first character's position
+      // So camera is already in place when character selection starts
+      cam = getCharacterCameraTarget(classes, classes[0]?.id);
+      animate = false; // Don't animate on initial load
+    }
+    
+    cameraRef.current.smoothTime = smoothTime;
+    cameraRef.current.setLookAt(
+      cam.position[0], cam.position[1], cam.position[2],
+      cam.target[0], cam.target[1], cam.target[2],
+      animate
+    );
+    
+    prevSceneRef.current = currentScene;
+    isFirstRender.current = false;
+  }, [currentScene, selectedClassId, classes]);
+  
+  return (
+    <CameraControls
+      ref={cameraRef}
+      makeDefault
+      minDistance={8}
+      maxDistance={18}
+      dollySpeed={0}
+      truckSpeed={0}
+      enabled={currentScene === SCENES.CHARACTER_SELECTION}
+    />
+  );
+}
+
+/**
+ * Character preview models for selection (non-selected characters around campfire)
+ */
+function CharacterSelectionModels({ selectedClassId, onSelectClass }) {
+  const currentScene = useSceneStore(selectCurrentScene);
+  const isTransitioning = useSceneStore((s) => s.isTransitioning);
+  const classes = useMemo(() => getClasses(), []);
+  
+  // Only show during character selection
+  if (currentScene !== SCENES.CHARACTER_SELECTION) return null;
+  
+  return (
+    <>
+      {classes.map(cls => {
+        const config = cls.characterSelection || { position: [0, 0, 0], rotation: 0 };
+        const [x, y, z] = config.position;
+        
+        // Hide the selected character when transitioning (TransitioningCharacter takes over)
+        if (isTransitioning && selectedClassId === cls.id) return null;
+        
+        return (
+          <group 
+            key={cls.id}
+            position={[x, y || 0, z]}
+            rotation={[0, config.rotation || 0, 0]}
+            onClick={(e) => {
+              e.stopPropagation();
+              onSelectClass?.(cls.id);
+            }}
+          >
+            <ClassPreviewModel
+              classConfig={cls}
+              isSelected={selectedClassId === cls.id}
+              isTransitioning={false}
+            />
+          </group>
+        );
+      })}
+    </>
+  );
+}
+
+/**
+ * Character that walks from campfire position to origin during transition
+ */
+function TransitioningCharacter({ selectedClassId }) {
+  const groupRef = useRef();
+  const currentScene = useSceneStore(selectCurrentScene);
+  const isTransitioning = useSceneStore((s) => s.isTransitioning);
+  const classes = useMemo(() => getClasses(), []);
+  const [showTransition, setShowTransition] = useState(false);
+  const [walkAnimationActive, setWalkAnimationActive] = useState(true);
+  const startPosRef = useRef(null);
+  const progressRef = useRef(0);
+  const prevTransitioningRef = useRef(false);
+  
+  // Default player facing direction - character should face toward camera (rotation = 0)
+  const FINAL_ROTATION = 0;
+  
+  const selectedClass = useMemo(
+    () => classes.find(c => c.id === selectedClassId),
+    [classes, selectedClassId]
+  );
+  
+  // Start transition animation when isTransitioning changes from false to true
+  // (this happens while we're still in CHARACTER_SELECTION scene)
+  useEffect(() => {
+    const wasTransitioning = prevTransitioningRef.current;
+    prevTransitioningRef.current = isTransitioning;
+    
+    // Detect transition START (false -> true) while in character selection
+    if (!wasTransitioning && isTransitioning && currentScene === SCENES.CHARACTER_SELECTION) {
+      const config = selectedClass?.characterSelection || { position: [0, 0, 0] };
+      startPosRef.current = [...config.position];
+      progressRef.current = 0;
+      setShowTransition(true);
+      setWalkAnimationActive(true);
+      
+      // Set initial position
+      if (groupRef.current) {
+        const [x, y, z] = config.position;
+        groupRef.current.position.set(x, y || 0, z);
+      }
+    }
+  }, [isTransitioning, currentScene, selectedClass]);
+  
+  // Hide when transition complete AND we're in game scene
+  useEffect(() => {
+    if (!isTransitioning && currentScene === SCENES.GAME && showTransition) {
+      // Small delay to ensure player is rendered
+      const timer = setTimeout(() => setShowTransition(false), 100);
+      return () => clearTimeout(timer);
+    }
+  }, [isTransitioning, currentScene, showTransition]);
+  
+  // Animate position each frame
+  useFrame((_, delta) => {
+    if (!showTransition || !groupRef.current || !startPosRef.current) return;
+    
+    // Animate progress (complete in ~1.2s)
+    progressRef.current = Math.min(progressRef.current + delta / 1.2, 1);
+    const t = progressRef.current;
+    
+    // Ease out cubic
+    const eased = 1 - Math.pow(1 - t, 3);
+    
+    // Lerp from start to origin
+    const [sx, sy, sz] = startPosRef.current;
+    groupRef.current.position.x = sx * (1 - eased);
+    groupRef.current.position.y = (sy || 0) * (1 - eased);
+    groupRef.current.position.z = sz * (1 - eased);
+    
+    // Calculate rotation
+    if (t < 0.7) {
+      // During walk: face direction of travel
+      const targetAngle = Math.atan2(-sx, -sz);
+      groupRef.current.rotation.y = targetAngle;
+    } else {
+      // Near end: smoothly rotate to final player rotation
+      const travelAngle = Math.atan2(-sx, -sz);
+      const rotationBlend = (t - 0.7) / 0.3; // 0 to 1 over last 30%
+      const easedBlend = rotationBlend * rotationBlend; // Ease in
+      
+      // Handle angle wrapping for shortest rotation
+      let diff = FINAL_ROTATION - travelAngle;
+      while (diff > Math.PI) diff -= Math.PI * 2;
+      while (diff < -Math.PI) diff += Math.PI * 2;
+      
+      groupRef.current.rotation.y = travelAngle + diff * easedBlend;
+    }
+    
+    // Stop walk animation near the end (at 85%) so it blends to idle
+    if (t > 0.85 && walkAnimationActive) {
+      setWalkAnimationActive(false);
+    }
+  });
+  
+  if (!showTransition || !selectedClass) return null;
+  
+  return (
+    <group ref={groupRef}>
+      <ClassPreviewModel
+        classConfig={selectedClass}
+        isSelected={true}
+        isTransitioning={walkAnimationActive}
+      />
+    </group>
+  );
+}
+
+/**
+ * Unified Scene that handles both character selection and gameplay
+ */
+function UnifiedScene({ selectedClassId, onSelectClass }) {
+  const { unlockTarget } = useTarget() || {};
+  const { classId } = useCurrentClass();
+  const currentScene = useSceneStore(selectCurrentScene);
+  const isTransitioning = useSceneStore((s) => s.isTransitioning);
+  
+  const isCharacterSelection = currentScene === SCENES.CHARACTER_SELECTION;
+  const isGameplay = currentScene === SCENES.GAME;
+  // Show player only when gameplay is active AND not transitioning
+  const showPlayer = isGameplay && !isTransitioning;
+  
+  return (
+    <Physics gravity={[0, -9.81, 0]}>
+      {/* Shared environment */}
+      <color attach="background" args={['#1a1a2e']} />
+      <fog attach="fog" args={['#1a1a2e', 15, 40]} />
+      <Environment preset="night" background={false} />
+      
+      {/* Lighting - slightly different for each scene */}
+      <ambientLight intensity={isCharacterSelection ? 0.15 : 0.2} />
+      <directionalLight position={[5, 10, 5]} intensity={isCharacterSelection ? 0.3 : 0.5} color="#8b7355" />
+      <pointLight position={[0, 2, 0]} intensity={isCharacterSelection ? 1.5 : 1} color="#ff6b35" distance={isCharacterSelection ? 12 : 10} />
+      {isCharacterSelection && (
+        <pointLight position={[0, 0.5, 0]} intensity={0.8} color="#ff4010" distance={8} />
+      )}
+      
+      {/* Transitioning character - walks from campfire to origin */}
+      <TransitioningCharacter selectedClassId={selectedClassId} />
+      
+      {/* Player - only when gameplay is active and transition complete */}
+      {showPlayer && (
+        <PlayerTarget>
+          <Player classId={classId} position={[0, 0, 0]}>
+            <PixieOrbit />
+          </Player>
+        </PlayerTarget>
+      )}
+      
+      {/* Character selection models - only during selection */}
+      <CharacterSelectionModels 
+        selectedClassId={selectedClassId}
+        onSelectClass={onSelectClass}
+      />
+      
+      {/* World content */}
+      <WorldRoot>
+        {isGameplay && <GroundPlane />}
+        
+        <pointLight position={[0, 2, 0]} intensity={1} color="#ff6b35" distance={10} />
+        <Town />
+        
+        {isGameplay && (
+          <>
+            <TrainingDummy>
+              <TrainingDummyModel position={[0, 0, 3]} />
+            </TrainingDummy>
+            <IceShard targetPosition={[0, 0, 3]} />
+            <Meteor targetPosition={[0, 0, 3]} />
+            <ClickIndicator />
+          </>
+        )}
+      </WorldRoot>
+      
+      {/* Unified camera */}
+      <UnifiedCamera selectedClassId={selectedClassId} />
+      
+      {/* Movement - gameplay only */}
+      {isGameplay && <MovementSync />}
+      
+      {/* Post-processing */}
+      <EffectComposer>
+        <Bloom 
+          intensity={isCharacterSelection ? 1.2 : 1.5}
+          luminanceThreshold={isCharacterSelection ? 0.5 : 0.6}
+          luminanceSmoothing={0.9}
+          mipmapBlur
+        />
+      </EffectComposer>
+    </Physics>
+  );
+}
+
+/**
+ * Canvas wrapper - always mounted for WebGL stability.
+ * Visibility controlled via CSS to prevent EffectComposer remount issues.
+ * Now handles both character selection and gameplay in one unified canvas.
+ */
+const GameCanvas = ({ visible, selectedClassId, onSelectClass }) => {
+  const currentScene = useSceneStore(selectCurrentScene);
+  const isCharacterSelection = currentScene === SCENES.CHARACTER_SELECTION;
+  const isGameplay = currentScene === SCENES.GAME;
+  
+  return (
+    <div style={{ 
+      width: "100vw", 
+      height: "100vh",
+      visibility: visible ? 'visible' : 'hidden',
+      pointerEvents: visible ? 'auto' : 'none',
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      zIndex: visible ? 0 : -1,
+    }}>
+      <Canvas 
+        flat 
+        camera={{ fov: 50, position: [0, 8, 12] }} 
+        eventSource={document.getElementById('root')} 
+        eventPrefix="client"
+      >
+        <Suspense fallback={null}>
+          <UnifiedScene 
+            selectedClassId={selectedClassId}
+            onSelectClass={onSelectClass}
+          />
+        </Suspense>
+      </Canvas>
+    </div>
+  );
+};
+
 export default function App() {
-  const [gameFlow, setGameFlow] = useState(GAME_FLOW.LOADING);
+  const { transitionTo, currentScene } = useSceneTransition();
+  const setScene = useSceneStore((s) => s.setScene);
   const [classId, setClassId] = useState('wizard');
+  const [selectedClassId, setSelectedClassId] = useState('wizard'); // For character selection
+  const [hudSlideIn, setHudSlideIn] = useState(false);
   const { activeClassId } = useActiveClass();
+  
+  const prevSceneRef = useRef(currentScene);
+  
+  // Trigger HUD slide-in when entering GAME scene from any other scene
+  useEffect(() => {
+    const prevScene = prevSceneRef.current;
+    prevSceneRef.current = currentScene;
+    
+    // If we just entered GAME scene
+    if (currentScene === SCENES.GAME && prevScene !== SCENES.GAME) {
+      // Small delay to ensure scene is fully ready
+      const timer = setTimeout(() => {
+        setHudSlideIn(true);
+        setTimeout(() => {
+          setHudSlideIn(false);
+        }, 800);
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [currentScene]);
   
   // Sync classId with activeClassId from store when entering game
   useEffect(() => {
-    if (gameFlow === GAME_FLOW.GAME && activeClassId) {
+    if (currentScene === SCENES.GAME && activeClassId) {
       setClassId(activeClassId);
       
       if (import.meta.env.DEV) {
         console.log(`[GAME SCENE] Active class: ${activeClassId}`);
       }
     }
-  }, [gameFlow, activeClassId]);
+  }, [currentScene, activeClassId]);
   
-  // Handler for New Game - navigate to character creation
-  const handleNewGame = useCallback(() => {
-    setGameFlow(GAME_FLOW.CHARACTER_CREATION);
+  // Handler for selecting a class during character creation
+  const handleSelectClass = useCallback((newClassId) => {
+    setSelectedClassId(newClassId);
   }, []);
   
-  // Handler for Continue - go directly to game
+  // Handler for New Game - navigate to character creation with transition
+  const handleNewGame = useCallback(() => {
+    transitionTo(SCENES.CHARACTER_SELECTION);
+  }, [transitionTo]);
+  
+  // Handler for Continue - go directly to game with transition
   const handleContinue = useCallback(() => {
     if (import.meta.env.DEV) {
       console.log('[GAME FLOW] Continuing saved game');
     }
-    setGameFlow(GAME_FLOW.GAME);
-  }, []);
+    transitionTo(SCENES.GAME);
+  }, [transitionTo]);
   
   // Handler for character creation complete
-  const handleCharacterCreated = useCallback((selectedClassId) => {
+  const handleCharacterCreated = useCallback((createdClassId, options = {}) => {
     // Mark game as started for future sessions
     markGameStarted();
     
+    // Mark game as active for click debounce (prevents button click from triggering movement)
+    markGameActive();
+    
     // Update class context
-    setClassId(selectedClassId);
+    setClassId(createdClassId);
     
     if (import.meta.env.DEV) {
-      console.log(`[GAME FLOW] Character created with class: ${selectedClassId}`);
+      console.log(`[GAME FLOW] Character created with class: ${createdClassId}`);
+      console.log('[GAME FLOW] Using seamless transition (no fade overlay)');
     }
     
-    // Navigate to game
-    setGameFlow(GAME_FLOW.GAME);
-  }, []);
+    // Navigate to game with SEAMLESS transition (no black fade)
+    // The camera and scene content will smoothly transition
+    // HUD slide-in is triggered automatically when scene becomes GAME
+    transitionTo(SCENES.GAME, {}, { seamless: true });
+  }, [transitionTo]);
   
   return (
     <ClassContext.Provider value={{ classId, setClassId }}>
     <TargetProvider>
     <KeyMapProvider>
     <DragDropProvider>
-        <GameControls>
-          {/* Loading Screen - shown first */}
-          {gameFlow === GAME_FLOW.LOADING && (
-            <LoadingScreen 
-              onNewGame={handleNewGame}
-              onContinue={handleContinue}
-            />
-          )}
-          
-          {/* Character Creation - shown after New Game */}
-          {gameFlow === GAME_FLOW.CHARACTER_CREATION && (
-            <CharacterCreationScreen onComplete={handleCharacterCreated} />
-          )}
-          
-          {/* Game UI - only shown during gameplay */}
-          {gameFlow === GAME_FLOW.GAME && (
-            <>
+        <GameControls hudSlideIn={hudSlideIn}>
+          <SceneManager debug={import.meta.env.DEV}>
+            {/* Loading Screen - shown first */}
+            <Scene id={SCENES.LOADING}>
+              <LoadingScreen 
+                onNewGame={handleNewGame}
+                onContinue={handleContinue}
+              />
+            </Scene>
+            
+            {/* Character Creation UI - overlays the 3D canvas */}
+            <Scene id={SCENES.CHARACTER_SELECTION}>
+              <CharacterCreationUI 
+                selectedClassId={selectedClassId}
+                onSelectClass={handleSelectClass}
+                onComplete={handleCharacterCreated} 
+              />
+            </Scene>
+            
+            {/* Game Scene - HUD UI only, 3D content in unified canvas */}
+            <Scene id={SCENES.GAME}>
               <AchievementToast />
               {import.meta.env.DEV && <DebugPanel />}
-            </>
-          )}
+              {import.meta.env.DEV && <MovementDebugOverlay />}
+            </Scene>
+          </SceneManager>
           
-          {/* Canvas is always rendered (for asset loading), but only visible in game */}
-          <div style={{ 
-            width: "100vw", 
-            height: "100vh",
-            visibility: gameFlow === GAME_FLOW.GAME ? 'visible' : 'hidden',
-          }}>
-            <Canvas 
-              flat 
-              camera={{ fov: 50, position: [11.02, 10, 11.02] }} 
-              eventSource={document.getElementById('root')} 
-              eventPrefix="client"
-            >
-              <Suspense fallback={null}>
-                <Scene />
-              </Suspense>
-            </Canvas>
-          </div>
+          {/* Unified Canvas - visible during character selection AND game */}
+          {/* Uses one canvas for seamless transitions between scenes */}
+          <GameCanvas 
+            visible={currentScene === SCENES.CHARACTER_SELECTION || currentScene === SCENES.GAME} 
+            selectedClassId={selectedClassId}
+            onSelectClass={handleSelectClass}
+          />
         </GameControls>
     </DragDropProvider>
     </KeyMapProvider>

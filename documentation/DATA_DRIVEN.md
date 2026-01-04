@@ -255,10 +255,53 @@ return <Component {...entity.resolvedProps} />;
 | Concept | Location | Contains |
 |---------|----------|----------|
 | Class definitions | `/src/data/classes/*.json` | IDs, stats, allowed skills |
-| Skill definitions | `/src/data/skills/*.json` | IDs, costs, effects |
+| Skill definitions | `/src/data/skills/*.json` | IDs, costs, effects, vfx |
 | Class instance logic | `/src/game/classInstance.js` | Pure creation/query functions |
 | Loadout logic | `/src/game/loadout.js` | Pure assign/validate functions |
 | Entity resolution | `/src/game/entities.js` | Pure resolve-for-render functions |
 | State storage | `/src/stores/gameStore.js` | Zustand store, thin adapter |
 | Hook adapters | `/src/hooks/useClassContent.js` | Thin adapters, call game layer |
 | UI rendering | `/src/components/*` | JSX only, no logic |
+
+---
+
+## VFX Data-Driven Pattern
+
+Visual effects (VFX) are controlled by skill data, not hardcoded in components.
+
+### Skill Definition
+
+```json
+{
+  "id": "arcane_rush",
+  "label": "Arcane Rush",
+  "type": "channel",
+  "vfx": ["arcane_trail", "shield_effect", "channel_glow"]
+}
+```
+
+### VFX Component Pattern
+
+```jsx
+// REQUIRED: VFX checks skill data, not skill ID
+import { hasVfx } from '@/config/actions';
+
+function ArcaneTrail({ activeAction }) {
+  // ✅ Data-driven: reads from skill.vfx
+  const isActive = hasVfx(activeAction, 'arcane_trail');
+  
+  // ❌ FORBIDDEN: hardcoded skill check
+  // const isActive = isActionForSkill(activeAction, 'arcane_rush');
+  
+  if (!isActive) return null;
+  return <TrailEffect />;
+}
+```
+
+### Adding VFX to a Skill
+
+1. Add `vfx` array to the skill in `skills.json`
+2. Create a VFX component that checks `hasVfx(actionId, 'your_vfx_id')`
+3. Mount the VFX component in the appropriate scene location
+
+This allows any skill to trigger any VFX without modifying component code.

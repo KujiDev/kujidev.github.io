@@ -31,5 +31,7 @@ export {
   canRecastAction,
   isActionForSkill,
   getSkillIdForAction,
+  getVfxForAction,
+  hasVfx,
   ELEMENTS,
 } from '@/engine/actions';

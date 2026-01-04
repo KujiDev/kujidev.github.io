@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Dark background - Nature theme -->
+  <rect width="64" height="64" rx="4" fill="#1a2e1a"/>
+  <rect x="2" y="2" width="60" height="60" rx="3" fill="#0d170d" stroke="#2a442a" stroke-width="1"/>
+  
+  <!-- Multiple arrows -->
+  <!-- Center arrow -->
+  <line x1="10" y1="32" x2="46" y2="32" stroke="#8b5a2b" stroke-width="2.5"/>
+  <polygon points="46,32 40,28 42,32 40,36" fill="#c0a060"/>
+  
+  <!-- Top arrow -->
+  <line x1="14" y1="22" x2="50" y2="18" stroke="#8b5a2b" stroke-width="2"/>
+  <polygon points="50,18 43,16 44,18 43,21" fill="#c0a060"/>
+  
+  <!-- Bottom arrow -->
+  <line x1="14" y1="42" x2="50" y2="46" stroke="#8b5a2b" stroke-width="2"/>
+  <polygon points="50,46 43,43 44,46 43,48" fill="#c0a060"/>
+  
+  <!-- Upper arrow -->
+  <line x1="16" y1="14" x2="52" y2="8" stroke="#8b5a2b" stroke-width="1.5" opacity="0.7"/>
+  <polygon points="52,8 46,7 47,9 46,11" fill="#c0a060" opacity="0.7"/>
+  
+  <!-- Lower arrow -->
+  <line x1="16" y1="50" x2="52" y2="56" stroke="#8b5a2b" stroke-width="1.5" opacity="0.7"/>
+  <polygon points="52,56 46,53 47,56 46,58" fill="#c0a060" opacity="0.7"/>
+  
+  <!-- Motion lines -->
+  <line x1="4" y1="28" x2="8" y2="28" stroke="#60a040" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
+  <line x1="4" y1="36" x2="8" y2="36" stroke="#60a040" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
+</svg>

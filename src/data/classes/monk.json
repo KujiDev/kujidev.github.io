@@ -1,0 +1,113 @@
+{
+  "$schema": "../schemas/class.schema.json",
+  "id": "monk",
+  "name": "Monk",
+  "description": "A martial artist who channels inner chi to strike with devastating speed and precision.",
+  
+  "model": {
+    "path": "/models/Monk-transformed.glb",
+    "scale": 1,
+    "position": [0, 0, 0]
+  },
+  
+  "characterSelection": {
+    "position": [-1.8, 0, -1.5],
+    "rotation": 0.2,
+    "panelOffset": [0, 2.5, 0]
+  },
+  
+  "ui": {
+    "icon": null,
+    "color": "#f0a030",
+    "portrait": null,
+    "panels": [
+      {
+        "id": "spellbook",
+        "filters": [
+          { "id": "all", "label": "All", "color": "#a89878" },
+          { "id": "physical", "label": "Physical", "color": "#f0a030", "match": { "field": "element", "value": "physical" } },
+          { "id": "lightning", "label": "Lightning", "color": "#ffff40", "match": { "field": "element", "value": "lightning" } }
+        ]
+      },
+      { "id": "consumables" },
+      { "id": "pixies" }
+    ]
+  },
+  
+  "baseStats": {
+    "maxHealth": 120,
+    "maxMana": 80,
+    "healthRegen": 4,
+    "manaRegen": 4,
+    "moveSpeed": 1.2,
+    "armor": 10,
+    "magicResist": 10,
+    "spellPower": 5,
+    "attackPower": 15,
+    "critChance": 0.10
+  },
+  
+  "allowedElements": ["physical", "lightning", "mana"],
+  "primaryElement": "physical",
+  
+  "allowedSkills": [
+    "flying_kick",
+    "thunderclap",
+    "inner_peace",
+    "chi_burst",
+    "palm_strike",
+    "rising_dragon",
+    "health_potion",
+    "mana_biscuit",
+    "mana_potion",
+    "rejuvenation_potion"
+  ],
+  
+  "defaultLoadout": {
+    "slot_1": "flying_kick",
+    "slot_2": "thunderclap",
+    "slot_3": "inner_peace",
+    "slot_4": "chi_burst",
+    "slot_lmb": "palm_strike",
+    "slot_rmb": "rising_dragon",
+    "slot_consumable_1": "health_potion",
+    "slot_consumable_2": "mana_biscuit"
+  },
+  
+  "allowedPixies": null,
+  "defaultPixies": [],
+  "collectablePixies": ["verdant", "azure", "violet", "crimson"],
+  
+  "stateAnimations": {
+    "idle": "Idle",
+    "casting": "Attack",
+    "attacking": "Attack2",
+    "moving": "Run",
+    "dead": "Death"
+  },
+  
+  "animationOverrides": {},
+  
+  "weaponMeshes": [],
+  "allowedWeapons": ["fist", "staff"],
+  "primaryWeapon": "fist",
+  "allowedArmor": ["cloth", "leather"],
+  
+  "audio": {
+    "voiceSet": "monk_male_01",
+    "footsteps": "cloth_light",
+    "castSounds": {
+      "physical": "punch_01",
+      "lightning": "lightning_cast_01"
+    }
+  },
+  
+  "lore": {
+    "title": "The Monk",
+    "shortDesc": "Master of martial arts and inner chi",
+    "fullDesc": "Monks are disciplined warriors who have mastered the art of channeling their inner chi. Through years of training, they have achieved perfect harmony of mind and body, allowing them to strike with supernatural speed and precision. Their fists are as deadly as any weapon, and their chi allows them to heal and enhance their abilities.",
+    "faction": "Temple of the Eternal Way"
+  },
+  
+  "tags": ["melee", "agile", "martial_arts", "chi"]
+}

@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Dark background - Shadow theme -->
+  <rect width="64" height="64" rx="4" fill="#2a1a2e"/>
+  <rect x="2" y="2" width="60" height="60" rx="3" fill="#140d16" stroke="#3a2a42" stroke-width="1"/>
+  
+  <!-- Shadow trail -->
+  <ellipse cx="16" cy="48" rx="6" ry="8" fill="#8040a0" opacity="0.2"/>
+  <ellipse cx="24" cy="42" rx="5" ry="7" fill="#8040a0" opacity="0.3"/>
+  <ellipse cx="32" cy="36" rx="4" ry="6" fill="#8040a0" opacity="0.4"/>
+  
+  <!-- Footprints fading -->
+  <ellipse cx="14" cy="52" rx="3" ry="1.5" fill="#8040a0" opacity="0.3"/>
+  <ellipse cx="20" cy="50" rx="3" ry="1.5" fill="#8040a0" opacity="0.4"/>
+  
+  <!-- Figure emerging from shadow -->
+  <circle cx="44" cy="24" r="6" fill="#a060c0" stroke="#c080e0" stroke-width="1.5"/>
+  <path d="M44,30 L44,44" stroke="#a060c0" stroke-width="4" stroke-linecap="round"/>
+  <path d="M44,34 L36,40" stroke="#a060c0" stroke-width="3" stroke-linecap="round"/>
+  <path d="M44,34 L52,28" stroke="#a060c0" stroke-width="3" stroke-linecap="round"/>
+  
+  <!-- Dagger in hand -->
+  <line x1="52" y1="28" x2="58" y2="22" stroke="#c0c0c0" stroke-width="2"/>
+  <polygon points="58,22 60,18 56,20" fill="#c0c0c0"/>
+  
+  <!-- Teleport particles -->
+  <circle cx="38" cy="18" r="2" fill="#c080e0"/>
+  <circle cx="50" cy="14" r="1.5" fill="#a060c0"/>
+  <circle cx="54" cy="20" r="1" fill="#c080e0"/>
+</svg>

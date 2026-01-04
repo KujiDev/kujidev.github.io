@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Dark background - Shadow theme -->
+  <rect width="64" height="64" rx="4" fill="#2a1a2e"/>
+  <rect x="2" y="2" width="60" height="60" rx="3" fill="#140d16" stroke="#3a2a42" stroke-width="1"/>
+  
+  <!-- Smoke/shadow clouds -->
+  <circle cx="20" cy="36" r="8" fill="#8040a0" opacity="0.3"/>
+  <circle cx="32" cy="32" r="10" fill="#8040a0" opacity="0.4"/>
+  <circle cx="44" cy="36" r="8" fill="#8040a0" opacity="0.3"/>
+  <circle cx="26" cy="42" r="6" fill="#6030808" opacity="0.35"/>
+  <circle cx="38" cy="42" r="6" fill="#603080" opacity="0.35"/>
+  
+  <!-- Fading figure silhouette -->
+  <circle cx="32" cy="24" r="5" fill="#a060c0" opacity="0.5"/>
+  <path d="M32,29 L32,40" stroke="#a060c0" stroke-width="3" stroke-linecap="round" opacity="0.4"/>
+  <path d="M32,32 L26,38" stroke="#a060c0" stroke-width="2" stroke-linecap="round" opacity="0.3"/>
+  <path d="M32,32 L38,38" stroke="#a060c0" stroke-width="2" stroke-linecap="round" opacity="0.3"/>
+  
+  <!-- Eye glint (only visible part) -->
+  <circle cx="30" cy="23" r="1.5" fill="#c080e0"/>
+  <circle cx="34" cy="23" r="1.5" fill="#c080e0"/>
+  
+  <!-- Swirling shadow particles -->
+  <circle cx="16" cy="28" r="2" fill="#8040a0" opacity="0.4"/>
+  <circle cx="48" cy="28" r="2" fill="#8040a0" opacity="0.4"/>
+  <circle cx="22" cy="48" r="1.5" fill="#a060c0" opacity="0.3"/>
+  <circle cx="42" cy="48" r="1.5" fill="#a060c0" opacity="0.3"/>
+</svg>

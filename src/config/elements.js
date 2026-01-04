@@ -64,6 +64,30 @@ export const ELEMENTS = {
     glow: '#ffd700',       // Divine golden glow
     dark: '#3a3010',
   },
+  physical: {
+    id: 'physical',
+    name: 'Physical',
+    primary: '#c0c0c0',    // Steel silver
+    secondary: '#e8e8e8',  // Bright silver highlight
+    glow: '#d0d0d0',       // Metallic glow
+    dark: '#2a2a2a',
+  },
+  lightning: {
+    id: 'lightning',
+    name: 'Lightning',
+    primary: '#a0d0ff',    // Electric blue
+    secondary: '#e0f0ff',  // Bright white-blue
+    glow: '#80c0ff',       // Electric arc glow
+    dark: '#1a2a4a',
+  },
+  shadow: {
+    id: 'shadow',
+    name: 'Shadow',
+    primary: '#6040a0',    // Dark purple
+    secondary: '#9070c0',  // Lighter purple
+    glow: '#8040c0',       // Shadowy violet glow
+    dark: '#1a0a2a',
+  },
 };
 
 /**

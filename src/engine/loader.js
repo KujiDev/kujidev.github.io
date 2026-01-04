@@ -53,6 +53,42 @@ import divineShieldIcon from '@/assets/icons/divine-shield.svg';
 import healIcon from '@/assets/icons/heal.svg';
 import smiteIcon from '@/assets/icons/smite.svg';
 
+// Monk skill icons
+import flyingKickIcon from '@/assets/icons/flying-kick.svg';
+import thunderclapIcon from '@/assets/icons/thunderclap.svg';
+import innerPeaceIcon from '@/assets/icons/inner-peace.svg';
+import chiBurstIcon from '@/assets/icons/chi-burst.svg';
+import palmStrikeIcon from '@/assets/icons/palm-strike.svg';
+import risingDragonIcon from '@/assets/icons/rising-dragon.svg';
+
+// Ranger skill icons
+import aimedShotIcon from '@/assets/icons/aimed-shot.svg';
+import multishotIcon from '@/assets/icons/multishot.svg';
+import disengageIcon from '@/assets/icons/disengage.svg';
+import naturesBlessingIcon from '@/assets/icons/natures-blessing.svg';
+import quickShotIcon from '@/assets/icons/quick-shot.svg';
+import explosiveArrowIcon from '@/assets/icons/explosive-arrow.svg';
+
+// Rogue skill icons
+import backstabIcon from '@/assets/icons/backstab.svg';
+import shadowStepIcon from '@/assets/icons/shadow-step.svg';
+import vanishIcon from '@/assets/icons/vanish.svg';
+import poisonBladeIcon from '@/assets/icons/poison-blade.svg';
+import quickStrikeIcon from '@/assets/icons/quick-strike.svg';
+import eviscerateIcon from '@/assets/icons/eviscerate.svg';
+
+// Warrior skill icons
+import shieldSlamIcon from '@/assets/icons/shield-slam.svg';
+import whirlwindIcon from '@/assets/icons/whirlwind.svg';
+import berserkerRageIcon from '@/assets/icons/berserker-rage.svg';
+import ironFortressIcon from '@/assets/icons/iron-fortress.svg';
+import cleaveIcon from '@/assets/icons/cleave.svg';
+import executeIcon from '@/assets/icons/execute.svg';
+
+// Potion icons
+import manaPotionIcon from '@/assets/icons/mana-potion.svg';
+import rejuvenationPotionIcon from '@/assets/icons/rejuvenation-potion.svg';
+
 // =============================================================================
 // ASSET RESOLUTION
 // =============================================================================
@@ -79,6 +115,37 @@ const ICON_MAP = {
   'divine-shield.svg': divineShieldIcon,
   'heal.svg': healIcon,
   'smite.svg': smiteIcon,
+  // Monk icons
+  'flying-kick.svg': flyingKickIcon,
+  'thunderclap.svg': thunderclapIcon,
+  'inner-peace.svg': innerPeaceIcon,
+  'chi-burst.svg': chiBurstIcon,
+  'palm-strike.svg': palmStrikeIcon,
+  'rising-dragon.svg': risingDragonIcon,
+  // Ranger icons
+  'aimed-shot.svg': aimedShotIcon,
+  'multishot.svg': multishotIcon,
+  'disengage.svg': disengageIcon,
+  'natures-blessing.svg': naturesBlessingIcon,
+  'quick-shot.svg': quickShotIcon,
+  'explosive-arrow.svg': explosiveArrowIcon,
+  // Rogue icons
+  'backstab.svg': backstabIcon,
+  'shadow-step.svg': shadowStepIcon,
+  'vanish.svg': vanishIcon,
+  'poison-blade.svg': poisonBladeIcon,
+  'quick-strike.svg': quickStrikeIcon,
+  'eviscerate.svg': eviscerateIcon,
+  // Warrior icons
+  'shield-slam.svg': shieldSlamIcon,
+  'whirlwind.svg': whirlwindIcon,
+  'berserker-rage.svg': berserkerRageIcon,
+  'iron-fortress.svg': ironFortressIcon,
+  'cleave.svg': cleaveIcon,
+  'execute.svg': executeIcon,
+  // Potions
+  'mana-potion.svg': manaPotionIcon,
+  'rejuvenation-potion.svg': rejuvenationPotionIcon,
 };
 
 /**

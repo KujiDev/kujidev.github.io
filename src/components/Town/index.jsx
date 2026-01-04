@@ -1,6 +1,8 @@
-import { useRef, useMemo } from 'react';
+import { useRef, useMemo, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
+import { RigidBody } from '@react-three/rapier';
 import * as THREE from 'three';
+import { pathfinder } from '@/systems/Pathfinding';
 
 /**
  * Simple town environment inspired by Diablo 2's Rogue Encampment
@@ -30,62 +32,73 @@ function Tent({ position = [0, 0, 0], rotation = 0, scale = 1, color = '#8b7355'
   );
   
   return (
-    <group position={position} rotation={[0, rotation, 0]} scale={scale}>
-      {/* Tent poles */}
-      <mesh position={[-1.2, 1, 0]} castShadow>
-        <cylinderGeometry args={[0.05, 0.08, 2, 6]} />
-        <primitive object={materials.wood} attach="material" />
-      </mesh>
-      <mesh position={[1.2, 1, 0]} castShadow>
-        <cylinderGeometry args={[0.05, 0.08, 2, 6]} />
-        <primitive object={materials.wood} attach="material" />
-      </mesh>
-      <mesh position={[0, 1.8, 0]} rotation={[0, 0, Math.PI / 2]} castShadow>
-        <cylinderGeometry args={[0.04, 0.04, 2.6, 6]} />
-        <primitive object={materials.wood} attach="material" />
-      </mesh>
-      
-      {/* Canvas covering - A-frame style sloping from ridge to ground */}
-      <mesh position={[0, 0.9, 0.55]} rotation={[1.05, 0, 0]} castShadow receiveShadow>
-        <boxGeometry args={[2.8, 0.05, 2.2]} />
-        <primitive object={canvasMat} attach="material" />
-      </mesh>
-      <mesh position={[0, 0.9, -0.55]} rotation={[-1.05, 0, 0]} castShadow receiveShadow>
-        <boxGeometry args={[2.8, 0.05, 2.2]} />
-        <primitive object={canvasMat} attach="material" />
-      </mesh>
-    </group>
+    <RigidBody type="fixed" colliders="cuboid" position={position} rotation={[0, rotation, 0]}>
+      <group scale={scale}>
+        {/* Invisible collision box for tent */}
+        <mesh visible={false}>
+          <boxGeometry args={[2.8, 2, 1.5]} />
+        </mesh>
+        
+        {/* Tent poles */}
+        <mesh position={[-1.2, 1, 0]} castShadow>
+          <cylinderGeometry args={[0.05, 0.08, 2, 6]} />
+          <primitive object={materials.wood} attach="material" />
+        </mesh>
+        <mesh position={[1.2, 1, 0]} castShadow>
+          <cylinderGeometry args={[0.05, 0.08, 2, 6]} />
+          <primitive object={materials.wood} attach="material" />
+        </mesh>
+        <mesh position={[0, 1.8, 0]} rotation={[0, 0, Math.PI / 2]} castShadow>
+          <cylinderGeometry args={[0.04, 0.04, 2.6, 6]} />
+          <primitive object={materials.wood} attach="material" />
+        </mesh>
+        
+        {/* Canvas covering - A-frame style sloping from ridge to ground */}
+        <mesh position={[0, 0.9, 0.55]} rotation={[1.05, 0, 0]} castShadow receiveShadow>
+          <boxGeometry args={[2.8, 0.05, 2.2]} />
+          <primitive object={canvasMat} attach="material" />
+        </mesh>
+        <mesh position={[0, 0.9, -0.55]} rotation={[-1.05, 0, 0]} castShadow receiveShadow>
+          <boxGeometry args={[2.8, 0.05, 2.2]} />
+          <primitive object={canvasMat} attach="material" />
+        </mesh>
+      </group>
+    </RigidBody>
   );
 }
 
 // Wooden crate
 function Crate({ position = [0, 0, 0], rotation = 0, scale = 1 }) {
   return (
-    <mesh position={position} rotation={[0, rotation, 0]} scale={scale} castShadow receiveShadow>
-      <boxGeometry args={[0.6, 0.6, 0.6]} />
-      <primitive object={materials.wood} attach="material" />
-    </mesh>
+    <RigidBody type="fixed" colliders="cuboid" position={position} rotation={[0, rotation, 0]}>
+      <mesh scale={scale} castShadow receiveShadow>
+        <boxGeometry args={[0.6, 0.6, 0.6]} />
+        <primitive object={materials.wood} attach="material" />
+      </mesh>
+    </RigidBody>
   );
 }
 
 // Barrel
 function Barrel({ position = [0, 0, 0], scale = 1 }) {
   return (
-    <group position={position} scale={scale}>
-      <mesh position={[0, 0.4, 0]} castShadow receiveShadow>
-        <cylinderGeometry args={[0.3, 0.35, 0.8, 12]} />
-        <primitive object={materials.darkWood} attach="material" />
-      </mesh>
-      {/* Metal bands */}
-      <mesh position={[0, 0.2, 0]}>
-        <torusGeometry args={[0.32, 0.02, 8, 16]} />
-        <primitive object={materials.metal} attach="material" />
-      </mesh>
-      <mesh position={[0, 0.6, 0]}>
-        <torusGeometry args={[0.32, 0.02, 8, 16]} />
-        <primitive object={materials.metal} attach="material" />
-      </mesh>
-    </group>
+    <RigidBody type="fixed" colliders="hull" position={position}>
+      <group scale={scale}>
+        <mesh position={[0, 0.4, 0]} castShadow receiveShadow>
+          <cylinderGeometry args={[0.3, 0.35, 0.8, 12]} />
+          <primitive object={materials.darkWood} attach="material" />
+        </mesh>
+        {/* Metal bands */}
+        <mesh position={[0, 0.2, 0]}>
+          <torusGeometry args={[0.32, 0.02, 8, 16]} />
+          <primitive object={materials.metal} attach="material" />
+        </mesh>
+        <mesh position={[0, 0.6, 0]}>
+          <torusGeometry args={[0.32, 0.02, 8, 16]} />
+          <primitive object={materials.metal} attach="material" />
+        </mesh>
+      </group>
+    </RigidBody>
   );
 }
 
@@ -191,144 +204,206 @@ function Fence({ position = [0, 0, 0], rotation = 0, length = 3 }) {
   const posts = Math.ceil(length / 1.5);
   
   return (
-    <group position={position} rotation={[0, rotation, 0]}>
-      {/* Horizontal beams */}
-      <mesh position={[length / 2 - 0.75, 0.3, 0]} castShadow>
-        <boxGeometry args={[length, 0.08, 0.06]} />
-        <primitive object={materials.wood} attach="material" />
-      </mesh>
-      <mesh position={[length / 2 - 0.75, 0.7, 0]} castShadow>
-        <boxGeometry args={[length, 0.08, 0.06]} />
-        <primitive object={materials.wood} attach="material" />
-      </mesh>
-      
-      {/* Vertical posts */}
-      {[...Array(posts)].map((_, i) => (
-        <mesh key={i} position={[i * 1.5, 0.5, 0]} castShadow>
-          <boxGeometry args={[0.1, 1, 0.1]} />
-          <primitive object={materials.darkWood} attach="material" />
+    <RigidBody type="fixed" colliders="cuboid" position={position} rotation={[0, rotation, 0]}>
+      <group>
+        {/* Invisible collision box */}
+        <mesh visible={false} position={[length / 2 - 0.75, 0.5, 0]}>
+          <boxGeometry args={[length, 1, 0.2]} />
         </mesh>
-      ))}
-    </group>
+        
+        {/* Horizontal beams */}
+        <mesh position={[length / 2 - 0.75, 0.3, 0]} castShadow>
+          <boxGeometry args={[length, 0.08, 0.06]} />
+          <primitive object={materials.wood} attach="material" />
+        </mesh>
+        <mesh position={[length / 2 - 0.75, 0.7, 0]} castShadow>
+          <boxGeometry args={[length, 0.08, 0.06]} />
+          <primitive object={materials.wood} attach="material" />
+        </mesh>
+        
+        {/* Vertical posts */}
+        {[...Array(posts)].map((_, i) => (
+          <mesh key={i} position={[i * 1.5, 0.5, 0]} castShadow>
+            <boxGeometry args={[0.1, 1, 0.1]} />
+            <primitive object={materials.darkWood} attach="material" />
+          </mesh>
+        ))}
+      </group>
+    </RigidBody>
   );
 }
 
 // Simple tree (dead/bare for that dark atmosphere)
 function DeadTree({ position = [0, 0, 0], scale = 1 }) {
   return (
-    <group position={position} scale={scale}>
-      {/* Trunk */}
-      <mesh position={[0, 1.5, 0]} castShadow>
-        <cylinderGeometry args={[0.12, 0.25, 3, 8]} />
-        <primitive object={materials.darkWood} attach="material" />
-      </mesh>
-      {/* Branches - using groups to pivot from base at trunk surface */}
-      <group position={[0.13, 2.3, 0]} rotation={[0, 0, 1.1]}>
-        <mesh position={[0, 0.4, 0]} castShadow>
-          <cylinderGeometry args={[0.02, 0.06, 0.8, 6]} />
+    <RigidBody type="fixed" colliders="hull" position={position}>
+      <group scale={scale}>
+        {/* Trunk */}
+        <mesh position={[0, 1.5, 0]} castShadow>
+          <cylinderGeometry args={[0.12, 0.25, 3, 8]} />
           <primitive object={materials.darkWood} attach="material" />
         </mesh>
+        {/* Branches - using groups to pivot from base at trunk surface */}
+        <group position={[0.13, 2.3, 0]} rotation={[0, 0, 1.1]}>
+          <mesh position={[0, 0.4, 0]} castShadow>
+            <cylinderGeometry args={[0.02, 0.06, 0.8, 6]} />
+            <primitive object={materials.darkWood} attach="material" />
+          </mesh>
+        </group>
+        <group position={[-0.13, 2.0, 0]} rotation={[0, 0, -1.0]}>
+          <mesh position={[0, 0.35, 0]} castShadow>
+            <cylinderGeometry args={[0.02, 0.05, 0.7, 6]} />
+            <primitive object={materials.darkWood} attach="material" />
+          </mesh>
+        </group>
+        <group position={[0, 2.5, -0.12]} rotation={[-1.1, 0, 0]}>
+          <mesh position={[0, 0.25, 0]} castShadow>
+            <cylinderGeometry args={[0.015, 0.04, 0.5, 6]} />
+            <primitive object={materials.darkWood} attach="material" />
+          </mesh>
+        </group>
+        <group position={[0, 2.1, 0.14]} rotation={[1.0, 0, 0]}>
+          <mesh position={[0, 0.25, 0]} castShadow>
+            <cylinderGeometry args={[0.015, 0.04, 0.5, 6]} />
+            <primitive object={materials.darkWood} attach="material" />
+          </mesh>
+        </group>
+        <group position={[0.1, 2.7, 0.08]} rotation={[0.5, 0, 0.9]}>
+          <mesh position={[0, 0.22, 0]} castShadow>
+            <cylinderGeometry args={[0.015, 0.035, 0.45, 6]} />
+            <primitive object={materials.darkWood} attach="material" />
+          </mesh>
+        </group>
       </group>
-      <group position={[-0.13, 2.0, 0]} rotation={[0, 0, -1.0]}>
-        <mesh position={[0, 0.35, 0]} castShadow>
-          <cylinderGeometry args={[0.02, 0.05, 0.7, 6]} />
-          <primitive object={materials.darkWood} attach="material" />
-        </mesh>
-      </group>
-      <group position={[0, 2.5, -0.12]} rotation={[-1.1, 0, 0]}>
-        <mesh position={[0, 0.25, 0]} castShadow>
-          <cylinderGeometry args={[0.015, 0.04, 0.5, 6]} />
-          <primitive object={materials.darkWood} attach="material" />
-        </mesh>
-      </group>
-      <group position={[0, 2.1, 0.14]} rotation={[1.0, 0, 0]}>
-        <mesh position={[0, 0.25, 0]} castShadow>
-          <cylinderGeometry args={[0.015, 0.04, 0.5, 6]} />
-          <primitive object={materials.darkWood} attach="material" />
-        </mesh>
-      </group>
-      <group position={[0.1, 2.7, 0.08]} rotation={[0.5, 0, 0.9]}>
-        <mesh position={[0, 0.22, 0]} castShadow>
-          <cylinderGeometry args={[0.015, 0.035, 0.45, 6]} />
-          <primitive object={materials.darkWood} attach="material" />
-        </mesh>
-      </group>
-    </group>
+    </RigidBody>
   );
 }
 
 // Well structure
 function Well({ position = [0, 0, 0] }) {
   return (
-    <group position={position}>
-      {/* Stone base */}
-      <mesh position={[0, 0.4, 0]} castShadow receiveShadow>
-        <cylinderGeometry args={[0.8, 0.9, 0.8, 12]} />
-        <primitive object={materials.stone} attach="material" />
-      </mesh>
-      {/* Water inside */}
-      <mesh position={[0, 0.3, 0]}>
-        <cylinderGeometry args={[0.6, 0.6, 0.1, 12]} />
-        <primitive object={materials.water} attach="material" />
-      </mesh>
-      {/* Roof supports */}
-      <mesh position={[-0.6, 1.2, 0]} castShadow>
-        <boxGeometry args={[0.1, 1.6, 0.1]} />
-        <primitive object={materials.wood} attach="material" />
-      </mesh>
-      <mesh position={[0.6, 1.2, 0]} castShadow>
-        <boxGeometry args={[0.1, 1.6, 0.1]} />
-        <primitive object={materials.wood} attach="material" />
-      </mesh>
-      {/* Roof beam */}
-      <mesh position={[0, 2, 0]} castShadow>
-        <boxGeometry args={[1.4, 0.1, 0.1]} />
-        <primitive object={materials.wood} attach="material" />
-      </mesh>
-      {/* Roof */}
-      <mesh position={[0, 2.3, 0]} rotation={[0, 0, 0]} castShadow>
-        <coneGeometry args={[0.9, 0.5, 4]} />
-        <primitive object={materials.straw} attach="material" />
-      </mesh>
-    </group>
+    <RigidBody type="fixed" colliders="hull" position={position}>
+      <group>
+        {/* Stone base */}
+        <mesh position={[0, 0.4, 0]} castShadow receiveShadow>
+          <cylinderGeometry args={[0.8, 0.9, 0.8, 12]} />
+          <primitive object={materials.stone} attach="material" />
+        </mesh>
+        {/* Water inside */}
+        <mesh position={[0, 0.3, 0]}>
+          <cylinderGeometry args={[0.6, 0.6, 0.1, 12]} />
+          <primitive object={materials.water} attach="material" />
+        </mesh>
+        {/* Roof supports */}
+        <mesh position={[-0.6, 1.2, 0]} castShadow>
+          <boxGeometry args={[0.1, 1.6, 0.1]} />
+          <primitive object={materials.wood} attach="material" />
+        </mesh>
+        <mesh position={[0.6, 1.2, 0]} castShadow>
+          <boxGeometry args={[0.1, 1.6, 0.1]} />
+          <primitive object={materials.wood} attach="material" />
+        </mesh>
+        {/* Roof beam */}
+        <mesh position={[0, 2, 0]} castShadow>
+          <boxGeometry args={[1.4, 0.1, 0.1]} />
+          <primitive object={materials.wood} attach="material" />
+        </mesh>
+        {/* Roof */}
+        <mesh position={[0, 2.3, 0]} rotation={[0, 0, 0]} castShadow>
+          <coneGeometry args={[0.9, 0.5, 4]} />
+          <primitive object={materials.straw} attach="material" />
+        </mesh>
+      </group>
+    </RigidBody>
   );
 }
 
 // Cart/wagon
 function Cart({ position = [0, 0, 0], rotation = 0 }) {
   return (
-    <group position={position} rotation={[0, rotation, 0]}>
-      {/* Cart bed */}
-      <mesh position={[0, 0.5, 0]} castShadow receiveShadow>
-        <boxGeometry args={[2, 0.15, 1]} />
-        <primitive object={materials.wood} attach="material" />
-      </mesh>
-      {/* Sides */}
-      <mesh position={[0, 0.75, 0.45]} castShadow>
-        <boxGeometry args={[2, 0.4, 0.08]} />
-        <primitive object={materials.wood} attach="material" />
-      </mesh>
-      <mesh position={[0, 0.75, -0.45]} castShadow>
-        <boxGeometry args={[2, 0.4, 0.08]} />
-        <primitive object={materials.wood} attach="material" />
-      </mesh>
-      <mesh position={[-0.95, 0.75, 0]} castShadow>
-        <boxGeometry args={[0.08, 0.4, 0.9]} />
-        <primitive object={materials.wood} attach="material" />
-      </mesh>
-      {/* Wheels */}
-      {[[-0.7, 0.3, 0.55], [-0.7, 0.3, -0.55], [0.7, 0.3, 0.55], [0.7, 0.3, -0.55]].map((pos, i) => (
-        <mesh key={i} position={pos} rotation={[Math.PI / 2, 0, 0]} castShadow>
-          <cylinderGeometry args={[0.3, 0.3, 0.1, 12]} />
-          <primitive object={materials.darkWood} attach="material" />
+    <RigidBody type="fixed" colliders="cuboid" position={position} rotation={[0, rotation, 0]}>
+      <group>
+        {/* Cart bed */}
+        <mesh position={[0, 0.5, 0]} castShadow receiveShadow>
+          <boxGeometry args={[2, 0.15, 1]} />
+          <primitive object={materials.wood} attach="material" />
         </mesh>
-      ))}
-    </group>
+        {/* Sides */}
+        <mesh position={[0, 0.75, 0.45]} castShadow>
+          <boxGeometry args={[2, 0.4, 0.08]} />
+          <primitive object={materials.wood} attach="material" />
+        </mesh>
+        <mesh position={[0, 0.75, -0.45]} castShadow>
+          <boxGeometry args={[2, 0.4, 0.08]} />
+          <primitive object={materials.wood} attach="material" />
+        </mesh>
+        <mesh position={[-0.95, 0.75, 0]} castShadow>
+          <boxGeometry args={[0.08, 0.4, 0.9]} />
+          <primitive object={materials.wood} attach="material" />
+        </mesh>
+        {/* Wheels */}
+        {[[-0.7, 0.3, 0.55], [-0.7, 0.3, -0.55], [0.7, 0.3, 0.55], [0.7, 0.3, -0.55]].map((pos, i) => (
+          <mesh key={i} position={pos} rotation={[Math.PI / 2, 0, 0]} castShadow>
+            <cylinderGeometry args={[0.3, 0.3, 0.1, 12]} />
+            <primitive object={materials.darkWood} attach="material" />
+          </mesh>
+        ))}
+      </group>
+    </RigidBody>
   );
 }
 
 // Main Town component
 export default function Town() {
+  // Register obstacles with pathfinder on mount
+  useEffect(() => {
+    // Define obstacles: [x, z, radius]
+    const obstacles = [
+      // Tents (larger radius for A-frame shape) - moved outward to clear character selection
+      [-8, -4, 2],   // Tent 1
+      [-8, 5, 2.2],  // Tent 2 (scaled 1.2)
+      [8, -4, 2],    // Tent 3
+      [8, 5, 1.8],   // Tent 4 (scaled 0.9)
+      
+      // Well
+      [5, -5, 1.2],
+      
+      // Cart
+      [-10, 0, 1.5],
+      
+      // Crates & Barrels cluster 1 (near cart)
+      [-9, -0.5, 0.8],
+      [-8.5, 0.5, 0.5],
+      [-9.8, 0.8, 0.5],
+      
+      // Crates & Barrels cluster 2
+      [7, 4, 0.8],
+      
+      // Dead Trees (need room around them)
+      [-12, -5, 1],
+      [14, 2, 1],
+      [-11, 10, 1],
+      [13, -6, 1],
+      [-14, 0, 1],
+    ];
+    
+    // Register all obstacles
+    obstacles.forEach(([x, z, radius]) => {
+      pathfinder.addObstacle(x, z, radius);
+    });
+    
+    if (import.meta.env.DEV) {
+      console.log('[Town] Registered', obstacles.length, 'obstacles with pathfinder');
+    }
+    
+    // Cleanup on unmount
+    return () => {
+      obstacles.forEach(([x, z, radius]) => {
+        pathfinder.removeObstacle(x, z, radius);
+      });
+    };
+  }, []);
+
   return (
     <group>
       {/* Ground plane */}
@@ -344,30 +419,30 @@ export default function Town() {
       </mesh>
       
       {/* === TENTS === */}
-      <Tent position={[-6, 0, -3]} rotation={0.3} color="#7b6345" />
-      <Tent position={[-5, 0, 4]} rotation={-0.2} scale={1.2} color="#8b7355" />
-      <Tent position={[6, 0, -2]} rotation={Math.PI - 0.2} color="#6b5335" />
-      <Tent position={[7, 0, 5]} rotation={Math.PI + 0.3} scale={0.9} color="#9b8365" />
+      <Tent position={[-8, 0, -4]} rotation={0.3} color="#7b6345" />
+      <Tent position={[-8, 0, 5]} rotation={-0.2} scale={1.2} color="#8b7355" />
+      <Tent position={[8, 0, -4]} rotation={Math.PI - 0.2} color="#6b5335" />
+      <Tent position={[8, 0, 5]} rotation={Math.PI + 0.3} scale={0.9} color="#9b8365" />
       
       {/* === CAMPFIRES === */}
-      <Campfire position={[-4, 0, 1]} />
+      <Campfire position={[0, 0, 0.5]} />
       
       {/* === WELL === */}
-      <Well position={[3, 0, -5]} />
+      <Well position={[5, 0, -5]} />
       
       {/* === CART === */}
-      <Cart position={[-8, 0, 0]} rotation={0.4} />
+      <Cart position={[-10, 0, 0]} rotation={0.4} />
       
       {/* === CRATES & BARRELS === */}
-      <Crate position={[-7, 0.3, -1]} rotation={0.2} />
-      <Crate position={[-7.5, 0.3, -0.5]} rotation={-0.3} />
-      <Crate position={[-7.2, 0.9, -0.7]} rotation={0.5} scale={0.8} />
-      <Barrel position={[-6.5, 0, 0.5]} />
-      <Barrel position={[-7.8, 0, 0.8]} />
+      <Crate position={[-9, 0.3, -1]} rotation={0.2} />
+      <Crate position={[-9.5, 0.3, -0.5]} rotation={-0.3} />
+      <Crate position={[-9.2, 0.9, -0.7]} rotation={0.5} scale={0.8} />
+      <Barrel position={[-8.5, 0, 0.5]} />
+      <Barrel position={[-9.8, 0, 0.8]} />
       
-      <Crate position={[5, 0.3, 3]} rotation={0.1} />
-      <Barrel position={[5.5, 0, 2.5]} />
-      <Barrel position={[4.5, 0, 3.5]} scale={0.9} />
+      <Crate position={[7, 0.3, 4]} rotation={0.1} />
+      <Barrel position={[7.5, 0, 3.5]} />
+      <Barrel position={[6.5, 0, 4.5]} scale={0.9} />
       
       {/* === FENCING === */}
       <Fence position={[-10, 0, -8]} rotation={0} length={6} />

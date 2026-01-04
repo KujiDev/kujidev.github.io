@@ -27,6 +27,8 @@ import manaBodyIcon from '@/assets/icons/mana-body.svg';
 import arcaneBoltIcon from '@/assets/icons/arcane-bolt.svg';
 import arcaneBlastIcon from '@/assets/icons/arcane-blast.svg';
 import healthPotionIcon from '@/assets/icons/health-potion.svg';
+import manaPotionIcon from '@/assets/icons/mana-potion.svg';
+import rejuvenationPotionIcon from '@/assets/icons/rejuvenation-potion.svg';
 import foodIcon from '@/assets/icons/food.svg';
 import pixieVerdantIcon from '@/assets/icons/pixie-verdant.svg';
 import pixieAzureIcon from '@/assets/icons/pixie-azure.svg';
@@ -50,6 +52,8 @@ const ICON_MAP = {
   'arcane-bolt.svg': arcaneBoltIcon,
   'arcane-blast.svg': arcaneBlastIcon,
   'health-potion.svg': healthPotionIcon,
+  'mana-potion.svg': manaPotionIcon,
+  'rejuvenation-potion.svg': rejuvenationPotionIcon,
   'food.svg': foodIcon,
   'pixie-verdant.svg': pixieVerdantIcon,
   'pixie-azure.svg': pixieAzureIcon,
@@ -296,10 +300,19 @@ function buildActions() {
     const action = transformSkillToAction(skill);
     if (!action) continue;
     
+    // Register under the primary action ID (may be legacy like 'skill_1' or semantic like 'ice_shard')
     ACTIONS_CACHE[action.id] = action;
     ACTION_BY_ID.set(action.id, action);
     FSM_BY_ID.set(action.id, action.fsmAction);
     ELEMENT_BY_ID.set(action.id, action.element ? ELEMENTS[action.element] : null);
+    
+    // ALSO register under the semantic skill ID if different (for data-driven slot maps)
+    // This ensures both 'ice_shard' and 'skill_1' resolve to the same action
+    if (action._skillId && action._skillId !== action.id) {
+      ACTION_BY_ID.set(action._skillId, action);
+      FSM_BY_ID.set(action._skillId, action.fsmAction);
+      ELEMENT_BY_ID.set(action._skillId, action.element ? ELEMENTS[action.element] : null);
+    }
   }
   
   return ACTIONS_CACHE;
@@ -505,6 +518,37 @@ export function getSkillIdForAction(actionId) {
 export function getActionIdForSkill(skillId) {
   if (!skillId) return null;
   return SKILL_TO_ACTION_ID[skillId] || skillId;
+}
+
+/**
+ * Get the VFX array for an action.
+ * Data-driven: VFX are defined on skills in skills.json, not hardcoded in components.
+ * 
+ * @param {string} actionId - The runtime action ID (e.g., 'skill_3') or semantic ID (e.g., 'arcane_rush')
+ * @returns {string[]} Array of VFX identifiers (e.g., ['arcane_trail', 'shield_effect'])
+ */
+export function getVfxForAction(actionId) {
+  if (!actionId) return [];
+  
+  // Get the semantic skill ID
+  const skillId = getSkillIdForAction(actionId);
+  if (!skillId) return [];
+  
+  // Get the skill from the data layer
+  const skill = getSkillById(skillId);
+  return skill?.vfx || [];
+}
+
+/**
+ * Check if an action has a specific VFX.
+ * Data-driven alternative to hardcoded skill ID checks in VFX components.
+ * 
+ * @param {string} actionId - The runtime action ID (e.g., 'skill_3')
+ * @param {string} vfxId - The VFX identifier to check for (e.g., 'arcane_trail')
+ * @returns {boolean}
+ */
+export function hasVfx(actionId, vfxId) {
+  return getVfxForAction(actionId).includes(vfxId);
 }
 
 // Re-export ELEMENTS for convenience

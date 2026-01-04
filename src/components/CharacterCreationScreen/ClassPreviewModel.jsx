@@ -10,16 +10,24 @@
  * =============
  * - Model path comes from class.model.path
  * - Animation binding comes from class.stateAnimations
- * - Selection highlight via outline/emissive effect
+ * - Selection highlight via rim glow and floating animation
+ * - Class-colored aura effect on selection
  * - Error handling for missing animations
  * - No game logic - purely visual rendering
+ * 
+ * AAA POLISH:
+ * ===========
+ * - Smooth floating animation on selected character
+ * - Rim glow effect using emissive materials
+ * - Scale pulse on hover
+ * - Class-specific aura coloring
  */
 
 import { useEffect, useRef, useMemo, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { useGLTF, useAnimations } from '@react-three/drei';
 import { SkeletonUtils } from 'three-stdlib';
-import { getAnimationClip } from '@/engine/loader';
+import * as THREE from 'three';
 
 /**
  * Inner model component - handles actual GLTF loading
@@ -28,15 +36,20 @@ import { getAnimationClip } from '@/engine/loader';
 function ModelInner({ 
   classConfig, 
   isSelected,
+  isHovered,
+  isTransitioning,
 }) {
   const group = useRef();
   const [isReady, setIsReady] = useState(false);
+  const targetScale = useRef(1);
+  const currentFloatY = useRef(0);
   
   const modelPath = classConfig.model?.path || '/models/Wizard-transformed.glb';
+  const classColor = classConfig.ui?.color || '#a89878';
   
-  // Get idle animation key from class config, then resolve to actual clip name
-  const idleAnimationKey = classConfig.stateAnimations?.idle || 'IDLE';
-  const idleClipName = getAnimationClip(classConfig.id, idleAnimationKey);
+  // Get animation keys from class config
+  const idleAnimationKey = classConfig.stateAnimations?.idle || 'Idle';
+  const runAnimationKey = classConfig.stateAnimations?.moving || 'Run';
   
   // Load model - useGLTF suspends until loaded
   const { scene, animations } = useGLTF(modelPath);
@@ -53,70 +66,85 @@ function ModelInner({
       console.log(
         `[DEBUG][CharacterCreation] Loaded ${classConfig.id} model, animations: [${animationNames.join(', ')}]`
       );
-      console.log(
-        `[DEBUG][CharacterCreation] Idle mapping: ${idleAnimationKey} → ${idleClipName || 'NOT FOUND'}`
-      );
     }
     
     setIsReady(true);
-  }, [actions, classConfig.id, idleAnimationKey, idleClipName]);
+  }, [actions, classConfig.id]);
   
-  // Play idle animation with error handling
+  // Play idle or run animation based on transitioning state
   useEffect(() => {
     if (!actions || !isReady) return;
     
-    // Try resolved clip name first, then fall back to key
-    const clipNameToPlay = idleClipName || idleAnimationKey;
-    const idleAction = actions[clipNameToPlay];
+    // Choose animation based on state
+    const animationToPlay = isTransitioning ? runAnimationKey : idleAnimationKey;
+    const action = actions[animationToPlay];
     
-    if (idleAction) {
-      idleAction.reset().fadeIn(0.3).play();
+    if (action) {
+      // Fade out all other animations
+      Object.values(actions).forEach(a => {
+        if (a !== action) a.fadeOut(0.3);
+      });
+      
+      action.reset().fadeIn(0.3).play();
       
       if (import.meta.env.DEV) {
-        console.log(`[DEBUG][CharacterCreation] Playing animation: ${clipNameToPlay} for ${classConfig.id}`);
+        console.log(`[DEBUG][CharacterCreation] Playing animation: ${animationToPlay} for ${classConfig.id}`);
       }
       
       return () => {
         try {
-          idleAction.fadeOut(0.3);
+          action.fadeOut(0.3);
         } catch (e) {
           // Animation may already be stopped
         }
       };
     } else if (import.meta.env.DEV) {
       console.warn(
-        `[ClassPreviewModel] Missing idle animation "${clipNameToPlay}" for ${classConfig.name}, ` +
+        `[ClassPreviewModel] Missing animation "${animationToPlay}" for ${classConfig.name}, ` +
         `available: [${Object.keys(actions).join(', ')}]`
       );
-      // Try fallback to first available animation (but not Death!)
-      const availableNames = Object.keys(actions);
-      const fallbackName = availableNames.find(n => 
-        n.toLowerCase().includes('idle') || 
-        n.toLowerCase().includes('stand')
-      ) || availableNames.find(n => 
-        !n.toLowerCase().includes('death') && 
-        !n.toLowerCase().includes('dead')
-      );
-      
-      if (fallbackName && actions[fallbackName]) {
-        console.log(`[ClassPreviewModel] Using fallback animation: ${fallbackName}`);
-        actions[fallbackName].reset().fadeIn(0.3).play();
-      }
     }
-  }, [actions, idleClipName, idleAnimationKey, classConfig.name, classConfig.id, isReady]);
+  }, [actions, idleAnimationKey, runAnimationKey, classConfig.name, classConfig.id, isReady, isTransitioning]);
   
-  // Gentle floating animation for selected character
-  useFrame((state) => {
+  // Gentle floating animation for selected character + hover scale
+  useFrame((state, delta) => {
     if (!group.current) return;
     
+    // Floating animation for selected - only bobs UPWARD, never below ground
     if (isSelected) {
       const t = state.clock.elapsedTime;
-      group.current.position.y = Math.sin(t * 2) * 0.05;
+      // Use abs(sin) to keep it always positive (0.05 to 0.15 range)
+      const targetY = 0.05 + Math.abs(Math.sin(t * 1.2)) * 0.1;
+      currentFloatY.current = THREE.MathUtils.lerp(currentFloatY.current, targetY, delta * 3);
     } else {
-      group.current.position.y = 0;
+      currentFloatY.current = THREE.MathUtils.lerp(currentFloatY.current, 0, delta * 4);
     }
+    group.current.position.y = currentFloatY.current;
+    
+    // Scale pulse on hover/selection - subtle
+    const baseScale = isSelected ? 1.02 : (isHovered ? 1.01 : 1.0);
+    targetScale.current = THREE.MathUtils.lerp(targetScale.current, baseScale, delta * 6);
+    group.current.scale.setScalar(targetScale.current);
   });
   
+  // Apply emissive glow to materials when selected
+  useEffect(() => {
+    if (!clone) return;
+    
+    const glowColor = new THREE.Color(classColor);
+    const glowIntensity = isSelected ? 0.15 : (isHovered ? 0.08 : 0);
+    
+    clone.traverse((child) => {
+      if (child.isMesh && child.material) {
+        const mat = child.material;
+        if (mat.emissive) {
+          mat.emissive = glowColor;
+          mat.emissiveIntensity = glowIntensity;
+        }
+      }
+    });
+  }, [clone, isSelected, isHovered, classColor]);
+
   return (
     <group ref={group}>
       <primitive object={clone} />
@@ -130,6 +158,8 @@ function ModelInner({
 export default function ClassPreviewModel({ 
   classConfig, 
   isSelected = false,
+  isHovered = false,
+  isTransitioning = false,
   onPointerOver,
   onPointerOut,
   onClick,
@@ -143,6 +173,8 @@ export default function ClassPreviewModel({
       <ModelInner
         classConfig={classConfig}
         isSelected={isSelected}
+        isHovered={isHovered}
+        isTransitioning={isTransitioning}
       />
     </group>
   );
